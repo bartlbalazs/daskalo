@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+
+# uv / virtualenv
+.venv/
+.python-version
+
+# Environment variables — contain secrets, never commit
+.env
+
+# Generated output files
+output/
+
+# Ruff / pytest caches
+.ruff_cache/
+.pytest_cache/

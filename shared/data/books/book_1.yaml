@@ -1,0 +1,114 @@
+id: book_1
+title: The Absolute Basics
+description: 'Master the building blocks of Greek: the alphabet, core verbs, and your
+  first real sentences.'
+order: 1
+level: A1.1
+chapters:
+- id: b1_c1
+  order: 1
+  suggested_length: short
+  language_skill: 'Skill: Introducing yourself and basic pronunciation.'
+  target_grammar: "1. The Greek alphabet: all 24 letters, their names, and their sounds\
+    \ (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ, μ, ν, ξ, π, ρ,\
+    \ σ/ς, τ, φ, χ, ψ).\n2. Stress marks (τόνος): every Greek word of more than one\
+    \ syllable carries exactly one accent mark indicating the stressed syllable.\n\
+    3. The verb \"to be\" — είμαι — fully conjugated in the present tense:\n   εγώ\
+    \ είμαι, εσύ είσαι, αυτός/αυτή/αυτό είναι, εμείς είμαστε, εσείς είστε/είσαστε,\
+    \ αυτοί/αυτές/αυτά είναι.\n4. Personal subject pronouns: εγώ, εσύ, αυτός, αυτή,\
+    \ αυτό, εμείς, εσείς, αυτοί/αυτές/αυτά.\n"
+  mandatory_vocabulary:
+  - είμαι (I am)
+  - εσύ (you)
+  - αυτός (he)
+  - αυτή (she)
+  - εμείς (we)
+  - καλημέρα (good morning)
+  - γεια (hello)
+  - ναι (yes)
+  - όχι (no)
+  - ευχαριστώ (thank you)
+- id: b1_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Identifying objects and basic ownership.'
+  target_grammar: "1. Definite articles in the nominative case (subject position):\n\
+    \   masculine ο (ο άνδρας — the man), feminine η (η γυναίκα — the woman), neuter\
+    \ το (το παιδί — the child).\n2. Noun gender: every Greek noun has a grammatical\
+    \ gender (masculine/feminine/neuter) which must agree with its article.\n3. The\
+    \ verb \"to have\" — έχω — fully conjugated in the present tense:\n   εγώ έχω,\
+    \ εσύ έχεις, αυτός/αυτή/αυτό έχει, εμείς έχουμε, εσείς έχετε, αυτοί/αυτές/αυτά\
+    \ έχουν.\n"
+  mandatory_vocabulary:
+  - ο (the — masculine)
+  - η (the — feminine)
+  - το (the — neuter)
+  - έχω (I have)
+  - έχει (he/she/it has)
+  - παρακαλώ (please)
+  - συγγνώμη (excuse me)
+  - πολύ (very)
+  - λίγο (a little)
+  - καλά (well)
+- id: b1_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Asking simple questions and talking about actions.'
+  target_grammar: "1. Regular present-tense verbs ending in -ω (Type A active voice),\
+    \ first conjugation:\n   Pattern: -ω, -εις, -ει, -ουμε, -ετε, -ουν.\n   Example\
+    \ verb: μιλάω/μιλώ (to speak) — μιλώ, μιλάς, μιλά, μιλάμε, μιλάτε, μιλάνε.\n \
+    \  Second example: πίνω (to drink) — πίνω, πίνεις, πίνει, πίνουμε, πίνετε, πίνουν.\n\
+    2. Basic interrogative words: τι (what), πού (where), πώς (how), ποιος/ποια/ποιο\
+    \ (who/which), πότε (when).\n3. Simple yes/no questions: intonation-based (same\
+    \ word order as a statement, rising intonation).\n"
+  mandatory_vocabulary:
+  - μιλώ (I speak)
+  - πίνω (I drink)
+  - τι (what)
+  - πού (where)
+  - πώς (how)
+  - μαθαίνω (I learn)
+  - καταλαβαίνω (I understand)
+  - γιατί (why)
+  - εδώ (here)
+  - εκεί (there)
+- id: b1_c4
+  order: 4
+  suggested_length: long
+  language_skill: 'Skill: Talking about multiple people and things.'
+  target_grammar: '1. Plural nouns in the nominative case.
+
+    2. Masculine -οι, feminine -ες, neuter -α.
+
+    3. Plural definite articles: οι, οι, τα.'
+  mandatory_vocabulary:
+  - οι
+  - τα
+  - άνθρωποι
+  - γυναίκες
+  - παιδιά
+  - άνδρες (men)
+  - βιβλία (books)
+  - φίλοι (friends)
+  - σπίτια (houses)
+  - αυτοκίνητα (cars)
+- id: b1_c5
+  order: 5
+  suggested_length: long
+  language_skill: 'Skill: Discussing routines, numbers, and dates.'
+  target_grammar: '1. Numbers 20-100.
+
+    2. Days of the week.
+
+    3. Using την/το for ''on [Day]''. (e.g. την Κυριακή)'
+  mandatory_vocabulary:
+  - Δευτέρα
+  - Τρίτη
+  - εκατό
+  - πενήντα
+  - την Κυριακή
+  - Τετάρτη (Wednesday)
+  - Πέμπτη (Thursday)
+  - Παρασκευή (Friday)
+  - Σάββατο (Saturday)
+  - σήμερα (today)

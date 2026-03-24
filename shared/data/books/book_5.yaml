@@ -1,0 +1,175 @@
+id: book_5
+title: Nuance and Subtlety
+description: Express possibilities, use the perfect tenses, and enrich your sentences
+  with prepositions and pronouns.
+order: 5
+level: B1.2
+chapters:
+- id: b5_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Talking about life experiences relevant to the present.'
+  target_grammar: "1. The Present Perfect (Παρακείμενος): Formed with έχω + the invariable\
+    \ aorist infinitive.\n   Example: έχω γράψει (I have written), έχεις δει (you\
+    \ have seen), έχει φάει (he has eaten).\n   Used for actions completed in the\
+    \ past with results relevant to the present.\n   Time markers: ήδη (already),\
+    \ ακόμα (yet/still), μόλις (just), ποτέ (never — with perfect).\n"
+  mandatory_vocabulary:
+  - έχω κάνει (I have done)
+  - έχω φάει (I have eaten)
+  - έχω δει (I have seen)
+  - ήδη (already)
+  - ακόμα (yet/still)
+  - μόλις (just now)
+  - ποτέ (never — with perfect)
+  - μέχρι τώρα (until now)
+  - πρόσφατα (recently)
+  - αρκετές φορές (several times)
+- id: b5_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Expressing what had already happened before another past
+    event.'
+  target_grammar: "1. The Past Perfect (Υπερσυντέλικος): Formed with είχα + aorist\
+    \ infinitive.\n   Example: είχα γράψει (I had written), είχες δει (you had seen).\n\
+    \   Used for an action completed before another past action.\n   Example: Όταν\
+    \ ήρθες, είχα ήδη φύγει. (When you arrived, I had already left.)\n2. Contrast\
+    \ between present perfect and past perfect in context.\n"
+  mandatory_vocabulary:
+  - είχα δει (I had seen)
+  - είχα πάει (I had gone)
+  - είχε έρθει (he/she had come)
+  - είχαμε φάει (we had eaten)
+  - ήδη (already)
+  - ακόμα (still/yet)
+  - πριν να (before)
+  - μετά που (after)
+  - εκείνη τη μέρα (that day)
+  - την εποχή εκείνη (at that time)
+- id: b5_c3
+  order: 3
+  suggested_length: short
+  language_skill: 'Skill: Explaining who benefits from an action.'
+  target_grammar: "1. Indirect Object Pronouns (Genitive case pronouns):\n   Singular:\
+    \ μου (to me), σου (to you), του (to him/it), της (to her).\n   Plural: μας (to\
+    \ us), σας (to you pl.), τους (to them).\n   Placed *before* the verb.\n   Example:\
+    \ Του δίνω το βιβλίο. (I give him the book.)\n2. Common verbs taking indirect\
+    \ objects: δίνω (give), λέω (tell), στέλνω (send), δείχνω (show).\n"
+  mandatory_vocabulary:
+  - μου (to me)
+  - σου (to you)
+  - του (to him/it)
+  - της (to her)
+  - μας (to us)
+  - σας (to you pl.)
+  - τους (to them)
+  - δίνω (I give)
+  - στέλνω (I send)
+  - δείχνω (I show)
+- id: b5_c4
+  order: 4
+  suggested_length: medium
+  language_skill: 'Skill: Combining direct and indirect objects in one sentence.'
+  target_grammar: "1. Direct + Indirect Object Pronoun combinations:\n   Indirect\
+    \ comes first, then direct.\n   Example: Μου το δίνει. (He gives it to me.)\n\
+    2. Combining pronouns with different persons and genders.\n   Example: Σου το\
+    \ έστειλα. (I sent it to you.) Της το δείξαμε. (We showed it to her.)\n3. Pronoun\
+    \ order rule: indirect (genitive) always precedes direct (accusative).\n"
+  mandatory_vocabulary:
+  - μου το (it to me)
+  - σου το (it to you)
+  - του το (it to him)
+  - της το (it to her)
+  - λέω (I tell/say)
+  - εξηγώ (I explain)
+  - αποστέλλω (I dispatch/send)
+  - φέρνω (I bring)
+  - δανείζω (I lend)
+  - χαρίζω (I give as gift)
+- id: b5_c5
+  order: 5
+  suggested_length: medium
+  language_skill: 'Skill: Giving direct commands and advice.'
+  target_grammar: "1. The Imperative (Προστακτική) — continuous (from present stem)\
+    \ for ongoing action vs simple (from aorist stem) for a one-off action.\n   Continuous:\
+    \ Γράφε! (Keep writing!). Simple: Γράψε! (Write it down!).\n2. Negative commands:\
+    \ μη(ν) + subjunctive: Μη γράφεις! (Don't write!)\n3. Irregular imperatives: πες\
+    \ (say!), δες (see!), πιες (drink!), έλα (come!), πήγαινε (go!), φάε (eat!).\n"
+  mandatory_vocabulary:
+  - πες (say!)
+  - έλα (come!)
+  - πήγαινε (go!)
+  - μην (don't)
+  - δώσε (give!)
+  - κάνε (do!)
+  - γράψε (write!)
+  - φάε (eat!)
+  - τρέξε (run!)
+  - σταμάτα (stop!)
+- id: b5_c6
+  order: 6
+  suggested_length: short
+  language_skill: 'Skill: Placing object pronouns correctly with imperatives.'
+  target_grammar: "1. Using object pronouns with imperatives:\n   Pronouns go *after*\
+    \ positive commands: Δώσε μου! (Give me!), Πες μου το! (Tell it to me!).\n   Pronouns\
+    \ go *between* μην and verb for negative commands: Μην μου το δίνεις! (Don't give\
+    \ it to me!)\n2. Combining imperative + indirect + direct pronoun in one structure.\n"
+  mandatory_vocabulary:
+  - δώσε μου (give me!)
+  - πες μου (tell me!)
+  - δείξε μου (show me!)
+  - μην το κάνεις (don't do it!)
+  - στείλε μου το (send it to me!)
+  - φέρε μου (bring me!)
+  - δείξ' του (show him!)
+  - άκουσέ με (listen to me!)
+  - βοήθησέ με (help me!)
+  - άσε με (let me!)
+- id: b5_c7
+  order: 7
+  suggested_length: long
+  language_skill: 'Skill: Expressing likes, dislikes, and impressions.'
+  target_grammar: '1. Verbs that take an indirect object pronoun as subject of the
+    experience:
+
+    2. μου αρέσει (I like it — it is pleasing to me): Μου αρέσει ο καφές.
+
+    3. μου αρέσουν (I like them): Μου αρέσουν τα βιβλία.
+
+    4. Other experiential verbs: μοιάζω (to resemble), ταιριάζω (to suit), φαίνομαι
+    (to seem), πειράζω (to bother).'
+  mandatory_vocabulary:
+  - αρέσει (it pleases/is liked)
+  - αρέσουν (they please/are liked)
+  - μου αρέσει (I like it)
+  - μοιάζω (I resemble)
+  - ταιριάζω (I suit/match)
+  - φαίνομαι (I seem/appear)
+  - σε πειράζει (it bothers you)
+  - σου ταιριάζει (it suits you)
+  - φαίνεται (it seems)
+  - ακούγεται (it sounds)
+- id: b5_c8
+  order: 8
+  suggested_length: short
+  language_skill: 'Skill: Offering cultural wishes and hopes.'
+  target_grammar: '1. Expressing wishes and hopes with μακάρι:
+
+    2. μακάρι να + present subjunctive for achievable future wishes: Μακάρι να έρθεις!
+    (I wish you would come!)
+
+    3. μακάρι να + imperfect for unreal/impossible present wishes: Μακάρι να ήμουν
+    πλούσιος. (I wish I were rich.)
+
+    4. Standard Greek cultural wishes (ευχές): περαστικά, συγχαρητήρια, καλή επιτυχία.'
+  mandatory_vocabulary:
+  - μακάρι (I wish/if only)
+  - εύχομαι (I wish/pray)
+  - περαστικά (get well soon)
+  - συγχαρητήρια (congratulations)
+  - καλή επιτυχία (good luck)
+  - ελπίδα (hope)
+  - ευχή (wish)
+  - όνειρο (dream)
+  - καλό ταξίδι (have a good trip)
+  - χρόνια πολλά (many happy years)

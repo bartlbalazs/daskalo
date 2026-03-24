@@ -1,0 +1,153 @@
+id: book_3
+title: Moving in Time
+description: Break free from the present tense — talk about the future and narrate
+  past events.
+order: 3
+level: A2.1
+chapters:
+- id: b3_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Making plans for the future.'
+  target_grammar: "1. The simple future tense with θα:\n   θα + present-tense stem\
+    \ forms the continuous future (what will be happening).\n   θα + aorist stem (perfective\
+    \ stem) forms the simple future (what will happen, completed action).\n   Example:\
+    \ θα πίνω (I will be drinking — continuous) vs θα πιω (I will drink — simple).\n\
+    2. Future with common regular verbs: γράφω→θα γράψω, διαβάζω→θα διαβάσω, τρώω→θα\
+    \ φάω, πίνω→θα πιω.\n3. Time adverbs for the future: αύριο (tomorrow), σύντομα\
+    \ (soon), μετά (later/after), την επόμενη εβδομάδα (next week).\n"
+  mandatory_vocabulary:
+  - θα (future particle)
+  - αύριο (tomorrow)
+  - σύντομα (soon)
+  - μετά (later)
+  - θα πάω (I will go)
+  - μεθαύριο (the day after tomorrow)
+  - ποτέ (never)
+  - πάντα (always)
+  - το πρωί (in the morning)
+  - θα φάω (I will eat)
+- id: b3_c2
+  order: 2
+  suggested_length: medium
+  language_skill: 'Skill: Narrating recent past events using regular verbs.'
+  target_grammar: "1. The simple past (Aorist) of regular -ω verbs (Type A):\n   Stress\
+    \ shifts to the third syllable from the end (or the first syllable in short verbs).\n\
+    \   Endings: -α, -ες, -ε, -αμε, -ατε, -αν.\n   Example: γράφω → έγραψα (I wrote),\
+    \ αγοράζω → αγόρασα (I bought), διαβάζω → διάβασα (I read).\n"
+  mandatory_vocabulary:
+  - έγραψα (I wrote)
+  - αγόρασα (I bought)
+  - διάβασα (I read - past)
+  - έκανα (I did)
+  - πέρυσι (last year)
+  - άνοιξα (I opened)
+  - έκλεισα (I closed)
+  - έφτιαξα (I made/fixed)
+  - άρχισα (I started)
+  - τελείωσα (I finished)
+- id: b3_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Using negation and time adverbs in the past.'
+  target_grammar: "1. Syllabic augment in the aorist: verbs of two or fewer syllables\
+    \ take the ε- prefix in the aorist (γράφω → έγραψα, πίνω → ήπια).\n2. Negation\
+    \ in the past: δεν + aorist form.\n   Example: Δεν αγόρασα τίποτα. (I didn't buy\
+    \ anything.)\n3. Time adverbs for the past: χθες (yesterday), πριν (before/ago),\
+    \ την περασμένη εβδομάδα (last week), πέρυσι (last year).\n"
+  mandatory_vocabulary:
+  - χθες (yesterday)
+  - πριν (before/ago)
+  - δεν (not — negation)
+  - την περασμένη εβδομάδα (last week)
+  - ήπια (I drank)
+  - δεν ήπια (I didn't drink)
+  - δεν έγραψα (I didn't write)
+  - πριν από λίγο (a while ago)
+  - μόλις (just)
+  - τελικά (finally)
+- id: b3_c4
+  order: 4
+  suggested_length: long
+  language_skill: 'Skill: Telling stories about the past using irregular verbs.'
+  target_grammar: "1. The simple past (Aorist) of high-frequency irregular verbs:\n\
+    \   - βλέπω → είδα (I saw): είδα, είδες, είδε, είδαμε, είδατε, είδαν.\n   - λέω\
+    \ → είπα (I said): είπα, είπες, είπε, είπαμε, είπατε, είπαν.\n   - πηγαίνω/πάω\
+    \ → πήγα (I went): πήγα, πήγες, πήγε, πήγαμε, πήγατε, πήγαν.\n   - τρώω → έφαγα\
+    \ (I ate): έφαγα, έφαγες, έφαγε, φάγαμε, φάγατε, έφαγαν.\n   - έρχομαι → ήρθα\
+    \ (I came): ήρθα, ήρθες, ήρθε, ήρθαμε, ήρθατε, ήρθαν.\n2. Mixing regular and irregular\
+    \ aorist in the same narrative to tell a coherent short story in the past.\n"
+  mandatory_vocabulary:
+  - είδα (I saw)
+  - είπα (I said)
+  - πήγα (I went)
+  - έφαγα (I ate)
+  - ήρθα (I came)
+  - βρήκα (I found)
+  - έμεινα (I stayed)
+  - άκουσα (I heard)
+  - κατάλαβα (I understood)
+  - ήπια (I drank)
+- id: b3_c5
+  order: 5
+  suggested_length: medium
+  language_skill: 'Skill: Describing past exchanges and transfers.'
+  target_grammar: '1. A second batch of high-frequency irregular aorist verbs.
+
+    2. παίρνω → πήρα, δίνω → έδωσα, βάζω → έβαλα, βγάζω → έβγαλα, μαθαίνω → έμαθα.
+
+    3. Building fluency by combining all aorist verbs in short narratives about giving,
+    receiving, and learning.'
+  mandatory_vocabulary:
+  - πήρα (I took)
+  - έδωσα (I gave)
+  - έβαλα (I put)
+  - έβγαλα (I took out)
+  - έμαθα (I learned)
+  - άφησα (I left/let)
+  - έστειλα (I sent)
+  - έχασα (I lost)
+  - βρήκα (I found)
+  - άλλαξα (I changed)
+- id: b3_c6
+  order: 6
+  suggested_length: short
+  language_skill: 'Skill: Expressing ability and asking permission.'
+  target_grammar: '1. The verb μπορώ (can / to be able to) fully conjugated in the
+    present tense:
+
+    2. μπορώ, μπορείς, μπορεί, μπορούμε, μπορείτε, μπορούν.
+
+    3. Aorist of μπορώ: μπόρεσα (I managed / I was able to).'
+  mandatory_vocabulary:
+  - μπορώ (I can)
+  - μπορείς (you can)
+  - μπορούμε (we can)
+  - μπόρεσα (I managed)
+  - δεν μπορώ (I cannot)
+  - μπορείς να με βοηθήσεις; (can you help me?)
+  - μπορώ να μπω; (may I come in?)
+  - βοήθεια (help)
+  - ερώτηση (question)
+  - άδεια (permission/leave)
+- id: b3_c7
+  order: 7
+  suggested_length: medium
+  language_skill: 'Skill: Expressing desire and obligation using να.'
+  target_grammar: "1. Using μπορώ + να + subjunctive (aorist stem) to express ability\
+    \ or permission:\n   Μπορώ να φύγω; (Can I leave? / May I leave?)\n   Μπορείς\
+    \ να έρθεις αύριο; (Can you come tomorrow?)\n2. Using πρέπει + να + subjunctive\
+    \ (aorist stem) to express necessity:\n   Πρέπει να φύγω τώρα. (I have to leave\
+    \ now.)\n   Δεν πρέπει να αργήσεις. (You mustn't be late.)\n3. Using θέλω + να\
+    \ + subjunctive in past contexts with compound structures.\n"
+  mandatory_vocabulary:
+  - πρέπει (must/have to)
+  - θέλω να (I want to)
+  - μπορώ να (I can/may)
+  - δεν πρέπει (mustn't)
+  - ίσως (maybe)
+  - ελπίζω (I hope)
+  - χρειάζεται (it is needed)
+  - χρειάζομαι (I need)
+  - αναγκαίο (necessary)
+  - φαίνεται (it seems)

@@ -1,0 +1,172 @@
+id: book_4
+title: Expressing Nuance
+description: Describe routines, ongoing past actions, and conditions — move into true
+  intermediate Greek.
+order: 4
+level: B1
+chapters:
+- id: b4_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Describing daily routines using deponent verbs.'
+  target_grammar: "1. Deponent/passive verbs ending in -ομαι (Type 1) in the present\
+    \ tense:\n   These verbs have passive endings but active meaning.\n   κάθομαι\
+    \ (I sit), έρχομαι (I come), σκέφτομαι (I think), σηκώνομαι (I get up).\n   Conjugation\
+    \ pattern: κάθ-ομαι, κάθ-εσαι, κάθ-εται, καθ-όμαστε, κάθ-εστε, κάθ-ονται.\n"
+  mandatory_vocabulary:
+  - κάθομαι (I sit/I am sitting)
+  - σκέφτομαι (I think)
+  - σηκώνομαι (I get up)
+  - ντύνομαι (I get dressed)
+  - πλένομαι (I wash myself)
+  - εργάζομαι (I work)
+  - δέχομαι (I accept)
+  - κουράζομαι (I get tired)
+  - χαίρομαι (I am glad/happy)
+  - κοιτάζομαι (I look at myself)
+- id: b4_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Describing feelings and emotional states.'
+  target_grammar: "1. Deponent/passive verbs ending in -ιέμαι / -άμαι (Type 2) in\
+    \ the present tense:\n   κοιμάμαι (I sleep), θυμάμαι (I remember), φοβάμαι (I\
+    \ am afraid), αισθάνομαι (I feel).\n   Conjugation pattern: κοιμ-άμαι, κοιμ-άσαι,\
+    \ κοιμ-άται, κοιμ-όμαστε, κοιμ-άστε, κοιμ-ούνται.\n2. The preposition με (with)\
+    \ + accusative for accompaniment: Πάω με τον φίλο μου. (I go with my friend.)\n"
+  mandatory_vocabulary:
+  - κοιμάμαι (I sleep)
+  - θυμάμαι (I remember)
+  - φοβάμαι (I am afraid)
+  - αισθάνομαι (I feel)
+  - με (with)
+  - αγχώνομαι (I get anxious)
+  - λυπάμαι (I am sorry/sad)
+  - χαίρομαι (I am happy)
+  - ντρέπομαι (I am embarrassed)
+  - απορώ (I am surprised/wonder)
+- id: b4_c3
+  order: 3
+  suggested_length: long
+  language_skill: 'Skill: Reminiscing about past habits and routines.'
+  target_grammar: "1. The imperfect (continuous past — Παρατατικός) for ongoing or\
+    \ habitual past actions:\n   Formed from the present stem with past endings: -α,\
+    \ -ες, -ε, -αμε, -ατε, -αν.\n   Key signal words: συνήθως (usually), πάντα (always),\
+    \ κάθε μέρα (every day), τότε (back then).\n   Example: Κάθε καλοκαίρι πήγαινα\
+    \ στη θάλασσα. (Every summer I used to go to the sea.)\n"
+  mandatory_vocabulary:
+  - συνήθως (usually)
+  - πάντα (always)
+  - τότε (back then/at that time)
+  - πήγαινα (I used to go / I was going)
+  - έκανα (I used to do / I was doing)
+  - συχνά (often)
+  - σπάνια (rarely)
+  - κάποιες φορές (sometimes)
+  - διάβαζα (I used to read)
+  - έγραφα (I used to write)
+- id: b4_c4
+  order: 4
+  suggested_length: medium
+  language_skill: 'Skill: Contrasting completed and ongoing past actions.'
+  target_grammar: "1. Contrast between imperfect (ongoing/habitual) and aorist (single\
+    \ completed event):\n   Imperfect: Διάβαζα όταν ήρθες. (I was reading when you\
+    \ came — ongoing background action.)\n   Aorist: Διάβασα το βιβλίο. (I read the\
+    \ book — completed action.)\n2. Using both tenses together to tell richer past\
+    \ narratives.\n"
+  mandatory_vocabulary:
+  - ενώ (while)
+  - όταν (when)
+  - εκείνη τη στιγμή (at that moment)
+  - ξαφνικά (suddenly)
+  - παράλληλα (at the same time)
+  - μόλις (as soon as)
+  - αμέσως (immediately)
+  - μετά από αυτό (after that)
+  - πριν από αυτό (before that)
+  - τελικά (in the end)
+- id: b4_c5
+  order: 5
+  suggested_length: short
+  language_skill: 'Skill: Making open conditional statements.'
+  target_grammar: "1. Type 1 conditional clauses with αν (if) — open/likely conditions:\n\
+    \   Structure: Αν + present indicative, θα + future/present.\n   Example: Αν έχεις\
+    \ χρόνο, θα πάμε καφέ. (If you have time, we'll go for coffee.)\n2. The conjunction\
+    \ όταν (when) for temporal clauses:\n   Όταν φτάσεις, τηλεφώνησέ μου. (When you\
+    \ arrive, call me.)\n"
+  mandatory_vocabulary:
+  - αν (if)
+  - εάν (if — formal)
+  - όταν (when)
+  - τότε (then)
+  - φτάνω (I arrive)
+  - αρχίζω (I begin)
+  - τελειώνω (I finish)
+  - αν θέλεις (if you want)
+  - αν μπορείς (if you can)
+  - όποτε (whenever)
+- id: b4_c6
+  order: 6
+  suggested_length: medium
+  language_skill: 'Skill: Making hypothetical conditional statements.'
+  target_grammar: "1. Type 2 conditional clauses with αν (if) — hypothetical/less\
+    \ likely conditions:\n   Structure: Αν + imperfect, θα + imperfect.\n   Example:\
+    \ Αν είχα λεφτά, θα αγόραζα σπίτι. (If I had money, I would buy a house.)\n2.\
+    \ Concession clauses with αν και / μολονότι (even if / although).\n"
+  mandatory_vocabulary:
+  - αν και (even if/although)
+  - θα αγόραζα (I would buy)
+  - θα πήγαινα (I would go)
+  - θα ήθελα (I would want)
+  - θα μπορούσα (I could/would be able)
+  - υποθέτω (I suppose)
+  - φαντάσου (imagine!)
+  - ας πούμε (let's say)
+  - επειδή (because)
+  - αφού (since/after)
+- id: b4_c7
+  order: 7
+  suggested_length: medium
+  language_skill: 'Skill: Talking about yourself and self-reflection.'
+  target_grammar: '1. Reflexive pronouns using the noun εαυτός:
+
+    2. ο εαυτός μου (myself), ο εαυτός σου (yourself), ο εαυτός του/της (himself/herself).
+
+    3. Agreement of εαυτός with the subject in gender, number, and case.
+
+    4. Using μόνος μου / μόνη μου (by myself) as an alternative reflexive expression.'
+  mandatory_vocabulary:
+  - εαυτός (self)
+  - τον εαυτό μου (myself — acc.)
+  - τον εαυτό σου (yourself — acc.)
+  - καθρέφτης (mirror)
+  - κοιτάζω (I look at)
+  - ο ίδιος (the same / himself)
+  - μόνος μου (by myself — masc.)
+  - μόνη μου (by myself — fem.)
+  - συμπεριφορά (behavior)
+  - άποψη (opinion)
+- id: b4_c8
+  order: 8
+  suggested_length: long
+  language_skill: 'Skill: Distinguishing between knowing facts and knowing people.'
+  target_grammar: '1. The verbs ''to know'': ξέρω vs γνωρίζω.
+
+    2. Ξέρω: for facts, skills, and how to do something (ξέρω να κολυμπώ — I know
+    how to swim).
+
+    3. Γνωρίζω: for people, places, and deep familiarity with something.
+
+    4. Imperfect forms: ήξερα (I used to know/I knew), γνώριζα (I was acquainted).
+
+    5. Aorist: γνώρισα (I met / became acquainted).'
+  mandatory_vocabulary:
+  - ξέρω (I know — facts/skills)
+  - γνωρίζω (I know — people/places)
+  - ήξερα (I knew/I used to know)
+  - γνώρισα (I met/became acquainted)
+  - πληροφορία (information)
+  - γνωριμία (acquaintance)
+  - γνώση (knowledge)
+  - αλήθεια (truth)
+  - ψέμα (lie)
+  - πραγματικότητα (reality)

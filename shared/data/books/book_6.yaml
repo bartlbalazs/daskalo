@@ -1,0 +1,179 @@
+id: book_6
+title: Mastering the Details
+description: Advanced grammatical structures, the subjunctive mood in depth, and expressing
+  complex thoughts.
+order: 6
+level: B2
+chapters:
+- id: b6_c1
+  order: 1
+  suggested_length: short
+  language_skill: 'Skill: Expressing obligations and necessities.'
+  target_grammar: "1. Impersonal expressions with the subjunctive:\n   πρέπει να (must\
+    \ / have to), απαγορεύεται να (it is forbidden to), είναι σημαντικό να (it is\
+    \ important to).\n2. The continuous subjunctive vs the simple subjunctive after\
+    \ πρέπει να:\n   πρέπει να διαβάζω (I must study — continuous/habitual) vs πρέπει\
+    \ να διαβάσω (I must study tonight — simple/completed).\n"
+  mandatory_vocabulary:
+  - πρέπει (must)
+  - δεν πρέπει (must not)
+  - απαγορεύεται (it is forbidden)
+  - είναι σημαντικό (it is important)
+  - απαιτείται (it is required)
+  - επιτρέπεται (it is allowed)
+  - υποχρεούμαι (I am obliged)
+  - αναγκάζομαι (I am forced)
+  - είναι ανάγκη (it is necessary)
+  - οφείλω (I owe/must)
+- id: b6_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Expressing possibility, probability and subjective opinions.'
+  target_grammar: "1. Advanced uses of the subjunctive beyond πρέπει να:\n   μπορεί\
+    \ να (might / it is possible that), ίσως να (perhaps), πιθανόν να (probably).\n\
+    2. Expressions of emotion and opinion with να:\n   Χαίρομαι που/να (I am glad\
+    \ that), ελπίζω να (I hope to), είναι κρίμα να (it's a pity to).\n3. Contrast:\
+    \ μπορεί να + present vs μπορεί να + aorist.\n"
+  mandatory_vocabulary:
+  - μπορεί (might/maybe)
+  - μπορεί να (it might/it is possible)
+  - ίσως να (perhaps)
+  - πιθανόν (probably)
+  - ελπίζω (I hope)
+  - κρίμα (pity)
+  - χαρά (joy)
+  - λυπάμαι (I am sorry)
+  - είναι καλό να (it is good to)
+  - είναι άσχημο να (it is bad to)
+- id: b6_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Connecting ideas with relative clauses using που.'
+  target_grammar: "1. The indeclinable relative pronoun που (who, that, which) — used\
+    \ for subject or direct object roles.\n   Example: Το βιβλίο που διαβάζω… (The\
+    \ book that I am reading…)\n   Example: Ο φίλος που ήρθε… (The friend who came…)\n\
+    2. Extending sentences naturally using που relative clauses.\n"
+  mandatory_vocabulary:
+  - που (that/who — relative)
+  - αυτός που (he who)
+  - εκείνο που (that which)
+  - ο φίλος που (the friend who)
+  - το μέρος που (the place where)
+  - τα πράγματα που (the things that)
+  - η στιγμή που (the moment when)
+  - ο λόγος που (the reason why)
+  - όποιος (whoever)
+  - ό,τι (whatever)
+- id: b6_c4
+  order: 4
+  suggested_length: medium
+  language_skill: 'Skill: Connecting ideas with formal relative clauses and participles.'
+  target_grammar: "1. Formal relative pronouns: ο οποίος, η οποία, το οποίο (who,\
+    \ which, that) — fully declined to match their antecedent.\n   Example: Ο άνθρωπος\
+    \ με τον οποίο μιλούσα… (The man with whom I was speaking…)\n2. Present active\
+    \ participles ending in -οντας/-ώντας (gerunds):\n   Used to express \"while doing\
+    \ X\" or \"by doing X\".\n   Example: Τρώγοντας, βλέπω τηλεόραση. (While eating,\
+    \ I watch TV.)\n"
+  mandatory_vocabulary:
+  - ο οποίος/η οποία/το οποίο (who/which — formal)
+  - με τον οποίο (with whom — masc.)
+  - για την οποία (for which — fem.)
+  - κάνοντας (doing/by doing)
+  - λέγοντας (saying/by saying)
+  - διαβάζοντας (reading)
+  - περπατώντας (walking)
+  - τρέχοντας (running)
+  - οτιδήποτε (whatever)
+  - οποιοσδήποτε (anyone/whoever)
+- id: b6_c5
+  order: 5
+  suggested_length: long
+  language_skill: 'Skill: Focusing on the action rather than the actor (passive voice).'
+  target_grammar: "1. The Passive Voice (Παθητική Φωνή) — Aorist:\n   Aorist passive\
+    \ endings (-ηκα, -ηκες, -ηκε, -ήκαμε, -ήκατε, -ήκαν).\n   Example: γράφτηκα (I\
+    \ was written/enrolled), χτίστηκε (it was built).\n2. The preposition από (by)\
+    \ to indicate the agent in passive sentences.\n   Example: Το σπίτι χτίστηκε από\
+    \ τον πατέρα μου. (The house was built by my father.)\n"
+  mandatory_vocabulary:
+  - γράφτηκα (I was enrolled/written)
+  - χτίστηκε (was built)
+  - ετοιμάστηκε (was prepared)
+  - γράφτηκε (was written)
+  - ακούστηκε (was heard)
+  - διαβάστηκε (was read)
+  - λύθηκε (was solved)
+  - φτιάχτηκε (was made)
+  - από (by/from — passive agent)
+  - θα λυθεί (will be solved)
+- id: b6_c6
+  order: 6
+  suggested_length: short
+  language_skill: 'Skill: Forming passive future and perfect constructions.'
+  target_grammar: "1. The Passive Voice — Future:\n   θα + passive aorist stem + passive\
+    \ present endings.\n   Example: θα γραφτώ (I will be enrolled), θα φτιαχτεί (it\
+    \ will be made).\n2. Passive perfect tenses:\n   Present passive perfect: έχω\
+    \ γραφτεί (I have been enrolled), έχει χτιστεί (it has been built).\n   Past passive\
+    \ perfect: είχε γραφτεί (it had been written).\n"
+  mandatory_vocabulary:
+  - θα γραφτώ (I will be enrolled)
+  - θα ακουστεί (it will be heard)
+  - θα φτιαχτεί (it will be made)
+  - έχει γραφτεί (it has been written)
+  - έχει χτιστεί (it has been built)
+  - είχε γραφτεί (it had been written)
+  - είχε ακουστεί (it had been heard)
+  - είχε λυθεί (it had been solved)
+  - θα έχει λυθεί (it will have been solved)
+  - αναφέρεται (it is mentioned)
+- id: b6_c7
+  order: 7
+  suggested_length: short
+  language_skill: 'Skill: Expressing uncertainty and absolute negation.'
+  target_grammar: '1. Indefinite pronouns and adjectives: κάποιος (someone), κάτι
+    (something), κάπου (somewhere), κάποτε (sometime).
+
+    2. Negative pronouns with double negation: κανείς/κανένας (no one), τίποτα (nothing),
+    πουθενά (nowhere), ποτέ (never).
+
+    3. Double negation rule: δεν ... κανείς / δεν ... τίποτα — both δεν AND the negative
+    pronoun are required.
+
+    4. Example: Δεν θέλω τίποτα. (I don''t want anything.)'
+  mandatory_vocabulary:
+  - κάποιος (someone)
+  - κάτι (something)
+  - κανείς (no one)
+  - τίποτα (nothing)
+  - πουθενά (nowhere)
+  - κάτι άλλο (something else)
+  - κανένας άλλος (no one else)
+  - πουθενά αλλού (nowhere else)
+  - κάπως (somehow)
+  - κάμποσο (somewhat/quite a lot)
+- id: b6_c8
+  order: 8
+  suggested_length: medium
+  language_skill: 'Skill: Adding emotional nuance to words with diminutives and augmentatives.'
+  target_grammar: '1. Diminutive suffixes:
+
+    2. -άκι (neuter): καφεδάκι (little coffee), νεράκι (little water), σπιτάκι (little
+    house).
+
+    3. -ούλα (feminine), -άκος (masculine): παιδούλα, φιλαράκος.
+
+    4. Augmentative suffixes: -άρας/-αρος for large or impressive things: σπιταρόνα
+    (huge house), αμαξάρα (huge car).
+
+    5. Cultural nuance: diminutives often signal warmth, affection, or politeness
+    in Greek rather than literally ''small''.'
+  mandatory_vocabulary:
+  - καφεδάκι (little coffee)
+  - νεράκι (a bit of water)
+  - λεπτάκι (just a moment)
+  - παιδάκι (little child)
+  - σπιτάκι (little house)
+  - αγοράκι (little boy)
+  - κοριτσάκι (little girl)
+  - σπιταρόνα (huge house)
+  - αμαξάρα (huge car)
+  - φιλαράκος (buddy/pal)

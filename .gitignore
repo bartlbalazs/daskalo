@@ -1,0 +1,9 @@
+
+# Deployment environment variables
+.env.deploy
+.idea
+firebase-debug.log
+firestore-debug.log
+frontend/.firebase-emulator-data
+frontend/.angular
+frontend/.vscode

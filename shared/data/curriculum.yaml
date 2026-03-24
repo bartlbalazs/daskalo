@@ -1,0 +1,3085 @@
+books:
+- id: book_1
+  title: The Absolute Basics
+  description: 'Master the building blocks of Greek: the alphabet, core verbs, and
+    your first real sentences.'
+  order: 1
+  level: A1.1
+  chapters:
+  - id: b1_c1
+    order: 1
+    suggested_length: short
+    language_skill: 'Skill: Introducing yourself and basic pronunciation.'
+    target_grammar: "1. The Greek alphabet: all 24 letters, their names, and their\
+      \ sounds (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ, μ, ν,\
+      \ ξ, π, ρ, σ/ς, τ, φ, χ, ψ).\n2. Stress marks (τόνος): every Greek word of more\
+      \ than one syllable carries exactly one accent mark indicating the stressed\
+      \ syllable.\n3. The verb \"to be\" — είμαι — fully conjugated in the present\
+      \ tense:\n   εγώ είμαι, εσύ είσαι, αυτός/αυτή/αυτό είναι, εμείς είμαστε, εσείς\
+      \ είστε/είσαστε, αυτοί/αυτές/αυτά είναι.\n4. Personal subject pronouns: εγώ,\
+      \ εσύ, αυτός, αυτή, αυτό, εμείς, εσείς, αυτοί/αυτές/αυτά.\n"
+    mandatory_vocabulary:
+    - είμαι (I am)
+    - εσύ (you)
+    - αυτός (he)
+    - αυτή (she)
+    - εμείς (we)
+    - καλημέρα (good morning)
+    - γεια (hello)
+    - ναι (yes)
+    - όχι (no)
+    - ευχαριστώ (thank you)
+    accumulated_grammar_summary: ''
+    accumulated_vocabulary: []
+  - id: b1_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Identifying objects and basic ownership.'
+    target_grammar: "1. Definite articles in the nominative case (subject position):\n\
+      \   masculine ο (ο άνδρας — the man), feminine η (η γυναίκα — the woman), neuter\
+      \ το (το παιδί — the child).\n2. Noun gender: every Greek noun has a grammatical\
+      \ gender (masculine/feminine/neuter) which must agree with its article.\n3.\
+      \ The verb \"to have\" — έχω — fully conjugated in the present tense:\n   εγώ\
+      \ έχω, εσύ έχεις, αυτός/αυτή/αυτό έχει, εμείς έχουμε, εσείς έχετε, αυτοί/αυτές/αυτά\
+      \ έχουν.\n"
+    mandatory_vocabulary:
+    - ο (the — masculine)
+    - η (the — feminine)
+    - το (the — neuter)
+    - έχω (I have)
+    - έχει (he/she/it has)
+    - παρακαλώ (please)
+    - συγγνώμη (excuse me)
+    - πολύ (very)
+    - λίγο (a little)
+    - καλά (well)
+    accumulated_grammar_summary: '1. The Greek alphabet: all 24 letters, their names,
+      and their sounds (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ,
+      μ, ν, ξ, π, ρ, σ/ς, τ, φ, χ, ψ).'
+    accumulated_vocabulary:
+    - είμαι (I am)
+    - εσύ (you)
+    - αυτός (he)
+    - αυτή (she)
+    - εμείς (we)
+  - id: b1_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Asking simple questions and talking about actions.'
+    target_grammar: "1. Regular present-tense verbs ending in -ω (Type A active voice),\
+      \ first conjugation:\n   Pattern: -ω, -εις, -ει, -ουμε, -ετε, -ουν.\n   Example\
+      \ verb: μιλάω/μιλώ (to speak) — μιλώ, μιλάς, μιλά, μιλάμε, μιλάτε, μιλάνε.\n\
+      \   Second example: πίνω (to drink) — πίνω, πίνεις, πίνει, πίνουμε, πίνετε,\
+      \ πίνουν.\n2. Basic interrogative words: τι (what), πού (where), πώς (how),\
+      \ ποιος/ποια/ποιο (who/which), πότε (when).\n3. Simple yes/no questions: intonation-based\
+      \ (same word order as a statement, rising intonation).\n"
+    mandatory_vocabulary:
+    - μιλώ (I speak)
+    - πίνω (I drink)
+    - τι (what)
+    - πού (where)
+    - πώς (how)
+    - μαθαίνω (I learn)
+    - καταλαβαίνω (I understand)
+    - γιατί (why)
+    - εδώ (here)
+    - εκεί (there)
+    accumulated_grammar_summary: '1. The Greek alphabet: all 24 letters, their names,
+      and their sounds (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ,
+      μ, ν, ξ, π, ρ, σ/ς, τ, φ, χ, ψ).
+
+      1. Definite articles in the nominative case (subject position):'
+    accumulated_vocabulary:
+    - είμαι (I am)
+    - εσύ (you)
+    - αυτός (he)
+    - αυτή (she)
+    - εμείς (we)
+    - ο (the — masculine)
+    - η (the — feminine)
+    - το (the — neuter)
+    - έχω (I have)
+    - έχει (he/she/it has)
+  - id: b1_c4
+    order: 4
+    suggested_length: long
+    language_skill: 'Skill: Talking about multiple people and things.'
+    target_grammar: '1. Plural nouns in the nominative case.
+
+      2. Masculine -οι, feminine -ες, neuter -α.
+
+      3. Plural definite articles: οι, οι, τα.'
+    mandatory_vocabulary:
+    - οι
+    - τα
+    - άνθρωποι
+    - γυναίκες
+    - παιδιά
+    - άνδρες (men)
+    - βιβλία (books)
+    - φίλοι (friends)
+    - σπίτια (houses)
+    - αυτοκίνητα (cars)
+    accumulated_grammar_summary: '1. The Greek alphabet: all 24 letters, their names,
+      and their sounds (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ,
+      μ, ν, ξ, π, ρ, σ/ς, τ, φ, χ, ψ).
+
+      1. Definite articles in the nominative case (subject position):
+
+      1. Regular present-tense verbs ending in -ω (Type A active voice), first conjugation:'
+    accumulated_vocabulary:
+    - είμαι (I am)
+    - εσύ (you)
+    - αυτός (he)
+    - αυτή (she)
+    - εμείς (we)
+    - ο (the — masculine)
+    - η (the — feminine)
+    - το (the — neuter)
+    - έχω (I have)
+    - έχει (he/she/it has)
+    - μιλώ (I speak)
+    - πίνω (I drink)
+    - τι (what)
+    - πού (where)
+    - πώς (how)
+  - id: b1_c5
+    order: 5
+    suggested_length: long
+    language_skill: 'Skill: Discussing routines, numbers, and dates.'
+    target_grammar: '1. Numbers 20-100.
+
+      2. Days of the week.
+
+      3. Using την/το for ''on [Day]''. (e.g. την Κυριακή)'
+    mandatory_vocabulary:
+    - Δευτέρα
+    - Τρίτη
+    - εκατό
+    - πενήντα
+    - την Κυριακή
+    - Τετάρτη (Wednesday)
+    - Πέμπτη (Thursday)
+    - Παρασκευή (Friday)
+    - Σάββατο (Saturday)
+    - σήμερα (today)
+    accumulated_grammar_summary: '1. The Greek alphabet: all 24 letters, their names,
+      and their sounds (vowels α, ε, η, ι, ο, υ, ω; consonants β, γ, δ, ζ, θ, κ, λ,
+      μ, ν, ξ, π, ρ, σ/ς, τ, φ, χ, ψ).
+
+      1. Definite articles in the nominative case (subject position):
+
+      1. Regular present-tense verbs ending in -ω (Type A active voice), first conjugation:
+
+      1. Plural nouns in the nominative case.'
+    accumulated_vocabulary:
+    - είμαι (I am)
+    - εσύ (you)
+    - αυτός (he)
+    - αυτή (she)
+    - εμείς (we)
+    - ο (the — masculine)
+    - η (the — feminine)
+    - το (the — neuter)
+    - έχω (I have)
+    - έχει (he/she/it has)
+    - μιλώ (I speak)
+    - πίνω (I drink)
+    - τι (what)
+    - πού (where)
+    - πώς (how)
+    - οι
+    - τα
+    - άνθρωποι
+    - γυναίκες
+    - παιδιά
+- id: book_2
+  title: Interacting with the World
+  description: Express what you want, describe objects with adjectives, and move through
+    everyday situations.
+  order: 2
+  level: A1.2
+  chapters:
+  - id: b2_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Expressing desires and intentions.'
+    target_grammar: "1. The modal verb θέλω (to want) fully conjugated in the present\
+      \ tense:\n   θέλω, θέλεις, θέλει, θέλουμε, θέλετε, θέλουν.\n2. Introduction\
+      \ to the subjunctive mood with να: θέλω να + verb stem expresses \"I want to\
+      \ do something\".\n   Example: Θέλω να πάω (I want to go), Θέλεις να φας; (Do\
+      \ you want to eat?).\n3. Cardinal numbers 1–20: ένα/μία, δύο, τρία, τέσσερα,\
+      \ πέντε, έξι, επτά, οκτώ, εννέα, δέκα,\n   έντεκα, δώδεκα, δεκατρία, δεκατέσσερα,\
+      \ δεκαπέντε, δεκαέξι, δεκαεπτά, δεκαοκτώ, δεκαεννέα, είκοσι.\n"
+    mandatory_vocabulary:
+    - θέλω (I want)
+    - θέλει (he/she wants)
+    - να (to/that — subjunctive particle)
+    - ένα (one)
+    - δέκα (ten)
+    - πρέπει (must)
+    - μπορώ (I can)
+    - έρχομαι (I come)
+    - τρία (three)
+    - πέντε (five)
+    accumulated_grammar_summary: '1. Definite articles in the nominative case (subject
+      position):
+
+      1. Regular present-tense verbs ending in -ω (Type A active voice), first conjugation:
+
+      1. Plural nouns in the nominative case.
+
+      1. Numbers 20-100.'
+    accumulated_vocabulary:
+    - ο (the — masculine)
+    - η (the — feminine)
+    - το (the — neuter)
+    - έχω (I have)
+    - έχει (he/she/it has)
+    - μιλώ (I speak)
+    - πίνω (I drink)
+    - τι (what)
+    - πού (where)
+    - πώς (how)
+    - οι
+    - τα
+    - άνθρωποι
+    - γυναίκες
+    - παιδιά
+    - Δευτέρα
+    - Τρίτη
+    - εκατό
+    - πενήντα
+    - την Κυριακή
+  - id: b2_c2
+    order: 2
+    suggested_length: medium
+    language_skill: 'Skill: Describing interactions with objects.'
+    target_grammar: "1. The accusative case for definite articles (direct object):\n\
+      \   masculine τον (τον άνδρα), feminine την (την γυναίκα), neuter το (το παιδί).\n\
+      2. Direct objects: how the noun's article changes when it is the object of a\
+      \ verb (accusative) vs the subject (nominative).\n   Example: Ο Γιώργης βλέπει\
+      \ τον άνδρα. (nominative subject → accusative object)\n3. The verb βλέπω (to\
+      \ see) and πηγαίνω/πάω (to go) in the present tense as key transitive/motion\
+      \ verbs to demonstrate accusative.\n"
+    mandatory_vocabulary:
+    - τον (the — masculine accusative)
+    - την (the — feminine accusative)
+    - βλέπω (I see)
+    - πάω (I go)
+    - αγοράζω (I buy)
+    - τον φίλο (the friend - acc)
+    - την πόρτα (the door - acc)
+    - το νερό (the water)
+    - κάνω (I do)
+    - ξέρω (I know)
+    accumulated_grammar_summary: '1. Regular present-tense verbs ending in -ω (Type
+      A active voice), first conjugation:
+
+      1. Plural nouns in the nominative case.
+
+      1. Numbers 20-100.
+
+      1. The modal verb θέλω (to want) fully conjugated in the present tense:'
+    accumulated_vocabulary:
+    - μιλώ (I speak)
+    - πίνω (I drink)
+    - τι (what)
+    - πού (where)
+    - πώς (how)
+    - οι
+    - τα
+    - άνθρωποι
+    - γυναίκες
+    - παιδιά
+    - Δευτέρα
+    - Τρίτη
+    - εκατό
+    - πενήντα
+    - την Κυριακή
+    - θέλω (I want)
+    - θέλει (he/she wants)
+    - να (to/that — subjunctive particle)
+    - ένα (one)
+    - δέκα (ten)
+  - id: b2_c3
+    order: 3
+    suggested_length: long
+    language_skill: 'Skill: Describing the qualities of objects and people.'
+    target_grammar: "1. Adjective-noun agreement in gender, number, and case (nominative\
+      \ and accusative):\n   Adjectives must match their noun in gender (m/f/n), number\
+      \ (singular/plural), and case (nominative/accusative).\n   Example paradigm\
+      \ using καλός (good): καλός άνδρας, καλή γυναίκα, καλό παιδί (nominative singular).\n\
+      \   Accusative singular: καλόν/καλό άνδρα, καλή γυναίκα, καλό παιδί.\n2. Common\
+      \ colour adjectives and their agreement:\n   κόκκινος/η/ο (red), μπλε (blue\
+      \ — indeclinable), πράσινος/η/ο (green),\n   κίτρινος/η/ο (yellow), άσπρος/η/ο\
+      \ (white), μαύρος/η/ο (black).\n3. Plural forms of definite articles: οι (m/f\
+      \ plural nominative), τα (n plural nominative).\n"
+    mandatory_vocabulary:
+    - καλός/ή/ό (good)
+    - κόκκινος/η/ο (red)
+    - μεγάλος/η/ο (big)
+    - μικρός/ή/ό (small)
+    - ωραίος/α/ο (nice/beautiful)
+    - άσπρος/η/ο (white)
+    - μαύρος/η/ο (black)
+    - καινούργιος/α/ο (new)
+    - παλιός/ά/ό (old)
+    - ακριβός/ή/ό (expensive)
+    accumulated_grammar_summary: '1. Plural nouns in the nominative case.
+
+      1. Numbers 20-100.
+
+      1. The modal verb θέλω (to want) fully conjugated in the present tense:
+
+      1. The accusative case for definite articles (direct object):'
+    accumulated_vocabulary:
+    - οι
+    - τα
+    - άνθρωποι
+    - γυναίκες
+    - παιδιά
+    - Δευτέρα
+    - Τρίτη
+    - εκατό
+    - πενήντα
+    - την Κυριακή
+    - θέλω (I want)
+    - θέλει (he/she wants)
+    - να (to/that — subjunctive particle)
+    - ένα (one)
+    - δέκα (ten)
+    - τον (the — masculine accusative)
+    - την (the — feminine accusative)
+    - βλέπω (I see)
+    - πάω (I go)
+    - αγοράζω (I buy)
+  - id: b2_c4
+    order: 4
+    suggested_length: long
+    language_skill: 'Skill: Navigating space and giving directions.'
+    target_grammar: '1. Prepositions of place: σε (in/at/to), πάνω (on/above), κάτω
+      (under), δίπλα (next to), μέσα (inside), έξω (outside).
+
+      2. Combining σε with definite articles (στο, στη, στον, κτλ).'
+    mandatory_vocabulary:
+    - σε
+    - πάνω
+    - κάτω
+    - δίπλα
+    - μέσα
+    - μπροστά (in front)
+    - πίσω (behind)
+    - απέναντι (opposite)
+    - κοντά (near)
+    - μακριά (far)
+    accumulated_grammar_summary: '1. Numbers 20-100.
+
+      1. The modal verb θέλω (to want) fully conjugated in the present tense:
+
+      1. The accusative case for definite articles (direct object):
+
+      1. Adjective-noun agreement in gender, number, and case (nominative and accusative):'
+    accumulated_vocabulary:
+    - Δευτέρα
+    - Τρίτη
+    - εκατό
+    - πενήντα
+    - την Κυριακή
+    - θέλω (I want)
+    - θέλει (he/she wants)
+    - να (to/that — subjunctive particle)
+    - ένα (one)
+    - δέκα (ten)
+    - τον (the — masculine accusative)
+    - την (the — feminine accusative)
+    - βλέπω (I see)
+    - πάω (I go)
+    - αγοράζω (I buy)
+    - καλός/ή/ό (good)
+    - κόκκινος/η/ο (red)
+    - μεγάλος/η/ο (big)
+    - μικρός/ή/ό (small)
+    - ωραίος/α/ο (nice/beautiful)
+  - id: b2_c5
+    order: 5
+    suggested_length: long
+    language_skill: 'Skill: Talking about time, schedules, and seasons.'
+    target_grammar: '1. Telling time (Τι ώρα είναι;).
+
+      2. Months of the year and seasons.
+
+      3. Using ''στις'' for time (στις τρεις - at three).'
+    mandatory_vocabulary:
+    - ώρα
+    - και μισή
+    - και τέταρτο
+    - μήνας
+    - καλοκαίρι
+    - λεπτό (minute)
+    - πρωί (morning)
+    - βράδυ (evening)
+    - χειμώνας (winter)
+    - χρόνος (year)
+    accumulated_grammar_summary: '1. The modal verb θέλω (to want) fully conjugated
+      in the present tense:
+
+      1. The accusative case for definite articles (direct object):
+
+      1. Adjective-noun agreement in gender, number, and case (nominative and accusative):
+
+      1. Prepositions of place: σε (in/at/to), πάνω (on/above), κάτω (under), δίπλα
+      (next to), μέσα (inside), έξω (outside).'
+    accumulated_vocabulary:
+    - θέλω (I want)
+    - θέλει (he/she wants)
+    - να (to/that — subjunctive particle)
+    - ένα (one)
+    - δέκα (ten)
+    - τον (the — masculine accusative)
+    - την (the — feminine accusative)
+    - βλέπω (I see)
+    - πάω (I go)
+    - αγοράζω (I buy)
+    - καλός/ή/ό (good)
+    - κόκκινος/η/ο (red)
+    - μεγάλος/η/ο (big)
+    - μικρός/ή/ό (small)
+    - ωραίος/α/ο (nice/beautiful)
+    - σε
+    - πάνω
+    - κάτω
+    - δίπλα
+    - μέσα
+- id: book_3
+  title: Moving in Time
+  description: Break free from the present tense — talk about the future and narrate
+    past events.
+  order: 3
+  level: A2.1
+  chapters:
+  - id: b3_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Making plans for the future.'
+    target_grammar: "1. The simple future tense with θα:\n   θα + present-tense stem\
+      \ forms the continuous future (what will be happening).\n   θα + aorist stem\
+      \ (perfective stem) forms the simple future (what will happen, completed action).\n\
+      \   Example: θα πίνω (I will be drinking — continuous) vs θα πιω (I will drink\
+      \ — simple).\n2. Future with common regular verbs: γράφω→θα γράψω, διαβάζω→θα\
+      \ διαβάσω, τρώω→θα φάω, πίνω→θα πιω.\n3. Time adverbs for the future: αύριο\
+      \ (tomorrow), σύντομα (soon), μετά (later/after), την επόμενη εβδομάδα (next\
+      \ week).\n"
+    mandatory_vocabulary:
+    - θα (future particle)
+    - αύριο (tomorrow)
+    - σύντομα (soon)
+    - μετά (later)
+    - θα πάω (I will go)
+    - μεθαύριο (the day after tomorrow)
+    - ποτέ (never)
+    - πάντα (always)
+    - το πρωί (in the morning)
+    - θα φάω (I will eat)
+    accumulated_grammar_summary: '1. The accusative case for definite articles (direct
+      object):
+
+      1. Adjective-noun agreement in gender, number, and case (nominative and accusative):
+
+      1. Prepositions of place: σε (in/at/to), πάνω (on/above), κάτω (under), δίπλα
+      (next to), μέσα (inside), έξω (outside).
+
+      1. Telling time (Τι ώρα είναι;).'
+    accumulated_vocabulary:
+    - τον (the — masculine accusative)
+    - την (the — feminine accusative)
+    - βλέπω (I see)
+    - πάω (I go)
+    - αγοράζω (I buy)
+    - καλός/ή/ό (good)
+    - κόκκινος/η/ο (red)
+    - μεγάλος/η/ο (big)
+    - μικρός/ή/ό (small)
+    - ωραίος/α/ο (nice/beautiful)
+    - σε
+    - πάνω
+    - κάτω
+    - δίπλα
+    - μέσα
+    - ώρα
+    - και μισή
+    - και τέταρτο
+    - μήνας
+    - καλοκαίρι
+  - id: b3_c2
+    order: 2
+    suggested_length: medium
+    language_skill: 'Skill: Narrating recent past events using regular verbs.'
+    target_grammar: "1. The simple past (Aorist) of regular -ω verbs (Type A):\n \
+      \  Stress shifts to the third syllable from the end (or the first syllable in\
+      \ short verbs).\n   Endings: -α, -ες, -ε, -αμε, -ατε, -αν.\n   Example: γράφω\
+      \ → έγραψα (I wrote), αγοράζω → αγόρασα (I bought), διαβάζω → διάβασα (I read).\n"
+    mandatory_vocabulary:
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - διάβασα (I read - past)
+    - έκανα (I did)
+    - πέρυσι (last year)
+    - άνοιξα (I opened)
+    - έκλεισα (I closed)
+    - έφτιαξα (I made/fixed)
+    - άρχισα (I started)
+    - τελείωσα (I finished)
+    accumulated_grammar_summary: '1. Adjective-noun agreement in gender, number, and
+      case (nominative and accusative):
+
+      1. Prepositions of place: σε (in/at/to), πάνω (on/above), κάτω (under), δίπλα
+      (next to), μέσα (inside), έξω (outside).
+
+      1. Telling time (Τι ώρα είναι;).
+
+      1. The simple future tense with θα:'
+    accumulated_vocabulary:
+    - καλός/ή/ό (good)
+    - κόκκινος/η/ο (red)
+    - μεγάλος/η/ο (big)
+    - μικρός/ή/ό (small)
+    - ωραίος/α/ο (nice/beautiful)
+    - σε
+    - πάνω
+    - κάτω
+    - δίπλα
+    - μέσα
+    - ώρα
+    - και μισή
+    - και τέταρτο
+    - μήνας
+    - καλοκαίρι
+    - θα (future particle)
+    - αύριο (tomorrow)
+    - σύντομα (soon)
+    - μετά (later)
+    - θα πάω (I will go)
+  - id: b3_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Using negation and time adverbs in the past.'
+    target_grammar: "1. Syllabic augment in the aorist: verbs of two or fewer syllables\
+      \ take the ε- prefix in the aorist (γράφω → έγραψα, πίνω → ήπια).\n2. Negation\
+      \ in the past: δεν + aorist form.\n   Example: Δεν αγόρασα τίποτα. (I didn't\
+      \ buy anything.)\n3. Time adverbs for the past: χθες (yesterday), πριν (before/ago),\
+      \ την περασμένη εβδομάδα (last week), πέρυσι (last year).\n"
+    mandatory_vocabulary:
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+    - την περασμένη εβδομάδα (last week)
+    - ήπια (I drank)
+    - δεν ήπια (I didn't drink)
+    - δεν έγραψα (I didn't write)
+    - πριν από λίγο (a while ago)
+    - μόλις (just)
+    - τελικά (finally)
+    accumulated_grammar_summary: '1. Prepositions of place: σε (in/at/to), πάνω (on/above),
+      κάτω (under), δίπλα (next to), μέσα (inside), έξω (outside).
+
+      1. Telling time (Τι ώρα είναι;).
+
+      1. The simple future tense with θα:
+
+      1. The simple past (Aorist) of regular -ω verbs (Type A):'
+    accumulated_vocabulary:
+    - σε
+    - πάνω
+    - κάτω
+    - δίπλα
+    - μέσα
+    - ώρα
+    - και μισή
+    - και τέταρτο
+    - μήνας
+    - καλοκαίρι
+    - θα (future particle)
+    - αύριο (tomorrow)
+    - σύντομα (soon)
+    - μετά (later)
+    - θα πάω (I will go)
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - διάβασα (I read - past)
+    - έκανα (I did)
+    - πέρυσι (last year)
+  - id: b3_c4
+    order: 4
+    suggested_length: long
+    language_skill: 'Skill: Telling stories about the past using irregular verbs.'
+    target_grammar: "1. The simple past (Aorist) of high-frequency irregular verbs:\n\
+      \   - βλέπω → είδα (I saw): είδα, είδες, είδε, είδαμε, είδατε, είδαν.\n   -\
+      \ λέω → είπα (I said): είπα, είπες, είπε, είπαμε, είπατε, είπαν.\n   - πηγαίνω/πάω\
+      \ → πήγα (I went): πήγα, πήγες, πήγε, πήγαμε, πήγατε, πήγαν.\n   - τρώω → έφαγα\
+      \ (I ate): έφαγα, έφαγες, έφαγε, φάγαμε, φάγατε, έφαγαν.\n   - έρχομαι → ήρθα\
+      \ (I came): ήρθα, ήρθες, ήρθε, ήρθαμε, ήρθατε, ήρθαν.\n2. Mixing regular and\
+      \ irregular aorist in the same narrative to tell a coherent short story in the\
+      \ past.\n"
+    mandatory_vocabulary:
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+    - βρήκα (I found)
+    - έμεινα (I stayed)
+    - άκουσα (I heard)
+    - κατάλαβα (I understood)
+    - ήπια (I drank)
+    accumulated_grammar_summary: '1. Telling time (Τι ώρα είναι;).
+
+      1. The simple future tense with θα:
+
+      1. The simple past (Aorist) of regular -ω verbs (Type A):
+
+      1. Syllabic augment and negation in the aorist:'
+    accumulated_vocabulary:
+    - ώρα
+    - και μισή
+    - και τέταρτο
+    - μήνας
+    - καλοκαίρι
+    - θα (future particle)
+    - αύριο (tomorrow)
+    - σύντομα (soon)
+    - μετά (later)
+    - θα πάω (I will go)
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+  - id: b3_c5
+    order: 5
+    suggested_length: medium
+    language_skill: 'Skill: Describing past exchanges and transfers.'
+    target_grammar: '1. A second batch of high-frequency irregular aorist verbs.
+
+      2. παίρνω → πήρα, δίνω → έδωσα, βάζω → έβαλα, βγάζω → έβγαλα, μαθαίνω → έμαθα.
+
+      3. Building fluency by combining all aorist verbs in short narratives about giving,
+      receiving, and learning.'
+    mandatory_vocabulary:
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+    - άφησα (I left/let)
+    - έστειλα (I sent)
+    - έχασα (I lost)
+    - βρήκα (I found)
+    - άλλαξα (I changed)
+    accumulated_grammar_summary: '1. The simple future tense with θα:
+
+      1. The simple past (Aorist) of regular -ω verbs (Type A):
+
+      1. Syllabic augment and negation in the aorist:
+
+      1. The simple past (Aorist) of high-frequency irregular verbs (Group 1):'
+    accumulated_vocabulary:
+    - θα (future particle)
+    - αύριο (tomorrow)
+    - σύντομα (soon)
+    - μετά (later)
+    - θα πάω (I will go)
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+  - id: b3_c6
+    order: 6
+    suggested_length: short
+    language_skill: 'Skill: Expressing ability and asking permission.'
+    target_grammar: '1. The verb μπορώ (can / to be able to) fully conjugated in the
+      present tense:
+
+      2. μπορώ, μπορείς, μπορεί, μπορούμε, μπορείτε, μπορούν.
+
+      3. Aorist of μπορώ: μπόρεσα (I managed / I was able to).'
+    mandatory_vocabulary:
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - δεν μπορώ (I cannot)
+    - μπορείς να με βοηθήσεις; (can you help me?)
+    - μπορώ να μπω; (may I come in?)
+    - βοήθεια (help)
+    - ερώτηση (question)
+    - άδεια (permission/leave)
+    accumulated_grammar_summary: '1. The simple past (Aorist) of regular -ω verbs
+      (Type A):
+
+      1. Syllabic augment and negation in the aorist:
+
+      1. The simple past (Aorist) of high-frequency irregular verbs (Group 1):
+
+      1. The simple past (Aorist) of high-frequency irregular verbs (Group 2 — παίρνω,
+      δίνω, βάζω, βγάζω, μαθαίνω):'
+    accumulated_vocabulary:
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+  - id: b3_c7
+    order: 7
+    suggested_length: medium
+    language_skill: 'Skill: Expressing desire and obligation using να.'
+    target_grammar: "1. Using μπορώ + να + subjunctive (aorist stem) to express ability\
+      \ or permission:\n   Μπορώ να φύγω; (Can I leave? / May I leave?)\n   Μπορείς\
+      \ να έρθεις αύριο; (Can you come tomorrow?)\n2. Using πρέπει + να + subjunctive\
+      \ (aorist stem) to express necessity:\n   Πρέπει να φύγω τώρα. (I have to leave\
+      \ now.)\n   Δεν πρέπει να αργήσεις. (You mustn't be late.)\n3. Using θέλω + να\
+      \ + subjunctive in past contexts with compound structures.\n"
+    mandatory_vocabulary:
+    - πρέπει (must/have to)
+    - θέλω να (I want to)
+    - μπορώ να (I can/may)
+    - δεν πρέπει (mustn't)
+    - ίσως (maybe)
+    - ελπίζω (I hope)
+    - χρειάζεται (it is needed)
+    - χρειάζομαι (I need)
+    - αναγκαίο (necessary)
+    - φαίνεται (it seems)
+    accumulated_grammar_summary: '1. Syllabic augment and negation in the aorist:
+
+      1. The simple past (Aorist) of high-frequency irregular verbs (Group 1):
+
+      1. The simple past (Aorist) of high-frequency irregular verbs (Group 2):
+
+      1. The verb μπορώ (can / to be able to):'
+    accumulated_vocabulary:
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - δεν μπορώ (I cannot)
+    - βοήθεια (help)
+    - άδεια (permission/leave)
+- id: book_4
+  title: Expressing Nuance
+  description: Describe routines, ongoing past actions, and conditions — move into
+    true intermediate Greek.
+  order: 4
+  level: B1
+  chapters:
+  - id: b4_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Describing daily routines using deponent verbs.'
+    target_grammar: "1. Deponent/passive verbs ending in -ομαι (Type 1) in the present\
+      \ tense:\n   These verbs have passive endings but active meaning.\n   κάθομαι\
+      \ (I sit), έρχομαι (I come), σκέφτομαι (I think), σηκώνομαι (I get up).\n   Conjugation\
+      \ pattern: κάθ-ομαι, κάθ-εσαι, κάθ-εται, καθ-όμαστε, κάθ-εστε, κάθ-ονται.\n"
+    mandatory_vocabulary:
+    - κάθομαι (I sit/I am sitting)
+    - σκέφτομαι (I think)
+    - σηκώνομαι (I get up)
+    - ντύνομαι (I get dressed)
+    - πλένομαι (I wash myself)
+    - εργάζομαι (I work)
+    - δέχομαι (I accept)
+    - κουράζομαι (I get tired)
+    - χαίρομαι (I am glad/happy)
+    - κοιτάζομαι (I look at myself)
+    accumulated_grammar_summary: '1. The simple past (Aorist) of regular -ω verbs
+      (Type A):
+
+      1. The simple past (Aorist) of high-frequency irregular verbs:
+
+      1. More irregular aorist verbs.
+
+      1. The verb μπορώ (can / to be able to) with να + subjunctive.'
+    accumulated_vocabulary:
+    - έγραψα (I wrote)
+    - αγόρασα (I bought)
+    - χθες (yesterday)
+    - πριν (before/ago)
+    - δεν (not — negation)
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - άδεια (permission/leave)
+  - id: b4_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Describing feelings and emotional states.'
+    target_grammar: "1. Deponent/passive verbs ending in -ιέμαι / -άμαι (Type 2)\
+      \ in the present tense:\n   κοιμάμαι (I sleep), θυμάμαι (I remember), φοβάμαι\
+      \ (I am afraid), αισθάνομαι (I feel).\n   Conjugation pattern: κοιμ-άμαι, κοιμ-άσαι,\
+      \ κοιμ-άται, κοιμ-όμαστε, κοιμ-άστε, κοιμ-ούνται.\n2. The preposition με\
+      \ (with) + accusative for accompaniment: Πάω με τον φίλο μου. (I go with my\
+      \ friend.)\n"
+    mandatory_vocabulary:
+    - κοιμάμαι (I sleep)
+    - θυμάμαι (I remember)
+    - φοβάμαι (I am afraid)
+    - αισθάνομαι (I feel)
+    - με (with)
+    - αγχώνομαι (I get anxious)
+    - λυπάμαι (I am sorry/sad)
+    - χαίρομαι (I am happy)
+    - ντρέπομαι (I am embarrassed)
+    - απορώ (I am surprised/wonder)
+    accumulated_grammar_summary: '1. The simple past (Aorist) of high-frequency irregular
+      verbs:
+
+      1. More irregular aorist verbs.
+
+      1. The verb μπορώ (can / to be able to) with να + subjunctive.
+
+      1. Deponent verbs in -ομαι (Type 1):'
+    accumulated_vocabulary:
+    - είδα (I saw)
+    - είπα (I said)
+    - πήγα (I went)
+    - έφαγα (I ate)
+    - ήρθα (I came)
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - άδεια (permission/leave)
+    - κάθομαι (I sit/I am sitting)
+    - σκέφτομαι (I think)
+    - σηκώνομαι (I get up)
+    - ντύνομαι (I get dressed)
+    - εργάζομαι (I work)
+  - id: b4_c3
+    order: 3
+    suggested_length: long
+    language_skill: 'Skill: Reminiscing about past habits and routines.'
+    target_grammar: "1. The imperfect (continuous past — Παρατατικός) for ongoing\
+      \ or habitual past actions:\n   Formed from the present stem with past endings:\
+      \ -α, -ες, -ε, -αμε, -ατε, -αν.\n   Key signal words: συνήθως (usually), πάντα\
+      \ (always), κάθε μέρα (every day), τότε (back then).\n   Example: Κάθε καλοκαίρι\
+      \ πήγαινα στη θάλασσα. (Every summer I used to go to the sea.)\n"
+    mandatory_vocabulary:
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - συχνά (often)
+    - σπάνια (rarely)
+    - κάποιες φορές (sometimes)
+    - διάβαζα (I used to read)
+    - έγραφα (I used to write)
+    accumulated_grammar_summary: '1. More irregular aorist verbs.
+
+      1. The verb μπορώ (can / to be able to) with να + subjunctive.
+
+      1. Deponent verbs in -ομαι (Type 1):
+
+      1. Deponent verbs in -ιέμαι/-άμαι (Type 2) and preposition με:'
+    accumulated_vocabulary:
+    - πήρα (I took)
+    - έδωσα (I gave)
+    - έβαλα (I put)
+    - έβγαλα (I took out)
+    - έμαθα (I learned)
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - άδεια (permission/leave)
+    - κάθομαι (I sit/I am sitting)
+    - σκέφτομαι (I think)
+    - σηκώνομαι (I get up)
+    - ντύνομαι (I get dressed)
+    - εργάζομαι (I work)
+    - κοιμάμαι (I sleep)
+    - θυμάμαι (I remember)
+    - φοβάμαι (I am afraid)
+    - με (with)
+    - αισθάνομαι (I feel)
+  - id: b4_c4
+    order: 4
+    suggested_length: medium
+    language_skill: 'Skill: Contrasting completed and ongoing past actions.'
+    target_grammar: "1. Contrast between imperfect (ongoing/habitual) and aorist\
+      \ (single completed event):\n   Imperfect: Διάβαζα όταν ήρθες. (I was reading\
+      \ when you came — ongoing background action.)\n   Aorist: Διάβασα το βιβλίο.\
+      \ (I read the book — completed action.)\n2. Using both tenses together to tell\
+      \ richer past narratives.\n"
+    mandatory_vocabulary:
+    - ενώ (while)
+    - όταν (when)
+    - εκείνη τη στιγμή (at that moment)
+    - ξαφνικά (suddenly)
+    - παράλληλα (at the same time)
+    - μόλις (as soon as)
+    - αμέσως (immediately)
+    - μετά από αυτό (after that)
+    - πριν από αυτό (before that)
+    - τελικά (in the end)
+    accumulated_grammar_summary: '1. The verb μπορώ (can / to be able to) with να
+      + subjunctive.
+
+      1. Deponent verbs in -ομαι (Type 1):
+
+      1. Deponent verbs in -ιέμαι/-άμαι (Type 2) and preposition με:
+
+      1. The imperfect (Παρατατικός) for ongoing or habitual past actions:'
+    accumulated_vocabulary:
+    - μπορώ (I can)
+    - μπορείς (you can)
+    - μπορούμε (we can)
+    - μπόρεσα (I managed)
+    - άδεια (permission/leave)
+    - κάθομαι (I sit/I am sitting)
+    - σκέφτομαι (I think)
+    - σηκώνομαι (I get up)
+    - ντύνομαι (I get dressed)
+    - εργάζομαι (I work)
+    - κοιμάμαι (I sleep)
+    - θυμάμαι (I remember)
+    - φοβάμαι (I am afraid)
+    - με (with)
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - συχνά (often)
+  - id: b4_c5
+    order: 5
+    suggested_length: short
+    language_skill: 'Skill: Making open conditional statements.'
+    target_grammar: "1. Type 1 conditional clauses with αν (if) — open/likely conditions:\n\
+      \   Structure: Αν + present indicative, θα + future/present.\n   Example: Αν\
+      \ έχεις χρόνο, θα πάμε καφέ. (If you have time, we'll go for coffee.)\n2. The\
+      \ conjunction όταν (when) for temporal clauses:\n   Όταν φτάσεις, τηλεφώνησέ\
+      \ μου. (When you arrive, call me.)\n"
+    mandatory_vocabulary:
+    - αν (if)
+    - εάν (if — formal)
+    - όταν (when)
+    - τότε (then)
+    - φτάνω (I arrive)
+    - αρχίζω (I begin)
+    - τελειώνω (I finish)
+    - αν θέλεις (if you want)
+    - αν μπορείς (if you can)
+    - όποτε (whenever)
+    accumulated_grammar_summary: '1. Deponent verbs in -ομαι (Type 1):
+
+      1. Deponent verbs in -ιέμαι/-άμαι (Type 2) and preposition με:
+
+      1. The imperfect (Παρατατικός) for ongoing or habitual past actions:
+
+      1. Aorist vs. imperfect contrast:'
+    accumulated_vocabulary:
+    - κάθομαι (I sit/I am sitting)
+    - σκέφτομαι (I think)
+    - σηκώνομαι (I get up)
+    - εργάζομαι (I work)
+    - κοιμάμαι (I sleep)
+    - θυμάμαι (I remember)
+    - φοβάμαι (I am afraid)
+    - με (with)
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - συχνά (often)
+    - ενώ (while)
+    - όταν (when)
+    - ξαφνικά (suddenly)
+    - μόλις (as soon as)
+    - αμέσως (immediately)
+    - τελικά (in the end)
+  - id: b4_c6
+    order: 6
+    suggested_length: medium
+    language_skill: 'Skill: Making hypothetical conditional statements.'
+    target_grammar: "1. Type 2 conditional clauses with αν (if) — hypothetical/less\
+      \ likely conditions:\n   Structure: Αν + imperfect, θα + imperfect.\n   Example:\
+      \ Αν είχα λεφτά, θα αγόραζα σπίτι. (If I had money, I would buy a house.)\n\
+      2. Concession clauses with αν και / μολονότι (even if / although).\n"
+    mandatory_vocabulary:
+    - αν και (even if/although)
+    - θα αγόραζα (I would buy)
+    - θα πήγαινα (I would go)
+    - θα ήθελα (I would want)
+    - θα μπορούσα (I could/would be able)
+    - υποθέτω (I suppose)
+    - φαντάσου (imagine!)
+    - ας πούμε (let's say)
+    - επειδή (because)
+    - αφού (since/after)
+    accumulated_grammar_summary: '1. Deponent verbs in -ιέμαι/-άμαι (Type 2) and
+      preposition με:
+
+      1. The imperfect (Παρατατικός) for ongoing or habitual past actions:
+
+      1. Aorist vs. imperfect contrast:
+
+      1. Type 1 conditionals with αν (open conditions) and όταν:'
+    accumulated_vocabulary:
+    - κοιμάμαι (I sleep)
+    - θυμάμαι (I remember)
+    - φοβάμαι (I am afraid)
+    - με (with)
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - ενώ (while)
+    - όταν (when)
+    - ξαφνικά (suddenly)
+    - μόλις (as soon as)
+    - τελικά (in the end)
+    - αν (if)
+    - εάν (if — formal)
+    - φτάνω (I arrive)
+    - αν θέλεις (if you want)
+    - αν μπορείς (if you can)
+    - όποτε (whenever)
+  - id: b4_c7
+    order: 7
+    suggested_length: medium
+    language_skill: 'Skill: Talking about yourself and self-reflection.'
+    target_grammar: '1. Reflexive pronouns using the noun εαυτός:
+
+      2. ο εαυτός μου (myself), ο εαυτός σου (yourself), ο εαυτός του/της (himself/herself).
+
+      3. Agreement of εαυτός with the subject in gender, number, and case.
+
+      4. Using μόνος μου / μόνη μου (by myself) as an alternative reflexive expression.'
+    mandatory_vocabulary:
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - τον εαυτό σου (yourself — acc.)
+    - καθρέφτης (mirror)
+    - κοιτάζω (I look at)
+    - ο ίδιος (the same / himself)
+    - μόνος μου (by myself — masc.)
+    - μόνη μου (by myself — fem.)
+    - συμπεριφορά (behavior)
+    - άποψη (opinion)
+    accumulated_grammar_summary: '1. The imperfect (Παρατατικός) for ongoing or habitual
+      past actions:
+
+      1. Aorist vs. imperfect contrast:
+
+      1. Type 1 conditionals with αν (open conditions) and όταν:
+
+      1. Type 2 conditionals with αν (hypothetical) and αν και (concession):'
+    accumulated_vocabulary:
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - ενώ (while)
+    - όταν (when)
+    - ξαφνικά (suddenly)
+    - τελικά (in the end)
+    - αν (if)
+    - εάν (if — formal)
+    - αν και (even if/although)
+    - θα αγόραζα (I would buy)
+    - θα πήγαινα (I would go)
+    - θα ήθελα (I would want)
+    - θα μπορούσα (I could/would be able)
+    - υποθέτω (I suppose)
+    - φαντάσου (imagine!)
+    - ας πούμε (let's say)
+    - αφού (since/after)
+  - id: b4_c8
+    order: 8
+    suggested_length: long
+    language_skill: 'Skill: Distinguishing between knowing facts and knowing people.'
+    target_grammar: '1. The verbs ''to know'': ξέρω vs γνωρίζω.
+
+      2. Ξέρω: for facts, skills, and how to do something (ξέρω να κολυμπώ — I know
+      how to swim).
+
+      3. Γνωρίζω: for people, places, and deep familiarity with something.
+
+      4. Imperfect forms: ήξερα (I used to know/I knew), γνώριζα (I was acquainted).
+
+      5. Aorist: γνώρισα (I met / became acquainted).'
+    mandatory_vocabulary:
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - γνώρισα (I met/became acquainted)
+    - πληροφορία (information)
+    - γνωριμία (acquaintance)
+    - γνώση (knowledge)
+    - αλήθεια (truth)
+    - ψέμα (lie)
+    - πραγματικότητα (reality)
+    accumulated_grammar_summary: '1. Aorist vs. imperfect contrast:
+
+      1. Type 1 conditionals with αν (open conditions) and όταν:
+
+      1. Type 2 conditionals with αν (hypothetical) and αν και (concession):
+
+      1. Reflexive pronouns (εαυτός) and μόνος μου:'
+    accumulated_vocabulary:
+    - ενώ (while)
+    - όταν (when)
+    - ξαφνικά (suddenly)
+    - τελικά (in the end)
+    - αν (if)
+    - εάν (if — formal)
+    - αν και (even if/although)
+    - θα αγόραζα (I would buy)
+    - θα πήγαινα (I would go)
+    - θα ήθελα (I would want)
+    - θα μπορούσα (I could/would be able)
+    - υποθέτω (I suppose)
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - τον εαυτό σου (yourself — acc.)
+    - καθρέφτης (mirror)
+    - κοιτάζω (I look at)
+    - ο ίδιος (the same / himself)
+    - μόνος μου (by myself — masc.)
+    - συμπεριφορά (behavior)
+- id: book_5
+  title: Nuance and Subtlety
+  description: Express possibilities, use the perfect tenses, and enrich your sentences
+    with prepositions and pronouns.
+  order: 5
+  level: B1.2
+  chapters:
+  - id: b5_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Talking about life experiences relevant to the present.'
+    target_grammar: "1. The Present Perfect (Παρακείμενος): Formed with έχω + the\
+      \ invariable aorist infinitive.\n   Example: έχω γράψει (I have written), έχεις\
+      \ δει (you have seen), έχει φάει (he has eaten).\n   Used for actions completed\
+      \ in the past with results relevant to the present.\n   Time markers: ήδη (already),\
+      \ ακόμα (yet/still), μόλις (just), ποτέ (never — with perfect).\n"
+    mandatory_vocabulary:
+    - έχω κάνει (I have done)
+    - έχω φάει (I have eaten)
+    - έχω δει (I have seen)
+    - ήδη (already)
+    - ακόμα (yet/still)
+    - μόλις (just now)
+    - ποτέ (never — with perfect)
+    - μέχρι τώρα (until now)
+    - πρόσφατα (recently)
+    - αρκετές φορές (several times)
+    accumulated_grammar_summary: '1. The imperfect (Παρατατικός) for ongoing or habitual
+      past actions:
+
+      1. Aorist vs. imperfect contrast:
+
+      1. Type 1 conditionals with αν (open conditions) and όταν:
+
+      1. Type 2 conditionals with αν (hypothetical) and αν και (concession):
+
+      1. Reflexive pronouns (εαυτός) and μόνος μου:
+
+      1. The verbs ξέρω vs γνωρίζω and their imperfect/aorist forms:'
+    accumulated_vocabulary:
+    - συνήθως (usually)
+    - πάντα (always)
+    - τότε (back then/at that time)
+    - πήγαινα (I used to go / I was going)
+    - έκανα (I used to do / I was doing)
+    - αν (if)
+    - αν και (even if/although)
+    - όταν (when)
+    - θα αγόραζα (I would buy)
+    - θα πήγαινα (I would go)
+    - θα ήθελα (I would want)
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - καθρέφτης (mirror)
+    - κοιτάζω (I look at)
+    - μόνος μου (by myself — masc.)
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - γνώρισα (I met/became acquainted)
+  - id: b5_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Expressing what had already happened before another past
+      event.'
+    target_grammar: "1. The Past Perfect (Υπερσυντέλικος): Formed with είχα + aorist\
+      \ infinitive.\n   Example: είχα γράψει (I had written), είχες δει (you had seen).\n\
+      \   Used for an action completed before another past action.\n   Example: Όταν\
+      \ ήρθες, είχα ήδη φύγει. (When you arrived, I had already left.)\n2. Contrast\
+      \ between present perfect and past perfect in context.\n"
+    mandatory_vocabulary:
+    - είχα δει (I had seen)
+    - είχα πάει (I had gone)
+    - είχε έρθει (he/she had come)
+    - είχαμε φάει (we had eaten)
+    - ήδη (already)
+    - ακόμα (still/yet)
+    - πριν να (before)
+    - μετά που (after)
+    - εκείνη τη μέρα (that day)
+    - την εποχή εκείνη (at that time)
+    accumulated_grammar_summary: '1. Aorist vs. imperfect contrast:
+
+      1. Type 1 conditionals with αν (open conditions) and όταν:
+
+      1. Type 2 conditionals with αν (hypothetical) and αν και (concession):
+
+      1. Reflexive pronouns (εαυτός) and μόνος μου:
+
+      1. The verbs ξέρω vs γνωρίζω:
+
+      1. The Present Perfect (Παρακείμενος — έχω + aorist infinitive):'
+    accumulated_vocabulary:
+    - αν (if)
+    - αν και (even if/although)
+    - όταν (when)
+    - θα αγόραζα (I would buy)
+    - θα πήγαινα (I would go)
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - μόνος μου (by myself — masc.)
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - γνώρισα (I met/became acquainted)
+    - έχω κάνει (I have done)
+    - έχω φάει (I have eaten)
+    - έχω δει (I have seen)
+    - ήδη (already)
+    - ακόμα (yet/still)
+    - μόλις (just now)
+    - μέχρι τώρα (until now)
+    - πρόσφατα (recently)
+  - id: b5_c3
+    order: 3
+    suggested_length: short
+    language_skill: 'Skill: Explaining who benefits from an action.'
+    target_grammar: "1. Indirect Object Pronouns (Genitive case pronouns):\n   Singular:\
+      \ μου (to me), σου (to you), του (to him/it), της (to her).\n   Plural: μας\
+      \ (to us), σας (to you pl.), τους (to them).\n   Placed *before* the verb.\n\
+      \   Example: Του δίνω το βιβλίο. (I give him the book.)\n2. Common verbs taking\
+      \ indirect objects: δίνω (give), λέω (tell), στέλνω (send), δείχνω (show).\n"
+    mandatory_vocabulary:
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - της (to her)
+    - μας (to us)
+    - σας (to you pl.)
+    - τους (to them)
+    - δίνω (I give)
+    - στέλνω (I send)
+    - δείχνω (I show)
+    accumulated_grammar_summary: '1. Type 1 conditionals with αν (open conditions)
+      and όταν:
+
+      1. Type 2 conditionals with αν (hypothetical) and αν και (concession):
+
+      1. Reflexive pronouns (εαυτός) and μόνος μου:
+
+      1. The verbs ξέρω vs γνωρίζω:
+
+      1. The Present Perfect (Παρακείμενος):
+
+      1. The Past Perfect (Υπερσυντέλικος — είχα + aorist infinitive):'
+    accumulated_vocabulary:
+    - αν και (even if/although)
+    - όταν (when)
+    - θα αγόραζα (I would buy)
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - μόνος μου (by myself — masc.)
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - γνώρισα (I met/became acquainted)
+    - έχω κάνει (I have done)
+    - έχω φάει (I have eaten)
+    - έχω δει (I have seen)
+    - ήδη (already)
+    - ακόμα (yet/still)
+    - μόλις (just now)
+    - είχα δει (I had seen)
+    - είχα πάει (I had gone)
+    - πριν να (before)
+    - μετά που (after)
+  - id: b5_c4
+    order: 4
+    suggested_length: medium
+    language_skill: 'Skill: Combining direct and indirect objects in one sentence.'
+    target_grammar: "1. Direct + Indirect Object Pronoun combinations:\n   Indirect\
+      \ comes first, then direct.\n   Example: Μου το δίνει. (He gives it to me.)\n\
+      2. Combining pronouns with different persons and genders.\n   Example: Σου το\
+      \ έστειλα. (I sent it to you.) Της το δείξαμε. (We showed it to her.)\n3. Pronoun\
+      \ order rule: indirect (genitive) always precedes direct (accusative).\n"
+    mandatory_vocabulary:
+    - μου το (it to me)
+    - σου το (it to you)
+    - του το (it to him)
+    - της το (it to her)
+    - λέω (I tell/say)
+    - εξηγώ (I explain)
+    - αποστέλλω (I dispatch/send)
+    - φέρνω (I bring)
+    - δανείζω (I lend)
+    - χαρίζω (I give as gift)
+    accumulated_grammar_summary: '1. Type 2 conditionals with αν (hypothetical) and
+      αν και (concession):
+
+      1. Reflexive pronouns (εαυτός) and μόνος μου:
+
+      1. The verbs ξέρω vs γνωρίζω:
+
+      1. The Present Perfect (Παρακείμενος):
+
+      1. The Past Perfect (Υπερσυντέλικος):
+
+      1. Indirect Object Pronouns (genitive case — μου, σου, του, της, μας, σας, τους):'
+    accumulated_vocabulary:
+    - εαυτός (self)
+    - τον εαυτό μου (myself — acc.)
+    - μόνος μου (by myself — masc.)
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - έχω κάνει (I have done)
+    - έχω φάει (I have eaten)
+    - ήδη (already)
+    - ακόμα (yet/still)
+    - μόλις (just now)
+    - είχα δει (I had seen)
+    - είχα πάει (I had gone)
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - της (to her)
+    - μας (to us)
+    - δίνω (I give)
+    - στέλνω (I send)
+  - id: b5_c5
+    order: 5
+    suggested_length: medium
+    language_skill: 'Skill: Giving direct commands and advice.'
+    target_grammar: "1. The Imperative (Προστακτική) — continuous (from present stem)\
+      \ for ongoing action vs simple (from aorist stem) for a one-off action.\n  \
+      \ Continuous: Γράφε! (Keep writing!). Simple: Γράψε! (Write it down!).\n2. Negative\
+      \ commands: μη(ν) + subjunctive: Μη γράφεις! (Don't write!)\n3. Irregular imperatives:\
+      \ πες (say!), δες (see!), πιες (drink!), έλα (come!), πήγαινε (go!), φάε (eat!).\n"
+    mandatory_vocabulary:
+    - πες (say!)
+    - έλα (come!)
+    - πήγαινε (go!)
+    - μην (don't)
+    - δώσε (give!)
+    - κάνε (do!)
+    - γράψε (write!)
+    - φάε (eat!)
+    - τρέξε (run!)
+    - σταμάτα (stop!)
+    accumulated_grammar_summary: '1. Reflexive pronouns (εαυτός) and μόνος μου:
+
+      1. The verbs ξέρω vs γνωρίζω:
+
+      1. The Present Perfect (Παρακείμενος):
+
+      1. The Past Perfect (Υπερσυντέλικος):
+
+      1. Indirect Object Pronouns:
+
+      1. Direct + Indirect pronoun combinations (μου το, σου το, etc.):'
+    accumulated_vocabulary:
+    - ξέρω (I know — facts/skills)
+    - γνωρίζω (I know — people/places)
+    - ήξερα (I knew/I used to know)
+    - έχω κάνει (I have done)
+    - έχω φάει (I have eaten)
+    - ήδη (already)
+    - ακόμα (yet/still)
+    - μόλις (just now)
+    - είχα δει (I had seen)
+    - είχα πάει (I had gone)
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - της (to her)
+    - μας (to us)
+    - δίνω (I give)
+    - στέλνω (I send)
+    - μου το (it to me)
+    - σου το (it to you)
+    - εξηγώ (I explain)
+  - id: b5_c6
+    order: 6
+    suggested_length: short
+    language_skill: 'Skill: Placing object pronouns correctly with imperatives.'
+    target_grammar: "1. Using object pronouns with imperatives:\n   Pronouns go *after*\
+      \ positive commands: Δώσε μου! (Give me!), Πες μου το! (Tell it to me!).\n \
+      \  Pronouns go *between* μην and verb for negative commands: Μην μου το δίνεις!\
+      \ (Don't give it to me!)\n2. Combining imperative + indirect + direct pronoun\
+      \ in one structure.\n"
+    mandatory_vocabulary:
+    - δώσε μου (give me!)
+    - πες μου (tell me!)
+    - δείξε μου (show me!)
+    - μην το κάνεις (don't do it!)
+    - στείλε μου το (send it to me!)
+    - φέρε μου (bring me!)
+    - δείξ' του (show him!)
+    - άκουσέ με (listen to me!)
+    - βοήθησέ με (help me!)
+    - άσε με (let me!)
+    accumulated_grammar_summary: '1. The verbs ξέρω vs γνωρίζω:
+
+      1. The Present Perfect (Παρακείμενος):
+
+      1. The Past Perfect (Υπερσυντέλικος):
+
+      1. Indirect Object Pronouns:
+
+      1. Direct + Indirect pronoun combinations:
+
+      1. The Imperative (Προστακτική) — continuous vs simple; irregular forms; μη(ν)
+      negation:'
+    accumulated_vocabulary:
+    - ήξερα (I knew/I used to know)
+    - γνώρισα (I met/became acquainted)
+    - έχω κάνει (I have done)
+    - ήδη (already)
+    - μόλις (just now)
+    - είχα δει (I had seen)
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - της (to her)
+    - μας (to us)
+    - δίνω (I give)
+    - στέλνω (I send)
+    - μου το (it to me)
+    - εξηγώ (I explain)
+    - πες (say!)
+    - έλα (come!)
+    - μην (don't)
+    - δώσε (give!)
+    - κάνε (do!)
+  - id: b5_c7
+    order: 7
+    suggested_length: long
+    language_skill: 'Skill: Expressing likes, dislikes, and impressions.'
+    target_grammar: '1. Verbs that take an indirect object pronoun as subject of the
+      experience:
+
+      2. μου αρέσει (I like it — it is pleasing to me): Μου αρέσει ο καφές.
+
+      3. μου αρέσουν (I like them): Μου αρέσουν τα βιβλία.
+
+      4. Other experiential verbs: μοιάζω (to resemble), ταιριάζω (to suit), φαίνομαι
+      (to seem), πειράζω (to bother).'
+    mandatory_vocabulary:
+    - αρέσει (it pleases/is liked)
+    - αρέσουν (they please/are liked)
+    - μου αρέσει (I like it)
+    - μοιάζω (I resemble)
+    - ταιριάζω (I suit/match)
+    - φαίνομαι (I seem/appear)
+    - σε πειράζει (it bothers you)
+    - σου ταιριάζει (it suits you)
+    - φαίνεται (it seems)
+    - ακούγεται (it sounds)
+    accumulated_grammar_summary: '1. The Present Perfect (Παρακείμενος):
+
+      1. The Past Perfect (Υπερσυντέλικος):
+
+      1. Indirect Object Pronouns:
+
+      1. Direct + Indirect pronoun combinations:
+
+      1. The Imperative (Προστακτική):
+
+      1. Pronoun placement with imperatives:'
+    accumulated_vocabulary:
+    - έχω κάνει (I have done)
+    - ήδη (already)
+    - μόλις (just now)
+    - είχα δει (I had seen)
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - της (to her)
+    - μας (to us)
+    - δίνω (I give)
+    - στέλνω (I send)
+    - μου το (it to me)
+    - εξηγώ (I explain)
+    - πες (say!)
+    - έλα (come!)
+    - μην (don't)
+    - δώσε (give!)
+    - κάνε (do!)
+    - δώσε μου (give me!)
+    - μην το κάνεις (don't do it!)
+  - id: b5_c8
+    order: 8
+    suggested_length: short
+    language_skill: 'Skill: Offering cultural wishes and hopes.'
+    target_grammar: '1. Expressing wishes and hopes with μακάρι:
+
+      2. μακάρι να + present subjunctive for achievable future wishes: Μακάρι να έρθεις!
+      (I wish you would come!)
+
+      3. μακάρι να + imperfect for unreal/impossible present wishes: Μακάρι να ήμουν
+      πλούσιος. (I wish I were rich.)
+
+      4. Standard Greek cultural wishes (ευχές): περαστικά, συγχαρητήρια, καλή επιτυχία.'
+    mandatory_vocabulary:
+    - μακάρι (I wish/if only)
+    - εύχομαι (I wish/pray)
+    - περαστικά (get well soon)
+    - συγχαρητήρια (congratulations)
+    - καλή επιτυχία (good luck)
+    - ελπίδα (hope)
+    - ευχή (wish)
+    - όνειρο (dream)
+    - καλό ταξίδι (have a good trip)
+    - χρόνια πολλά (many happy years)
+    accumulated_grammar_summary: '1. The Past Perfect (Υπερσυντέλικος):
+
+      1. Indirect Object Pronouns:
+
+      1. Direct + Indirect pronoun combinations:
+
+      1. The Imperative (Προστακτική):
+
+      1. Pronoun placement with imperatives:
+
+      1. Verbs of impression and liking (αρέσει, μοιάζω, ταιριάζω, φαίνομαι, πειράζω):'
+    accumulated_vocabulary:
+    - είχα δει (I had seen)
+    - μου (to me)
+    - σου (to you)
+    - του (to him/it)
+    - δίνω (I give)
+    - στέλνω (I send)
+    - εξηγώ (I explain)
+    - πες (say!)
+    - έλα (come!)
+    - μην (don't)
+    - δώσε (give!)
+    - δώσε μου (give me!)
+    - μην το κάνεις (don't do it!)
+    - αρέσει (it pleases/is liked)
+    - αρέσουν (they please/are liked)
+    - μου αρέσει (I like it)
+    - μοιάζω (I resemble)
+    - ταιριάζω (I suit/match)
+    - φαίνομαι (I seem/appear)
+    - σε πειράζει (it bothers you)
+- id: book_6
+  title: Mastering the Details
+  description: Advanced grammatical structures, the subjunctive mood in depth, and
+    expressing complex thoughts.
+  order: 6
+  level: B2
+  chapters:
+  - id: b6_c1
+    order: 1
+    suggested_length: short
+    language_skill: 'Skill: Expressing obligations and necessities.'
+    target_grammar: "1. Impersonal expressions with the subjunctive:\n   πρέπει να\
+      \ (must / have to), απαγορεύεται να (it is forbidden to), είναι σημαντικό να\
+      \ (it is important to).\n2. The continuous subjunctive vs the simple subjunctive\
+      \ after πρέπει να:\n   πρέπει να διαβάζω (I must study — continuous/habitual)\
+      \ vs πρέπει να διαβάσω (I must study tonight — simple/completed).\n"
+    mandatory_vocabulary:
+    - πρέπει (must)
+    - δεν πρέπει (must not)
+    - απαγορεύεται (it is forbidden)
+    - είναι σημαντικό (it is important)
+    - απαιτείται (it is required)
+    - επιτρέπεται (it is allowed)
+    - υποχρεούμαι (I am obliged)
+    - αναγκάζομαι (I am forced)
+    - είναι ανάγκη (it is necessary)
+    - οφείλω (I owe/must)
+    accumulated_grammar_summary: '1. The Imperative (Προστακτική):
+
+      1. Pronoun placement with imperatives:
+
+      1. Verbs of impression and liking (αρέσει, μοιάζω, ταιριάζω, φαίνομαι, πειράζω):
+
+      1. Wishes and hopes with μακάρι να + subjunctive:'
+    accumulated_vocabulary:
+    - πες (say!)
+    - έλα (come!)
+    - μην (don't)
+    - δώσε (give!)
+    - δώσε μου (give me!)
+    - μην το κάνεις (don't do it!)
+    - αρέσει (it pleases/is liked)
+    - αρέσουν (they please/are liked)
+    - μου αρέσει (I like it)
+    - μοιάζω (I resemble)
+    - ταιριάζω (I suit/match)
+    - φαίνομαι (I seem/appear)
+    - σε πειράζει (it bothers you)
+    - μακάρι (I wish/if only)
+    - εύχομαι (I wish/pray)
+    - περαστικά (get well soon)
+    - συγχαρητήρια (congratulations)
+    - καλή επιτυχία (good luck)
+    - ελπίδα (hope)
+    - ευχή (wish)
+  - id: b6_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Expressing possibility, probability and subjective opinions.'
+    target_grammar: "1. Advanced uses of the subjunctive beyond πρέπει να:\n   μπορεί\
+      \ να (might / it is possible that), ίσως να (perhaps), πιθανόν να (probably).\n\
+      2. Expressions of emotion and opinion with να:\n   Χαίρομαι που/να (I am glad\
+      \ that), ελπίζω να (I hope to), είναι κρίμα να (it's a pity to).\n3. Contrast:\
+      \ μπορεί να + present vs μπορεί να + aorist.\n"
+    mandatory_vocabulary:
+    - μπορεί (might/maybe)
+    - μπορεί να (it might/it is possible)
+    - ίσως να (perhaps)
+    - πιθανόν (probably)
+    - ελπίζω (I hope)
+    - κρίμα (pity)
+    - χαρά (joy)
+    - λυπάμαι (I am sorry)
+    - είναι καλό να (it is good to)
+    - είναι άσχημο να (it is bad to)
+    accumulated_grammar_summary: '1. Pronoun placement with imperatives:
+
+      1. Verbs of impression and liking (αρέσει, μοιάζω, ταιριάζω, φαίνομαι):
+
+      1. Wishes and hopes with μακάρι να + subjunctive:
+
+      1. Impersonal expressions of obligation (πρέπει να, απαγορεύεται να) + subjunctive:'
+    accumulated_vocabulary:
+    - δώσε μου (give me!)
+    - μην το κάνεις (don't do it!)
+    - αρέσει (it pleases/is liked)
+    - μου αρέσει (I like it)
+    - μοιάζω (I resemble)
+    - ταιριάζω (I suit/match)
+    - φαίνομαι (I seem/appear)
+    - μακάρι (I wish/if only)
+    - εύχομαι (I wish/pray)
+    - περαστικά (get well soon)
+    - συγχαρητήρια (congratulations)
+    - καλή επιτυχία (good luck)
+    - πρέπει (must)
+    - δεν πρέπει (must not)
+    - απαγορεύεται (it is forbidden)
+    - είναι σημαντικό (it is important)
+    - επιτρέπεται (it is allowed)
+    - απαιτείται (it is required)
+    - υποχρεούμαι (I am obliged)
+    - αναγκάζομαι (I am forced)
+  - id: b6_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Connecting ideas with relative clauses using που.'
+    target_grammar: "1. The indeclinable relative pronoun που (who, that, which) —\
+      \ used for subject or direct object roles.\n   Example: Το βιβλίο που διαβάζω…\
+      \ (The book that I am reading…)\n   Example: Ο φίλος που ήρθε… (The friend who\
+      \ came…)\n2. Extending sentences naturally using που relative clauses.\n"
+    mandatory_vocabulary:
+    - που (that/who — relative)
+    - αυτός που (he who)
+    - εκείνο που (that which)
+    - ο φίλος που (the friend who)
+    - το μέρος που (the place where)
+    - τα πράγματα που (the things that)
+    - η στιγμή που (the moment when)
+    - ο λόγος που (the reason why)
+    - όποιος (whoever)
+    - ό,τι (whatever)
+    accumulated_grammar_summary: '1. Verbs of impression and liking (αρέσει, μοιάζω,
+      ταιριάζω, φαίνομαι):
+
+      1. Wishes and hopes with μακάρι να + subjunctive:
+
+      1. Impersonal expressions of obligation (πρέπει να, απαγορεύεται να) + subjunctive:
+
+      1. Probability and emotion expressions with να (μπορεί να, ελπίζω να, κρίμα να):'
+    accumulated_vocabulary:
+    - μακάρι (I wish/if only)
+    - περαστικά (get well soon)
+    - συγχαρητήρια (congratulations)
+    - καλή επιτυχία (good luck)
+    - πρέπει (must)
+    - δεν πρέπει (must not)
+    - απαγορεύεται (it is forbidden)
+    - είναι σημαντικό (it is important)
+    - επιτρέπεται (it is allowed)
+    - απαιτείται (it is required)
+    - μπορεί (might/maybe)
+    - μπορεί να (it might/it is possible)
+    - ίσως να (perhaps)
+    - ελπίζω (I hope)
+    - κρίμα (pity)
+    - λυπάμαι (I am sorry)
+    - είναι καλό να (it is good to)
+    - είναι άσχημο να (it is bad to)
+    - πιθανόν (probably)
+    - χαρά (joy)
+  - id: b6_c4
+    order: 4
+    suggested_length: medium
+    language_skill: 'Skill: Connecting ideas with formal relative clauses and participles.'
+    target_grammar: "1. Formal relative pronouns: ο οποίος, η οποία, το οποίο (who,\
+      \ which, that) — fully declined to match their antecedent.\n   Example: Ο άνθρωπος\
+      \ με τον οποίο μιλούσα… (The man with whom I was speaking…)\n2. Present active\
+      \ participles ending in -οντας/-ώντας (gerunds):\n   Used to express \"while\
+      \ doing X\" or \"by doing X\".\n   Example: Τρώγοντας, βλέπω τηλεόραση. (While\
+      \ eating, I watch TV.)\n"
+    mandatory_vocabulary:
+    - ο οποίος/η οποία/το οποίο (who/which — formal)
+    - με τον οποίο (with whom — masc.)
+    - για την οποία (for which — fem.)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - διαβάζοντας (reading)
+    - περπατώντας (walking)
+    - τρέχοντας (running)
+    - οτιδήποτε (whatever)
+    - οποιοσδήποτε (anyone/whoever)
+    accumulated_grammar_summary: '1. Wishes and hopes with μακάρι να + subjunctive:
+
+      1. Impersonal expressions of obligation (πρέπει να, απαγορεύεται να) + subjunctive:
+
+      1. Probability and emotion expressions with να (μπορεί να, ελπίζω να, κρίμα να):
+
+      1. Relative pronoun που (indeclinable) for subject/object roles:'
+    accumulated_vocabulary:
+    - πρέπει (must)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - μπορεί (might/maybe)
+    - μπορεί να (it might/it is possible)
+    - ίσως να (perhaps)
+    - ελπίζω (I hope)
+    - κρίμα (pity)
+    - λυπάμαι (I am sorry)
+    - που (that/who — relative)
+    - αυτός που (he who)
+    - εκείνο που (that which)
+    - ο φίλος που (the friend who)
+    - το μέρος που (the place where)
+    - η στιγμή που (the moment when)
+    - ο λόγος που (the reason why)
+    - όποιος (whoever)
+    - ό,τι (whatever)
+    - πρέπει (must)
+    - είναι σημαντικό (it is important)
+  - id: b6_c5
+    order: 5
+    suggested_length: long
+    language_skill: 'Skill: Focusing on the action rather than the actor (passive voice).'
+    target_grammar: "1. The Passive Voice (Παθητική Φωνή) — Aorist:\n   Aorist passive\
+      \ endings (-ηκα, -ηκες, -ηκε, -ήκαμε, -ήκατε, -ήκαν).\n   Example: γράφτηκα\
+      \ (I was written/enrolled), χτίστηκε (it was built).\n2. The preposition από\
+      \ (by) to indicate the agent in passive sentences.\n   Example: Το σπίτι χτίστηκε\
+      \ από τον πατέρα μου. (The house was built by my father.)\n"
+    mandatory_vocabulary:
+    - γράφτηκα (I was enrolled/written)
+    - χτίστηκε (was built)
+    - ετοιμάστηκε (was prepared)
+    - γράφτηκε (was written)
+    - ακούστηκε (was heard)
+    - διαβάστηκε (was read)
+    - λύθηκε (was solved)
+    - φτιάχτηκε (was made)
+    - από (by/from — passive agent)
+    - θα λυθεί (will be solved)
+    accumulated_grammar_summary: '1. Impersonal expressions of obligation (πρέπει
+      να, απαγορεύεται να) + subjunctive:
+
+      1. Probability and emotion expressions with να (μπορεί να, ελπίζω να, κρίμα να):
+
+      1. Relative pronoun που (indeclinable) for subject/object roles:
+
+      1. Formal relative pronouns ο οποίος/η οποία/το οποίο and participles in -οντας:'
+    accumulated_vocabulary:
+    - μπορεί (might/maybe)
+    - ελπίζω (I hope)
+    - κρίμα (pity)
+    - λυπάμαι (I am sorry)
+    - που (that/who — relative)
+    - αυτός που (he who)
+    - εκείνο που (that which)
+    - ο φίλος που (the friend who)
+    - το μέρος που (the place where)
+    - η στιγμή που (the moment when)
+    - ο οποίος/η οποία/το οποίο (who/which — formal)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - διαβάζοντας (reading)
+    - περπατώντας (walking)
+    - τρέχοντας (running)
+    - οτιδήποτε (whatever)
+    - οποιοσδήποτε (anyone/whoever)
+    - πρέπει (must)
+    - επιτρέπεται (it is allowed)
+  - id: b6_c6
+    order: 6
+    suggested_length: short
+    language_skill: 'Skill: Forming passive future and perfect constructions.'
+    target_grammar: "1. The Passive Voice — Future:\n   θα + passive aorist stem +\
+      \ passive present endings.\n   Example: θα γραφτώ (I will be enrolled), θα\
+      \ φτιαχτεί (it will be made).\n2. Passive perfect tenses:\n   Present passive\
+      \ perfect: έχω γραφτεί (I have been enrolled), έχει χτιστεί (it has been built).\n\
+      \   Past passive perfect: είχε γραφτεί (it had been written).\n"
+    mandatory_vocabulary:
+    - θα γραφτώ (I will be enrolled)
+    - θα ακουστεί (it will be heard)
+    - θα φτιαχτεί (it will be made)
+    - έχει γραφτεί (it has been written)
+    - έχει χτιστεί (it has been built)
+    - είχε γραφτεί (it had been written)
+    - είχε ακουστεί (it had been heard)
+    - είχε λυθεί (it had been solved)
+    - θα έχει λυθεί (it will have been solved)
+    - αναφέρεται (it is mentioned)
+    accumulated_grammar_summary: '1. Probability and emotion expressions with να (μπορεί
+      να, ελπίζω να, κρίμα να):
+
+      1. Relative pronoun που (indeclinable) for subject/object roles:
+
+      1. Formal relative pronouns ο οποίος/η οποία/το οποίο and participles in -οντας:
+
+      1. Passive Voice Aorist (χτίστηκε, γράφτηκα, etc.) and από for agent:'
+    accumulated_vocabulary:
+    - ελπίζω (I hope)
+    - κρίμα (pity)
+    - που (that/who — relative)
+    - εκείνο που (that which)
+    - ο φίλος που (the friend who)
+    - η στιγμή που (the moment when)
+    - ο οποίος/η οποία/το οποίο (who/which — formal)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - διαβάζοντας (reading)
+    - περπατώντας (walking)
+    - οτιδήποτε (whatever)
+    - γράφτηκα (I was enrolled/written)
+    - χτίστηκε (was built)
+    - ετοιμάστηκε (was prepared)
+    - γράφτηκε (was written)
+    - ακούστηκε (was heard)
+    - λύθηκε (was solved)
+    - φτιάχτηκε (was made)
+    - από (by/from — passive agent)
+  - id: b6_c7
+    order: 7
+    suggested_length: short
+    language_skill: 'Skill: Expressing uncertainty and absolute negation.'
+    target_grammar: '1. Indefinite pronouns and adjectives: κάποιος (someone), κάτι
+      (something), κάπου (somewhere), κάποτε (sometime).
+
+      2. Negative pronouns with double negation: κανείς/κανένας (no one), τίποτα (nothing),
+      πουθενά (nowhere), ποτέ (never).
+
+      3. Double negation rule: δεν ... κανείς / δεν ... τίποτα — both δεν AND the negative
+      pronoun are required.
+
+      4. Example: Δεν θέλω τίποτα. (I don''t want anything.)'
+    mandatory_vocabulary:
+    - κάποιος (someone)
+    - κάτι (something)
+    - κανείς (no one)
+    - τίποτα (nothing)
+    - πουθενά (nowhere)
+    - κάτι άλλο (something else)
+    - κανένας άλλος (no one else)
+    - πουθενά αλλού (nowhere else)
+    - κάπως (somehow)
+    - κάμποσο (somewhat/quite a lot)
+    accumulated_grammar_summary: '1. Relative pronoun που (indeclinable) for subject/object
+      roles:
+
+      1. Formal relative pronouns ο οποίος/η οποία/το οποίο and participles in -οντας:
+
+      1. Passive Voice Aorist (χτίστηκε, γράφτηκα, etc.) and από for agent:
+
+      1. Passive Voice Future and Passive Perfect tenses:'
+    accumulated_vocabulary:
+    - που (that/who — relative)
+    - εκείνο που (that which)
+    - ο φίλος που (the friend who)
+    - ο οποίος/η οποία/το οποίο (who/which — formal)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - οτιδήποτε (whatever)
+    - γράφτηκα (I was enrolled/written)
+    - χτίστηκε (was built)
+    - ετοιμάστηκε (was prepared)
+    - ακούστηκε (was heard)
+    - λύθηκε (was solved)
+    - από (by/from — passive agent)
+    - θα γραφτώ (I will be enrolled)
+    - θα ακουστεί (it will be heard)
+    - έχει γραφτεί (it has been written)
+    - είχε γραφτεί (it had been written)
+    - είχε λυθεί (it had been solved)
+    - αναφέρεται (it is mentioned)
+    - θα λυθεί (will be solved)
+  - id: b6_c8
+    order: 8
+    suggested_length: medium
+    language_skill: 'Skill: Adding emotional nuance to words with diminutives and
+      augmentatives.'
+    target_grammar: '1. Diminutive suffixes:
+
+      2. -άκι (neuter): καφεδάκι (little coffee), νεράκι (little water), σπιτάκι
+      (little house).
+
+      3. -ούλα (feminine), -άκος (masculine): παιδούλα, φιλαράκος.
+
+      4. Augmentative suffixes: -άρας/-αρος for large or impressive things: σπιταρόνα
+      (huge house), αμαξάρα (huge car).
+
+      5. Cultural nuance: diminutives often signal warmth, affection, or politeness
+      in Greek rather than literally ''small''.'
+    mandatory_vocabulary:
+    - καφεδάκι (little coffee)
+    - νεράκι (a bit of water)
+    - λεπτάκι (just a moment)
+    - παιδάκι (little child)
+    - σπιτάκι (little house)
+    - αγοράκι (little boy)
+    - κοριτσάκι (little girl)
+    - σπιταρόνα (huge house)
+    - αμαξάρα (huge car)
+    - φιλαράκος (buddy/pal)
+    accumulated_grammar_summary: '1. Formal relative pronouns ο οποίος/η οποία/το
+      οποίο and participles in -οντας:
+
+      1. Passive Voice Aorist (χτίστηκε, γράφτηκα, etc.) and από for agent:
+
+      1. Passive Voice Future and Passive Perfect tenses:
+
+      1. Indefinite and negative pronouns (κάποιος, κάτι, κανείς, τίποτα) and double
+      negation:'
+    accumulated_vocabulary:
+    - ο οποίος/η οποία/το οποίο (who/which — formal)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - οτιδήποτε (whatever)
+    - γράφτηκα (I was enrolled/written)
+    - χτίστηκε (was built)
+    - ετοιμάστηκε (was prepared)
+    - ακούστηκε (was heard)
+    - λύθηκε (was solved)
+    - από (by/from — passive agent)
+    - θα γραφτώ (I will be enrolled)
+    - έχει γραφτεί (it has been written)
+    - είχε γραφτεί (it had been written)
+    - θα λυθεί (will be solved)
+    - κάποιος (someone)
+    - κάτι (something)
+    - κανείς (no one)
+    - τίποτα (nothing)
+    - πουθενά (nowhere)
+    - κάτι άλλο (something else)
+- id: book_7
+  title: Connecting Ideas
+  description: Express possession, make comparisons, and describe exactly how actions
+    happen.
+  order: 7
+  level: B2.2
+  chapters:
+  - id: b7_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Explaining relationships and possession using the genitive case.'
+    target_grammar: "1. The Genitive Case (Γενική Πτώση): Used to show possession\
+      \ or relationship (the \"of\" case).\n   Articles: masculine του (του άνδρα),\
+      \ feminine της (της γυναίκας), neuter του (του παιδιού).\n   Plural for all\
+      \ genders: των (των ανδρών, των γυναικών, των παιδιών).\n2. Using genitive to\
+      \ modify nouns: Η πόρτα του σπιτιού (The door of the house).\n3. Noun endings\
+      \ in the genitive: masculine -ου/-α, feminine -ας/-ης, neuter -ου.\n"
+    mandatory_vocabulary:
+    - του / της / των (of the)
+    - ιδιοκτησία (property/possession)
+    - του φίλου (of the friend)
+    - της μητέρας (of the mother)
+    - των παιδιών (of the children)
+    - η αδελφή (the sister)
+    - ο αδελφός (the brother)
+    - το όνομα (the name)
+    - ανήκει (belongs to)
+    - δικός μου (mine/my own)
+    accumulated_grammar_summary: '1. Relative Pronouns: ο οποίος, η οποία, το οποίο
+      (who, which, that).
+
+      1. The Passive Voice (Παθητική Φωνή) - Aorist and Future.
+
+      1. Indefinite pronouns and adjectives: κάποιος, κάτι, κάπου, κάποτε.
+
+      1. Diminutives and Augmentatives.'
+    accumulated_vocabulary:
+    - ο οποίος/η οποία/το οποίο (who/which)
+    - που (that/who)
+    - κάνοντας (doing/by doing)
+    - λέγοντας (saying/by saying)
+    - οτιδήποτε (whatever)
+    - γράφτηκα (I was enrolled/written)
+    - από (by/from)
+    - χτίστηκε (was built)
+    - θα λυθεί (will be solved)
+    - ετοιμάστηκε (was prepared)
+    - κάποιος
+    - κάτι
+    - κανείς
+    - τίποτα
+    - πουθενά
+    - καφεδάκι
+    - νεράκι
+    - λεπτάκι
+    - παιδάκι
+    - σπιταρόνα
+  - id: b7_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Using genitive prepositions to express cause, exception, and substitution.'
+    target_grammar: "1. Prepositions demanding the genitive: εξαιτίας (because of),\
+      \ λόγω (due to), εκτός (except), αντί (instead of), εναντίον (against).\n2.\
+      \ Distinguishing από (accusative) vs. εξαιτίας/λόγω (genitive) for cause.\n\
+      3. Fixed genitive expressions: από μόνος/μόνη/μόνο μου (by myself), χάρη σε\
+      \ (thanks to).\n"
+    mandatory_vocabulary:
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - αντί (instead of)
+    - εναντίον (against)
+    - εξαιτίας του (because of him)
+    - χάρη σε (thanks to)
+    - απέναντι (opposite/facing)
+    - ανάμεσα (between/among)
+    - γύρω από (around)
+    accumulated_grammar_summary: '1. The Passive Voice (Παθητική Φωνή) - Aorist and Future.
+
+      1. Indefinite pronouns and adjectives: κάποιος, κάτι, κάπου, κάποτε.
+
+      1. Diminutives and Augmentatives.
+
+      1. The Genitive Case (Γενική Πτώση): Possession and noun modification.'
+    accumulated_vocabulary:
+    - γράφτηκα (I was enrolled/written)
+    - από (by/from)
+    - χτίστηκε (was built)
+    - θα λυθεί (will be solved)
+    - ετοιμάστηκε (was prepared)
+    - κάποιος
+    - κάτι
+    - κανείς
+    - τίποτα
+    - πουθενά
+    - καφεδάκι
+    - νεράκι
+    - λεπτάκι
+    - παιδάκι
+    - σπιταρόνα
+    - του / της / των (of the)
+    - ιδιοκτησία (property/possession)
+    - ανήκει (belongs to)
+    - δικός μου (mine/my own)
+    - η αδελφή (the sister)
+  - id: b7_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Making comparisons between people and things.'
+    target_grammar: "1. Comparative degree of adjectives:\n   Periphrastic: πιο +\
+      \ adjective (πιο μεγάλος - bigger).\n   Suffix-based: -ότερος/-ύτερος (μεγαλύτερος\
+      \ - bigger).\n   Irregulars: καλύτερος (better), χειρότερος (worse), περισσότερος\
+      \ (more), λιγότερος (less).\n2. \"Than\" in comparisons: από + accusative.\n\
+      \   Example: Είναι ψηλότερος από εμένα. (He is taller than me.)\n"
+    mandatory_vocabulary:
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - περισσότερος (more)
+    - λιγότερος (less/fewer)
+    - μεγαλύτερος (bigger/older)
+    - μικρότερος (smaller/younger)
+    - ψηλότερος (taller)
+    - φθηνότερος (cheaper)
+    - ακριβότερος (more expensive)
+    accumulated_grammar_summary: '1. Indefinite pronouns and adjectives: κάποιος,
+      κάτι, κάπου, κάποτε.
+
+      1. Diminutives and Augmentatives.
+
+      1. The Genitive Case (Γενική Πτώση): Possession, noun modification, and genitive prepositions.'
+    accumulated_vocabulary:
+    - κάποιος
+    - κάτι
+    - κανείς
+    - τίποτα
+    - πουθενά
+    - καφεδάκι
+    - νεράκι
+    - λεπτάκι
+    - παιδάκι
+    - σπιταρόνα
+    - του / της / των (of the)
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - αντί (instead of)
+    - ιδιοκτησία (property/possession)
+    - ανήκει (belongs to)
+    - χάρη σε (thanks to)
+    - απέναντι (opposite/facing)
+    - ανάμεσα (between/among)
+  - id: b7_c4
+    order: 4
+    suggested_length: short
+    language_skill: 'Skill: Expressing superlatives and using παρά in comparisons.'
+    target_grammar: "1. Superlative degree: adding the definite article before the\
+      \ comparative.\n   Example: ο πιο μεγάλος / ο μεγαλύτερος (the biggest).\n\
+      2. Absolute superlative with -ότατος/-ύτατος: ωραιότατος (most beautiful),\
+      \ άριστος (excellent/best — classical form still used).\n3. \"Than\" variant\
+      \ with παρά (rather than / than — in preference comparisons).\n   Example: Προτιμώ\
+      \ καφέ παρά τσάι. (I prefer coffee rather than tea.)\n"
+    mandatory_vocabulary:
+    - παρά (than/rather than)
+    - πιο γρήγορα (faster)
+    - αργότερα (later)
+    - καλύτερα (better — adverb)
+    - χειρότερα (worse — adverb)
+    - το καλύτερο (the best)
+    - το χειρότερο (the worst)
+    - ο πιο (the most)
+    - άριστος (excellent/best)
+    - προτιμώ (I prefer)
+    accumulated_grammar_summary: '1. Diminutives and Augmentatives.
+
+      1. The Genitive Case (Γενική Πτώση): Possession, noun modification, and genitive prepositions.
+
+      1. Comparative degree of adjectives: πιο + adj, -ότερος, irregular forms, από in comparisons.'
+    accumulated_vocabulary:
+    - καφεδάκι
+    - νεράκι
+    - λεπτάκι
+    - παιδάκι
+    - σπιταρόνα
+    - του / της / των (of the)
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - ιδιοκτησία (property/possession)
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - περισσότερος (more)
+    - λιγότερος (less/fewer)
+    - μεγαλύτερος (bigger/older)
+    - μικρότερος (smaller/younger)
+    - ψηλότερος (taller)
+    - φθηνότερος (cheaper)
+    - ακριβότερος (more expensive)
+  - id: b7_c5
+    order: 5
+    suggested_length: short
+    language_skill: 'Skill: Describing the exact manner of an action using adverbs.'
+    target_grammar: "1. Deriving adverbs from adjectives:\n   Informal/Standard: ending\
+      \ in -α (e.g., καλός -> καλά, ωραίος -> ωραία).\n   Formal/Scholarly: ending\
+      \ in -ως (e.g., ακριβής -> ακριβώς, ευτυχής -> ευτυχώς, κυρίως).\n2. Adverbs\
+      \ of frequency: σπάνια (rarely), συχνά (often), πάντα (always), ποτέ (never).\n\
+      3. Adverbs of degree: εντελώς (completely), σχεδόν (almost), περίπου (approximately).\n"
+    mandatory_vocabulary:
+    - ακριβώς (exactly)
+    - ευτυχώς (fortunately)
+    - δυστυχώς (unfortunately)
+    - κυρίως (mainly)
+    - εντελώς (completely)
+    - σπάνια (rarely)
+    - συχνά (often)
+    - σχεδόν (almost)
+    - περίπου (approximately)
+    - αλλιώς (otherwise)
+    accumulated_grammar_summary: '1. The Genitive Case (Γενική Πτώση): Possession, noun modification, and genitive prepositions.
+
+      1. Comparative degree of adjectives and adverbs: πιο + adj, -ότερος, superlatives, παρά.'
+    accumulated_vocabulary:
+    - του / της / των (of the)
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - ιδιοκτησία (property/possession)
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - περισσότερος (more)
+    - παρά (than/rather than)
+    - καλύτερα (better — adverb)
+    - χειρότερα (worse — adverb)
+    - το καλύτερο (the best)
+    - άριστος (excellent/best)
+    - προτιμώ (I prefer)
+  - id: b7_c6
+    order: 6
+    suggested_length: medium
+    language_skill: 'Skill: Using special noun classes confidently in conversation.'
+    target_grammar: "1. Feminine nouns in -ος (e.g., η οδός, η λεωφόρος, η μέθοδος,\
+      \ η περίοδος) — declension identical to masculine -ος nouns.\n2. Neuter nouns\
+      \ in -μα (e.g., το πρόβλημα, το μάθημα, το χρώμα, το σύστημα) and their plural\
+      \ -ματα.\n3. Genitive of -μα nouns: singular -ματος (του προβλήματος), plural\
+      \ -μάτων (των προβλημάτων).\n"
+    mandatory_vocabulary:
+    - η οδός (the street/road)
+    - η λεωφόρος (the avenue/bus)
+    - η μέθοδος (the method)
+    - το πρόβλημα (the problem)
+    - το μάθημα (the lesson)
+    - το χρώμα (the colour)
+    - το σύστημα (the system)
+    - τα προβλήματα (the problems)
+    - τα μαθήματα (the lessons)
+    - το αποτέλεσμα (the result)
+    accumulated_grammar_summary: '1. The Genitive Case (Γενική Πτώση): Possession, noun modification, and genitive prepositions.
+
+      1. Comparative degree of adjectives and adverbs: πιο + adj, -ότερος, superlatives, παρά.
+
+      1. Deriving adverbs from adjectives: -α ending (standard), -ως ending (formal).'
+    accumulated_vocabulary:
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - αντί (instead of)
+    - ιδιοκτησία (property/possession)
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - παρά (than/rather than)
+    - το καλύτερο (the best)
+    - ακριβώς (exactly)
+    - ευτυχώς (fortunately)
+    - δυστυχώς (unfortunately)
+    - κυρίως (mainly)
+    - εντελώς (completely)
+    - σπάνια (rarely)
+    - συχνά (often)
+    - σχεδόν (almost)
+    - περίπου (approximately)
+    - αλλιώς (otherwise)
+  - id: b7_c7
+    order: 7
+    suggested_length: medium
+    language_skill: 'Skill: Building complex sentences with conjunctions of reason, result, and purpose.'
+    target_grammar: "1. Conjunctions of reason/cause: επειδή (because), αφού (since/after),\
+      \ διότι (because — more formal).\n2. Conjunctions of result: άρα (so/therefore),\
+      \ ώστε (so that/with the result that).\n3. Conjunction of purpose: για να (in\
+      \ order to) + subjunctive.\n4. Temporal conjunctions: πριν να (before), μέχρι\
+      \ να (until), προτού (before — more formal).\n"
+    mandatory_vocabulary:
+    - επειδή (because)
+    - αφού (since/after)
+    - διότι (because — formal)
+    - άρα (so/therefore)
+    - ώστε (so that)
+    - για να (in order to)
+    - πριν να (before)
+    - μέχρι να (until)
+    - προτού (before — formal)
+    - αναμφίβολα (undoubtedly)
+    accumulated_grammar_summary: '1. The Genitive Case (Γενική Πτώση): Possession, noun modification, and genitive prepositions.
+
+      1. Comparative degree of adjectives and adverbs: πιο + adj, -ότερος, superlatives, παρά.
+
+      1. Deriving adverbs from adjectives: -α ending (standard), -ως ending (formal).
+
+      1. Special noun declensions: feminine -ος nouns; neuter -μα nouns (plural -ματα).'
+    accumulated_vocabulary:
+    - του / της / των (of the)
+    - εξαιτίας (because of)
+    - λόγω (due to)
+    - εκτός (except)
+    - αντί (instead of)
+    - ιδιοκτησία (property/possession)
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - περισσότερος (more)
+    - παρά (than/rather than)
+    - ακριβώς (exactly)
+    - ευτυχώς (fortunately)
+    - δυστυχώς (unfortunately)
+    - κυρίως (mainly)
+    - εντελώς (completely)
+    - η οδός (the street/road)
+    - η μέθοδος (the method)
+    - το πρόβλημα (the problem)
+    - το μάθημα (the lesson)
+    - το χρώμα (the colour)
+- id: book_8
+  title: Advanced Passive and Participles
+  description: Master the passive voice across all tenses and learn how to use passive
+    participles.
+  order: 8
+  level: C1.1
+  chapters:
+  - id: b8_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Describing ongoing past events using the Passive Imperfect.'
+    target_grammar: "1. The Passive Imperfect (Παθητικός Παρατατικός): Ongoing past\
+      \ actions in the passive voice.\n   Endings for Type A verbs (-ομαι):\n   -όμουν,\
+      \ -όσουν, -όταν, -όμασταν, -όσασταν, -ονταν.\n   Example: Το σπίτι χτιζόταν\
+      \ για δύο χρόνια. (The house was being built for two years.)\n2. Signal adverbs:\
+      \ τότε, εκείνη την εποχή, σε εκείνη την περίοδο (at that time).\n3. Contrast\
+      \ with active Imperfect: active χτιζόταν (was building) vs. passive χτιζόταν\
+      \ (was being built) — same form, meaning determined by context.\n"
+    mandatory_vocabulary:
+    - ετοιμαζόταν (it was being prepared)
+    - κουραζόμουν (I was getting tired)
+    - απολυόμουν (I was being fired)
+    - πληρωνόταν (was being paid)
+    - χτιζόταν (was being built)
+    - πρόβλημα (problem)
+    - λύση (solution)
+    - εξέλιξη (development)
+    - σχέση (relationship)
+    - συζήτηση (discussion)
+    accumulated_grammar_summary: '1. Comparative degree of adjectives and adverbs:
+      πιο + adj, -ότερος, superlatives, παρά.
+
+      1. Deriving adverbs from adjectives: -α ending (standard), -ως ending (formal).
+
+      1. Special noun declensions: feminine -ος nouns; neuter -μα nouns (plural -ματα).
+
+      1. Conjunctions of reason, result, and purpose: επειδή, αφού, διότι, άρα, ώστε, για να.'
+    accumulated_vocabulary:
+    - πιο (more)
+    - καλύτερος (better)
+    - χειρότερος (worse)
+    - περισσότερος (more)
+    - παρά (than/rather than)
+    - ακριβώς (exactly)
+    - ευτυχώς (fortunately)
+    - δυστυχώς (unfortunately)
+    - κυρίως (mainly)
+    - εντελώς (completely)
+    - η οδός (the street/road)
+    - η μέθοδος (the method)
+    - το πρόβλημα (the problem)
+    - το μάθημα (the lesson)
+    - το χρώμα (the colour)
+    - επειδή (because)
+    - αφού (since/after)
+    - διότι (because — formal)
+    - άρα (so/therefore)
+    - ώστε (so that)
+  - id: b8_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Talking about completed passive events using the Passive Perfect tenses.'
+    target_grammar: "1. The Passive Present Perfect (Παθητικός Παρακείμενος):\n  \
+      \ Formation: έχω + passive aorist infinitive (stem + -εί/-στεί/-θεί).\n   Example:\
+      \ έχω πληρωθεί (I have been paid), έχει γραφτεί (it has been written).\n2.\
+      \ The Passive Past Perfect (Παθητικός Υπερσυντέλικος):\n   Formation: είχα +\
+      \ passive aorist infinitive.\n   Example: είχα πληρωθεί (I had been paid), είχε\
+      \ γραφτεί (it had been written).\n3. Contrast with active perfect tenses to\
+      \ emphasise who underwent the action.\n"
+    mandatory_vocabulary:
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - έχει ετοιμαστεί (it has been prepared)
+    - είχε αποφασιστεί (it had been decided)
+    - έχει ανακοινωθεί (it has been announced)
+    - αποφάσισα (I decided)
+    - ανακοινώθηκε (it was announced)
+    - αξία (value)
+    - αποτέλεσμα (result)
+    - συμφωνία (agreement)
+    accumulated_grammar_summary: '1. Deriving adverbs from adjectives: -α ending (standard), -ως ending (formal).
+
+      1. Special noun declensions: feminine -ος nouns; neuter -μα nouns (plural -ματα).
+
+      1. Conjunctions of reason, result, and purpose: επειδή, αφού, διότι, άρα, ώστε, για να.
+
+      1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions in the passive.'
+    accumulated_vocabulary:
+    - ακριβώς (exactly)
+    - ευτυχώς (fortunately)
+    - δυστυχώς (unfortunately)
+    - κυρίως (mainly)
+    - εντελώς (completely)
+    - η οδός (the street/road)
+    - η μέθοδος (the method)
+    - το πρόβλημα (the problem)
+    - το μάθημα (the lesson)
+    - το χρώμα (the colour)
+    - επειδή (because)
+    - αφού (since/after)
+    - διότι (because — formal)
+    - άρα (so/therefore)
+    - ώστε (so that)
+    - ετοιμαζόταν (it was being prepared)
+    - κουραζόμουν (I was getting tired)
+    - απολυόμουν (I was being fired)
+    - χτιζόταν (was being built)
+    - πληρωνόταν (was being paid)
+  - id: b8_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Using passive participles as adjectives to describe states.'
+    target_grammar: "1. Passive Perfect Participles (Παθητική Μετοχή): Functioning\
+      \ as adjectives to describe states resulting from an action.\n   Formed with\
+      \ -μένος, -μένη, -μένο (from most verbs); irregular: ανοιχτός, κλειστός.\n\
+      \   Examples: κουρασμένος (tired), γραμμένος (written), αγαπημένος (beloved).\n\
+      2. Agreement of passive participles with nouns in gender, number, and case (full\
+      \ paradigm like adjective).\n3. Using participles with είμαι to describe states\
+      \ vs. using the passive verb for ongoing actions:\n   Είναι κλειστό (It is closed\
+      \ — state) vs. Κλείνεται (It is being closed — action in progress).\n"
+    mandatory_vocabulary:
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - χαλασμένος (broken/spoiled)
+    - φτιαγμένος (made/fixed)
+    - ντυμένος (dressed)
+    - επιχείρηση (business)
+    - κοινωνία (society)
+    accumulated_grammar_summary: '1. Special noun declensions: feminine -ος nouns; neuter -μα nouns (plural -ματα).
+
+      1. Conjunctions of reason, result, and purpose: επειδή, αφού, διότι, άρα, ώστε, για να.
+
+      1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions in the passive.
+
+      1. Passive Perfect tenses (Παρακείμενος & Υπερσυντέλικος): έχω/είχα + passive aorist infinitive.'
+    accumulated_vocabulary:
+    - η οδός (the street/road)
+    - η μέθοδος (the method)
+    - το πρόβλημα (the problem)
+    - το μάθημα (the lesson)
+    - το χρώμα (the colour)
+    - επειδή (because)
+    - αφού (since/after)
+    - διότι (because — formal)
+    - άρα (so/therefore)
+    - ώστε (so that)
+    - ετοιμαζόταν (it was being prepared)
+    - κουραζόμουν (I was getting tired)
+    - απολυόμουν (I was being fired)
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - έχει ετοιμαστεί (it has been prepared)
+    - αξία (value)
+    - αποτέλεσμα (result)
+    - συμφωνία (agreement)
+    - αποφάσισα (I decided)
+  - id: b8_c4
+    order: 4
+    suggested_length: medium
+    language_skill: 'Skill: Reporting speech and commands using indirect speech.'
+    target_grammar: "1. Direct and Indirect Speech — statements (Εύθυς και Πλάγιος\
+      \ λόγος):\n   Reporting statements using ότι/πως (that).\n   Example Direct:\
+      \ \"Είμαι άρρωστος.\" (I am sick.)\n   Example Indirect: Είπε ότι είναι άρρωστος.\
+      \ (He said that he is sick.)\n2. Reported commands using να:\n   Direct: \"\
+      Φύγε!\" (Leave!)\n   Indirect: Μου είπε να φύγω. (He told me to leave.)\n3.\
+      \ Tense backshift: present in reported speech often stays as present in Modern\
+      \ Greek (unlike English).\n"
+    mandatory_vocabulary:
+    - ότι / πως (that — conjunction)
+    - είπε ότι (said that)
+    - μου είπε να (told me to)
+    - ισχυρίστηκε (claimed)
+    - παραδέχτηκε (admitted)
+    - κράτος (state)
+    - κυβέρνηση (government)
+    - νόμος (law)
+    - σκοπός (purpose)
+    - στόχος (goal)
+    accumulated_grammar_summary: '1. Conjunctions of reason, result, and purpose: επειδή, αφού, διότι, άρα, ώστε, για να.
+
+      1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions in the passive.
+
+      1. Passive Perfect tenses: έχω/είχα + passive aorist infinitive.
+
+      1. Passive Perfect Participles (-μένος/-μένη/-μένο) and state vs action distinction.'
+    accumulated_vocabulary:
+    - επειδή (because)
+    - αφού (since/after)
+    - διότι (because — formal)
+    - άρα (so/therefore)
+    - ώστε (so that)
+    - ετοιμαζόταν (it was being prepared)
+    - απολυόμουν (I was being fired)
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - χαλασμένος (broken/spoiled)
+    - φτιαγμένος (made/fixed)
+    - ντυμένος (dressed)
+    - αξία (value)
+    - αποτέλεσμα (result)
+    - συμφωνία (agreement)
+  - id: b8_c5
+    order: 5
+    suggested_length: short
+    language_skill: 'Skill: Reporting questions and using indirect questions naturally.'
+    target_grammar: "1. Reported questions using αν (if/whether) for yes/no questions:\n\
+      \   Example: Με ρώτησε αν θέλω καφέ. (He asked me if I want coffee.)\n2. Reported\
+      \ questions retaining the interrogative word (τι, πού, πότε, πώς, γιατί):\n\
+      \   Example: Ρώτησε πού μένω. (She asked where I live.)\n3. Verbs of asking,\
+      \ wondering, not knowing + indirect question: ρωτώ, αναρωτιέμαι, δεν ξέρω.\n"
+    mandatory_vocabulary:
+    - ρώτησα (I asked)
+    - απάντησα (I answered)
+    - αν (if/whether)
+    - εξήγησα (I explained)
+    - αναρωτιέμαι (I wonder)
+    - δεν ξέρω αν (I don't know if)
+    - δεν ξέρω πού (I don't know where)
+    - προσπάθεια (effort)
+    - απορία (question/doubt)
+    - κατανόηση (understanding)
+    accumulated_grammar_summary: '1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions in the passive.
+
+      1. Passive Perfect tenses: έχω/είχα + passive aorist infinitive.
+
+      1. Passive Perfect Participles (-μένος/-μένη/-μένο) and state vs action distinction.
+
+      1. Indirect Speech — statements and commands: ότι/πως + clause, μου είπε να.'
+    accumulated_vocabulary:
+    - ετοιμαζόταν (it was being prepared)
+    - απολυόμουν (I was being fired)
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - ότι / πως (that — conjunction)
+    - είπε ότι (said that)
+    - μου είπε να (told me to)
+    - ισχυρίστηκε (claimed)
+    - παραδέχτηκε (admitted)
+    - κράτος (state)
+    - κυβέρνηση (government)
+    - νόμος (law)
+    - στόχος (goal)
+    - σκοπός (purpose)
+    - συμφωνία (agreement)
+  - id: b8_c6
+    order: 6
+    suggested_length: medium
+    language_skill: 'Skill: Using the passive voice of Type B verbs (-ώ → -ιέμαι/-ιέται).'
+    target_grammar: "1. Passive voice of Type B verbs (ending in -ώ) — present tense:\n\
+      \   Pattern: -ιέμαι, -ιέσαι, -ιέται, -ιόμαστε, -ιέστε, -ιούνται.\n   Examples:\
+      \ αγαπιέμαι (I am loved), γεννιέμαι (I am born), εξηγούμαι (I am explained),\
+      \ κρατιέμαι (I hold myself).\n2. Aorist of Type B passive verbs: -ήθηκα ending.\n\
+      \   Examples: γεννήθηκα (I was born), αγαπήθηκα (I was loved), ενημερώθηκα\
+      \ (I was informed).\n3. Compare with Type A passive (-ομαι) forms to highlight\
+      \ the pattern difference.\n"
+    mandatory_vocabulary:
+    - αγαπιέμαι (I am loved)
+    - γεννιέμαι (I am born)
+    - γεννήθηκα (I was born)
+    - εξηγούμαι (I am explained)
+    - κρατιέμαι (I hold myself back)
+    - ενημερώθηκα (I was informed)
+    - αγαπήθηκα (I was loved)
+    - εμπειρία (experience)
+    - γνώμη (opinion)
+    - σκέψη (thought)
+    accumulated_grammar_summary: '1. Passive Perfect tenses: έχω/είχα + passive aorist infinitive.
+
+      1. Passive Perfect Participles (-μένος/-μένη/-μένο) and state vs action distinction.
+
+      1. Indirect Speech — statements, commands, and questions.
+
+      1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions.'
+    accumulated_vocabulary:
+    - επειδή (because)
+    - αφού (since/after)
+    - άρα (so/therefore)
+    - ώστε (so that)
+    - ετοιμαζόταν (it was being prepared)
+    - απολυόμουν (I was being fired)
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - ότι / πως (that — conjunction)
+    - ρώτησα (I asked)
+    - απάντησα (I answered)
+    - αν (if/whether)
+    - εξήγησα (I explained)
+    - αναρωτιέμαι (I wonder)
+    - παραδέχτηκε (admitted)
+  - id: b8_c7
+    order: 7
+    suggested_length: short
+    language_skill: 'Skill: Using impersonal passive expressions to make general statements.'
+    target_grammar: "1. Impersonal passive expressions — third-person singular passive\
+      \ for general statements:\n   λέγεται ότι (it is said that), θεωρείται (it is\
+      \ considered), απαγορεύεται (it is forbidden), επιτρέπεται (it is allowed),\
+      \ προβλέπεται (it is foreseen/stipulated).\n2. Adding ότι/να after impersonal\
+      \ expressions:\n   Απαγορεύεται να καπνίζεις εδώ. (Smoking is forbidden here.)\n\
+      \   Επιτρέπεται να μπεις. (You are allowed to enter.)\n3. Register: these expressions\
+      \ appear in formal, legal, and public written contexts.\n"
+    mandatory_vocabulary:
+    - λέγεται (it is said)
+    - θεωρείται (it is considered)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - προβλέπεται (it is foreseen/stipulated)
+    - δικαίωμα (right)
+    - υποχρέωση (obligation)
+    - ευθύνη (responsibility)
+    - κανόνας (rule)
+    - εξαίρεση (exception)
+    accumulated_grammar_summary: '1. Passive Perfect Participles (-μένος/-μένη/-μένο) and state vs action distinction.
+
+      1. Indirect Speech — statements, commands, and questions.
+
+      1. Passive voice of Type B verbs (-ώ): present -ιέμαι/-ιέται, aorist -ήθηκα.
+
+      1. The Passive Imperfect (Παθητικός Παρατατικός): ongoing past actions.'
+    accumulated_vocabulary:
+    - ετοιμαζόταν (it was being prepared)
+    - απολυόμουν (I was being fired)
+    - έχω πληρωθεί (I have been paid)
+    - είχε γραφτεί (it had been written)
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - ότι / πως (that — conjunction)
+    - ρώτησα (I asked)
+    - απάντησα (I answered)
+    - αν (if/whether)
+    - εξήγησα (I explained)
+    - αγαπιέμαι (I am loved)
+    - γεννιέμαι (I am born)
+    - γεννήθηκα (I was born)
+    - εξηγούμαι (I am explained)
+    - κρατιέμαι (I hold myself back)
+    - ενημερώθηκα (I was informed)
+- id: book_9
+  title: Fluency and Complexity
+  description: Express hypothetical pasts, connect complex arguments, and use idiomatic
+    Greek.
+  order: 9
+  level: C1.2
+  chapters:
+  - id: b9_c1
+    order: 1
+    suggested_length: medium
+    language_skill: 'Skill: Expressing unreal past situations using Type 3 Conditionals.'
+    target_grammar: "1. Type 3 Conditionals (Unreal/Impossible past):\n   Expressing\
+      \ situations that did not happen in the past and their hypothetical results.\n\
+      \   Structure: Αν + είχα + aorist infinitive (Past Perfect), θα + είχα + aorist\
+      \ infinitive.\n   Example: Αν είχα διαβάσει, θα είχα περάσει τις εξετάσεις.\
+      \ (If I had studied, I would have passed the exams.)\n2. All 6 persons of the\
+      \ Past Perfect (Υπερσυντέλικος): είχα, είχες, είχε, είχαμε, είχατε, είχαν +\
+      \ aorist infinitive.\n3. Negation: Αν δεν είχα ..., θα είχα ...\n"
+    mandatory_vocabulary:
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - εξετάσεις (exams)
+    - ευκαιρία (opportunity)
+    - απόφαση (decision)
+    - έχανα (I was missing/losing — imperfect)
+    - κέρδιζα (I was winning — imperfect)
+    - μετανιώνω (I regret)
+    - αν δεν είχα (if I hadn't)
+    - θα είχες (you would have)
+    accumulated_grammar_summary: '1. Passive Perfect Participles (-μένος/-μένη/-μένο) and state vs action distinction.
+
+      1. Indirect Speech — statements, commands, and questions.
+
+      1. Passive voice of Type B verbs (-ώ): present -ιέμαι/-ιέται, aorist -ήθηκα.
+
+      1. Impersonal passive expressions: λέγεται, θεωρείται, απαγορεύεται, επιτρέπεται.'
+    accumulated_vocabulary:
+    - κουρασμένος (tired)
+    - γραμμένος (written)
+    - ανοιχτός (opened/open)
+    - κλειστός (closed)
+    - αγαπημένος (beloved/favourite)
+    - ότι / πως (that — conjunction)
+    - ρώτησα (I asked)
+    - απάντησα (I answered)
+    - αν (if/whether)
+    - εξήγησα (I explained)
+    - αγαπιέμαι (I am loved)
+    - γεννιέμαι (I am born)
+    - γεννήθηκα (I was born)
+    - εξηγούμαι (I am explained)
+    - κρατιέμαι (I hold myself back)
+    - λέγεται (it is said)
+    - θεωρείται (it is considered)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - προβλέπεται (it is foreseen/stipulated)
+  - id: b9_c2
+    order: 2
+    suggested_length: short
+    language_skill: 'Skill: Mixing conditional types for nuanced hypothetical expressions.'
+    target_grammar: "1. Mixed Conditionals — combining Type 2 and Type 3:\n   Past\
+      \ condition with present result: Αν + Past Perfect, θα + Imperfect/Present.\n\
+      \   Example: Αν είχα σπουδάσει ιατρική, τώρα θα δούλευα ως γιατρός. (If I had\
+      \ studied medicine, I would be working as a doctor now.)\n2. Present condition\
+      \ with past result: Αν + Imperfect, θα + Past Perfect.\n   Example: Αν ήμουν\
+      \ πλούσιος, θα είχα αγοράσει εκείνο το σπίτι. (If I were rich, I would have\
+      \ bought that house.)\n3. Recognising which tense goes in which clause.\n"
+    mandatory_vocabulary:
+    - τώρα θα (now would)
+    - αλλά τώρα (but now)
+    - εκείνη την εποχή (at that time)
+    - αν ήμουν (if I were)
+    - αν είχα σπουδάσει (if I had studied)
+    - αποτέλεσμα (result)
+    - επιλογή (choice)
+    - μοίρα (fate/destiny)
+    - πράγματι (indeed)
+    - υποθετικά (hypothetically)
+    accumulated_grammar_summary: '1. Indirect Speech — statements, commands, and questions.
+
+      1. Passive voice of Type B verbs (-ώ): present -ιέμαι/-ιέται, aorist -ήθηκα.
+
+      1. Impersonal passive expressions: λέγεται, θεωρείται, απαγορεύεται, επιτρέπεται.
+
+      1. Type 3 Conditionals: Αν + Past Perfect, θα + Past Perfect.'
+    accumulated_vocabulary:
+    - ότι / πως (that — conjunction)
+    - ρώτησα (I asked)
+    - απάντησα (I answered)
+    - αν (if/whether)
+    - εξήγησα (I explained)
+    - αγαπιέμαι (I am loved)
+    - γεννιέμαι (I am born)
+    - γεννήθηκα (I was born)
+    - κρατιέμαι (I hold myself back)
+    - λέγεται (it is said)
+    - θεωρείται (it is considered)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - προβλέπεται (it is foreseen/stipulated)
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - εξετάσεις (exams)
+    - ευκαιρία (opportunity)
+    - απόφαση (decision)
+    - μετανιώνω (I regret)
+  - id: b9_c3
+    order: 3
+    suggested_length: medium
+    language_skill: 'Skill: Using contrast and conclusion connectors to build cohesive arguments.'
+    target_grammar: "1. Contrast connectors: ωστόσο (however), μολονότι + clause (although),\
+      \ παρόλο που (even though), εντούτοις (nevertheless — formal).\n2. Conclusion/result\
+      \ connectors: επομένως (therefore), συνεπώς (consequently), κατά συνέπεια (as\
+      \ a consequence — formal).\n3. Using these connectors correctly at the start\
+      \ or middle of a sentence; punctuation rules.\n"
+    mandatory_vocabulary:
+    - ωστόσο (however)
+    - μολονότι (although)
+    - παρόλο που (even though)
+    - επομένως (therefore)
+    - συνεπώς (consequently)
+    - εντούτοις (nevertheless — formal)
+    - κατά συνέπεια (as a consequence)
+    - αντίθετα (on the contrary)
+    - εξάλλου (besides/moreover)
+    - πάντως (anyway/however)
+    accumulated_grammar_summary: '1. Passive voice of Type B verbs (-ώ): present -ιέμαι/-ιέται, aorist -ήθηκα.
+
+      1. Impersonal passive expressions: λέγεται, θεωρείται, απαγορεύεται, επιτρέπεται.
+
+      1. Type 3 Conditionals: Αν + Past Perfect, θα + Past Perfect.
+
+      1. Mixed Conditionals: past condition/present result and vice versa.'
+    accumulated_vocabulary:
+    - αγαπιέμαι (I am loved)
+    - γεννιέμαι (I am born)
+    - γεννήθηκα (I was born)
+    - κρατιέμαι (I hold myself back)
+    - λέγεται (it is said)
+    - θεωρείται (it is considered)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - προβλέπεται (it is foreseen/stipulated)
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - εξετάσεις (exams)
+    - ευκαιρία (opportunity)
+    - απόφαση (decision)
+    - μετανιώνω (I regret)
+    - αν ήμουν (if I were)
+    - αποτέλεσμα (result)
+    - επιλογή (choice)
+    - πράγματι (indeed)
+    - υποθετικά (hypothetically)
+  - id: b9_c4
+    order: 4
+    suggested_length: short
+    language_skill: 'Skill: Expressing purpose and using purpose connectors fluently.'
+    target_grammar: "1. Purpose connector: προκειμένου να + subjunctive (in order\
+      \ to — formal).\n2. Contrast with για να (informal/standard) and ώστε να (result/purpose).\n\
+      3. Purpose clauses in professional and written registers.\n4. Negative purpose:\
+      \ για να μη(ν) + subjunctive (so that ... not).\n"
+    mandatory_vocabulary:
+    - προκειμένου να (in order to — formal)
+    - για να μην (so that ... not)
+    - με σκοπό να (with the aim of)
+    - με στόχο να (with the goal of)
+    - χωρίς να (without doing)
+    - αντί να (instead of doing)
+    - παρά να (rather than doing)
+    - επίτευξη (achievement)
+    - αποτελεσματικός (effective)
+    - επαγγελματικός (professional)
+    accumulated_grammar_summary: '1. Impersonal passive expressions: λέγεται, θεωρείται, απαγορεύεται, επιτρέπεται.
+
+      1. Type 3 Conditionals: Αν + Past Perfect, θα + Past Perfect.
+
+      1. Mixed Conditionals: past condition/present result and vice versa.
+
+      1. Contrast and conclusion connectors: ωστόσο, μολονότι, επομένως, συνεπώς.'
+    accumulated_vocabulary:
+    - λέγεται (it is said)
+    - θεωρείται (it is considered)
+    - απαγορεύεται (it is forbidden)
+    - επιτρέπεται (it is allowed)
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - εξετάσεις (exams)
+    - μετανιώνω (I regret)
+    - αν ήμουν (if I were)
+    - αποτέλεσμα (result)
+    - επιλογή (choice)
+    - ωστόσο (however)
+    - μολονότι (although)
+    - παρόλο που (even though)
+    - επομένως (therefore)
+    - συνεπώς (consequently)
+    - εντούτοις (nevertheless — formal)
+    - αντίθετα (on the contrary)
+    - εξάλλου (besides/moreover)
+    - πάντως (anyway/however)
+  - id: b9_c5
+    order: 5
+    suggested_length: medium
+    language_skill: 'Skill: Expanding vocabulary through prefix/compound verbs.'
+    target_grammar: "1. Prefix verbs (Compound verbs): Understanding how prepositions\
+      \ combine with basic verbs to change meaning.\n   Example base: γράφω (write).\n\
+      \   Compounds: υπογράφω (sign), περιγράφω (describe), καταγράφω (record), διαγράφω\
+      \ (delete).\n2. Example base: φέρνω (bring).\n   Compounds: καταφέρνω (manage/succeed),\
+      \ προσφέρω (offer), αναφέρω (mention), συμφέρω (be worth/profitable).\n3. Recognizing\
+      \ root meanings to guess vocabulary in context.\n"
+    mandatory_vocabulary:
+    - υπογράφω (I sign)
+    - περιγράφω (I describe)
+    - διαγράφω (I delete)
+    - καταφέρνω (I manage/succeed)
+    - προσφέρω (I offer)
+    - αναφέρω (I mention)
+    - καταγράφω (I record)
+    - συμφέρω (it is worth)
+    - αναλαμβάνω (I undertake)
+    - αποδέχομαι (I accept)
+    accumulated_grammar_summary: '1. Type 3 Conditionals: Αν + Past Perfect, θα + Past Perfect.
+
+      1. Mixed Conditionals: past condition/present result and vice versa.
+
+      1. Contrast and conclusion connectors: ωστόσο, μολονότι, επομένως, συνεπώς.
+
+      1. Purpose connectors: προκειμένου να, για να μην, με σκοπό να.'
+    accumulated_vocabulary:
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - εξετάσεις (exams)
+    - μετανιώνω (I regret)
+    - αν ήμουν (if I were)
+    - αποτέλεσμα (result)
+    - επιλογή (choice)
+    - ωστόσο (however)
+    - μολονότι (although)
+    - παρόλο που (even though)
+    - επομένως (therefore)
+    - συνεπώς (consequently)
+    - εντούτοις (nevertheless — formal)
+    - αντίθετα (on the contrary)
+    - πάντως (anyway/however)
+    - προκειμένου να (in order to — formal)
+    - για να μην (so that ... not)
+    - με σκοπό να (with the aim of)
+    - αποτελεσματικός (effective)
+    - επαγγελματικός (professional)
+  - id: b9_c6
+    order: 6
+    suggested_length: short
+    language_skill: 'Skill: Using idiomatic body-part expressions naturally in conversation.'
+    target_grammar: "1. Idioms using body parts (σώμα):\n   χέρι: βάζω το χέρι μου\
+      \ στη φωτιά (I put my hand in fire / I am certain), πλένω τα χέρια μου (I wash\
+      \ my hands of it).\n   μάτι: βάζω στο μάτι (I set my eye on), ρίχνω ματιά\
+      \ (I glance).\n   αυτί: έχω αυτιά (I have ears / I'm listening), στρίβω το\
+      \ αυτί (to ignore).\n   πλάτη: γυρίζω την πλάτη μου (I turn my back on).\n\
+      2. Recognising idioms in context; idiomatic vs. literal meaning.\n"
+    mandatory_vocabulary:
+    - χέρι (hand)
+    - φωτιά (fire)
+    - μάτι (eye)
+    - αυτί (ear)
+    - πλάτη (back)
+    - βάζω το χέρι μου στη φωτιά (I am certain)
+    - γυρίζω την πλάτη (I turn my back)
+    - ρίχνω ματιά (I glance/take a look)
+    - πλένω τα χέρια μου (I wash my hands of it)
+    - βάζω στο μάτι (I set my sights on)
+    accumulated_grammar_summary: '1. Mixed Conditionals: past condition/present result and vice versa.
+
+      1. Contrast and conclusion connectors: ωστόσο, μολονότι, επομένως, συνεπώς.
+
+      1. Purpose connectors: προκειμένου να, για να μην, με σκοπό να.
+
+      1. Prefix/compound verbs: υπογράφω, περιγράφω, καταφέρνω, προσφέρω, αναφέρω.'
+    accumulated_vocabulary:
+    - θα είχα (I would have)
+    - αν είχα (if I had)
+    - μετανιώνω (I regret)
+    - αν ήμουν (if I were)
+    - ωστόσο (however)
+    - μολονότι (although)
+    - επομένως (therefore)
+    - συνεπώς (consequently)
+    - προκειμένου να (in order to — formal)
+    - για να μην (so that ... not)
+    - με σκοπό να (with the aim of)
+    - αποτελεσματικός (effective)
+    - υπογράφω (I sign)
+    - περιγράφω (I describe)
+    - διαγράφω (I delete)
+    - καταφέρνω (I manage/succeed)
+    - προσφέρω (I offer)
+    - αναφέρω (I mention)
+    - καταγράφω (I record)
+    - αναλαμβάνω (I undertake)
+  - id: b9_c7
+    order: 7
+    suggested_length: medium
+    language_skill: 'Skill: Recognising and using Katharevousa remnants in formal and everyday contexts.'
+    target_grammar: "1. Formal Greek (Katharevousa) remnants in modern speech.\n2.\
+      \ Adjectives in -ων, -ουσα, -ον (originally present active participles):\n \
+      \  ενδιαφέρων/ενδιαφέρουσα/ενδιαφέρον (interesting), επείγον (urgent), κατάλληλος\
+      \ vs. κατάλληλον.\n3. Fixed prepositional/adverbial phrases from Ancient Greek:\
+      \ υπέρ (in favour of / per), κατά (against / per), υπ' όψιν (in mind / under\
+      \ consideration), εν τω μεταξύ (in the meantime), εν τάξει (OK — shortened\
+      \ in daily speech to εντάξει).\n4. Recognising these forms in public signs,\
+      \ official documents, and formal speech.\n"
+    mandatory_vocabulary:
+    - ενδιαφέρων (interesting — formal adj.)
+    - επείγον (urgent — formal adj.)
+    - υπέρ (in favour of / per)
+    - κατά (against / per)
+    - εν τω μεταξύ (in the meantime)
+    - υπ' όψιν (under consideration)
+    - εν τάξει / εντάξει (OK)
+    - εν συντομία (briefly/in short)
+    - εξ ολοκλήρου (entirely/completely — formal)
+    - αναφορικά με (regarding — formal)
+    accumulated_grammar_summary: '1. Contrast and conclusion connectors: ωστόσο, μολονότι, επομένως, συνεπώς.
+
+      1. Purpose connectors: προκειμένου να, για να μην, με σκοπό να.
+
+      1. Prefix/compound verbs: υπογράφω, περιγράφω, καταφέρνω, προσφέρω, αναφέρω.
+
+      1. Idiomatic body-part expressions: χέρι, μάτι, αυτί, πλάτη.'
+    accumulated_vocabulary:
+    - ωστόσο (however)
+    - μολονότι (although)
+    - επομένως (therefore)
+    - συνεπώς (consequently)
+    - προκειμένου να (in order to — formal)
+    - για να μην (so that ... not)
+    - υπογράφω (I sign)
+    - περιγράφω (I describe)
+    - καταφέρνω (I manage/succeed)
+    - προσφέρω (I offer)
+    - αναφέρω (I mention)
+    - χέρι (hand)
+    - φωτιά (fire)
+    - μάτι (eye)
+    - αυτί (ear)
+    - πλάτη (back)
+    - βάζω το χέρι μου στη φωτιά (I am certain)
+    - γυρίζω την πλάτη (I turn my back)
+    - ρίχνω ματιά (I glance/take a look)
+    - πλένω τα χέρια μου (I wash my hands of it)

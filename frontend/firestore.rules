@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isActiveUser() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == "active";
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    match /books/{bookId} {
+      allow read: if isActiveUser();
+      allow write: if false;
+    }
+
+    match /chapters/{chapterId} {
+      allow read: if isActiveUser();
+      allow write: if false;
+    }
+
+    match /exercise_attempts/{attemptId} {
+      allow read: if isActiveUser() && resource.data.userId == request.auth.uid;
+      allow create: if isActiveUser()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.evaluation == null;
+      allow update, delete: if false;
+    }
+  }
+}

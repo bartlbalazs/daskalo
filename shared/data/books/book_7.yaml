@@ -1,0 +1,167 @@
+id: book_7
+title: Connecting Ideas
+description: Express possession, make comparisons, and describe exactly how actions
+  happen.
+order: 7
+level: B2.2
+chapters:
+- id: b7_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Explaining relationships and possession using the genitive
+    case.'
+  target_grammar: "1. The Genitive Case (Γενική Πτώση): Used to show possession or\
+    \ relationship (the \"of\" case).\n   Articles: masculine του (του άνδρα), feminine\
+    \ της (της γυναίκας), neuter του (του παιδιού).\n   Plural for all genders: των\
+    \ (των ανδρών, των γυναικών, των παιδιών).\n2. Using genitive to modify nouns:\
+    \ Η πόρτα του σπιτιού (The door of the house).\n3. Noun endings in the genitive:\
+    \ masculine -ου/-α, feminine -ας/-ης, neuter -ου.\n"
+  mandatory_vocabulary:
+  - του / της / των (of the)
+  - ιδιοκτησία (property/possession)
+  - του φίλου (of the friend)
+  - της μητέρας (of the mother)
+  - των παιδιών (of the children)
+  - η αδελφή (the sister)
+  - ο αδελφός (the brother)
+  - το όνομα (the name)
+  - ανήκει (belongs to)
+  - δικός μου (mine/my own)
+- id: b7_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Using genitive prepositions to express cause, exception,
+    and substitution.'
+  target_grammar: '1. Prepositions demanding the genitive: εξαιτίας (because of),
+    λόγω (due to), εκτός (except), αντί (instead of), εναντίον (against).
+
+    2. Distinguishing από (accusative) vs. εξαιτίας/λόγω (genitive) for cause.
+
+    3. Fixed genitive expressions: από μόνος/μόνη/μόνο μου (by myself), χάρη σε (thanks
+    to).
+
+    '
+  mandatory_vocabulary:
+  - εξαιτίας (because of)
+  - λόγω (due to)
+  - εκτός (except)
+  - αντί (instead of)
+  - εναντίον (against)
+  - εξαιτίας του (because of him)
+  - χάρη σε (thanks to)
+  - απέναντι (opposite/facing)
+  - ανάμεσα (between/among)
+  - γύρω από (around)
+- id: b7_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Making comparisons between people and things.'
+  target_grammar: "1. Comparative degree of adjectives:\n   Periphrastic: πιο + adjective\
+    \ (πιο μεγάλος - bigger).\n   Suffix-based: -ότερος/-ύτερος (μεγαλύτερος - bigger).\n\
+    \   Irregulars: καλύτερος (better), χειρότερος (worse), περισσότερος (more), λιγότερος\
+    \ (less).\n2. \"Than\" in comparisons: από + accusative.\n   Example: Είναι ψηλότερος\
+    \ από εμένα. (He is taller than me.)\n"
+  mandatory_vocabulary:
+  - πιο (more)
+  - καλύτερος (better)
+  - χειρότερος (worse)
+  - περισσότερος (more)
+  - λιγότερος (less/fewer)
+  - μεγαλύτερος (bigger/older)
+  - μικρότερος (smaller/younger)
+  - ψηλότερος (taller)
+  - φθηνότερος (cheaper)
+  - ακριβότερος (more expensive)
+- id: b7_c4
+  order: 4
+  suggested_length: short
+  language_skill: 'Skill: Expressing superlatives and using παρά in comparisons.'
+  target_grammar: "1. Superlative degree: adding the definite article before the comparative.\n\
+    \   Example: ο πιο μεγάλος / ο μεγαλύτερος (the biggest).\n2. Absolute superlative\
+    \ with -ότατος/-ύτατος: ωραιότατος (most beautiful), άριστος (excellent/best —\
+    \ classical form still used).\n3. \"Than\" variant with παρά (rather than / than\
+    \ — in preference comparisons).\n   Example: Προτιμώ καφέ παρά τσάι. (I prefer\
+    \ coffee rather than tea.)\n"
+  mandatory_vocabulary:
+  - παρά (than/rather than)
+  - πιο γρήγορα (faster)
+  - αργότερα (later)
+  - καλύτερα (better — adverb)
+  - χειρότερα (worse — adverb)
+  - το καλύτερο (the best)
+  - το χειρότερο (the worst)
+  - ο πιο (the most)
+  - άριστος (excellent/best)
+  - προτιμώ (I prefer)
+- id: b7_c5
+  order: 5
+  suggested_length: short
+  language_skill: 'Skill: Describing the exact manner of an action using adverbs.'
+  target_grammar: "1. Deriving adverbs from adjectives:\n   Informal/Standard: ending\
+    \ in -α (e.g., καλός -> καλά, ωραίος -> ωραία).\n   Formal/Scholarly: ending in\
+    \ -ως (e.g., ακριβής -> ακριβώς, ευτυχής -> ευτυχώς, κυρίως).\n2. Adverbs of frequency:\
+    \ σπάνια (rarely), συχνά (often), πάντα (always), ποτέ (never).\n3. Adverbs of\
+    \ degree: εντελώς (completely), σχεδόν (almost), περίπου (approximately).\n"
+  mandatory_vocabulary:
+  - ακριβώς (exactly)
+  - ευτυχώς (fortunately)
+  - δυστυχώς (unfortunately)
+  - κυρίως (mainly)
+  - εντελώς (completely)
+  - σπάνια (rarely)
+  - συχνά (often)
+  - σχεδόν (almost)
+  - περίπου (approximately)
+  - αλλιώς (otherwise)
+- id: b7_c6
+  order: 6
+  suggested_length: medium
+  language_skill: 'Skill: Using special noun classes confidently in conversation.'
+  target_grammar: '1. Feminine nouns in -ος (e.g., η οδός, η λεωφόρος, η μέθοδος,
+    η περίοδος) — declension identical to masculine -ος nouns.
+
+    2. Neuter nouns in -μα (e.g., το πρόβλημα, το μάθημα, το χρώμα, το σύστημα) and
+    their plural -ματα.
+
+    3. Genitive of -μα nouns: singular -ματος (του προβλήματος), plural -μάτων (των
+    προβλημάτων).
+
+    '
+  mandatory_vocabulary:
+  - η οδός (the street/road)
+  - η λεωφόρος (the avenue/bus)
+  - η μέθοδος (the method)
+  - το πρόβλημα (the problem)
+  - το μάθημα (the lesson)
+  - το χρώμα (the colour)
+  - το σύστημα (the system)
+  - τα προβλήματα (the problems)
+  - τα μαθήματα (the lessons)
+  - το αποτέλεσμα (the result)
+- id: b7_c7
+  order: 7
+  suggested_length: medium
+  language_skill: 'Skill: Building complex sentences with conjunctions of reason,
+    result, and purpose.'
+  target_grammar: '1. Conjunctions of reason/cause: επειδή (because), αφού (since/after),
+    διότι (because — more formal).
+
+    2. Conjunctions of result: άρα (so/therefore), ώστε (so that/with the result that).
+
+    3. Conjunction of purpose: για να (in order to) + subjunctive.
+
+    4. Temporal conjunctions: πριν να (before), μέχρι να (until), προτού (before —
+    more formal).
+
+    '
+  mandatory_vocabulary:
+  - επειδή (because)
+  - αφού (since/after)
+  - διότι (because — formal)
+  - άρα (so/therefore)
+  - ώστε (so that)
+  - για να (in order to)
+  - πριν να (before)
+  - μέχρι να (until)
+  - προτού (before — formal)
+  - αναμφίβολα (undoubtedly)

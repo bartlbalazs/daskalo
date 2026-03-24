@@ -1,0 +1,158 @@
+id: book_8
+title: Advanced Passive and Participles
+description: Master the passive voice across all tenses and learn how to use passive
+  participles.
+order: 8
+level: C1.1
+chapters:
+- id: b8_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Describing ongoing past events using the Passive Imperfect.'
+  target_grammar: "1. The Passive Imperfect (Παθητικός Παρατατικός): Ongoing past\
+    \ actions in the passive voice.\n   Endings for Type A verbs (-ομαι):\n   -όμουν,\
+    \ -όσουν, -όταν, -όμασταν, -όσασταν, -ονταν.\n   Example: Το σπίτι χτιζόταν για\
+    \ δύο χρόνια. (The house was being built for two years.)\n2. Signal adverbs: τότε,\
+    \ εκείνη την εποχή, σε εκείνη την περίοδο (at that time).\n3. Contrast with active\
+    \ Imperfect: active χτιζόταν (was building) vs. passive χτιζόταν (was being built)\
+    \ — same form, meaning determined by context.\n"
+  mandatory_vocabulary:
+  - ετοιμαζόταν (it was being prepared)
+  - κουραζόμουν (I was getting tired)
+  - απολυόμουν (I was being fired)
+  - πληρωνόταν (was being paid)
+  - χτιζόταν (was being built)
+  - πρόβλημα (problem)
+  - λύση (solution)
+  - εξέλιξη (development)
+  - σχέση (relationship)
+  - συζήτηση (discussion)
+- id: b8_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Talking about completed passive events using the Passive
+    Perfect tenses.'
+  target_grammar: "1. The Passive Present Perfect (Παθητικός Παρακείμενος):\n   Formation:\
+    \ έχω + passive aorist infinitive (stem + -εί/-στεί/-θεί).\n   Example: έχω πληρωθεί\
+    \ (I have been paid), έχει γραφτεί (it has been written).\n2. The Passive Past\
+    \ Perfect (Παθητικός Υπερσυντέλικος):\n   Formation: είχα + passive aorist infinitive.\n\
+    \   Example: είχα πληρωθεί (I had been paid), είχε γραφτεί (it had been written).\n\
+    3. Contrast with active perfect tenses to emphasise who underwent the action.\n"
+  mandatory_vocabulary:
+  - έχω πληρωθεί (I have been paid)
+  - είχε γραφτεί (it had been written)
+  - έχει ετοιμαστεί (it has been prepared)
+  - είχε αποφασιστεί (it had been decided)
+  - έχει ανακοινωθεί (it has been announced)
+  - αποφάσισα (I decided)
+  - ανακοινώθηκε (it was announced)
+  - αξία (value)
+  - αποτέλεσμα (result)
+  - συμφωνία (agreement)
+- id: b8_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Using passive participles as adjectives to describe states.'
+  target_grammar: "1. Passive Perfect Participles (Παθητική Μετοχή): Functioning as\
+    \ adjectives to describe states resulting from an action.\n   Formed with -μένος,\
+    \ -μένη, -μένο (from most verbs); irregular: ανοιχτός, κλειστός.\n   Examples:\
+    \ κουρασμένος (tired), γραμμένος (written), αγαπημένος (beloved).\n2. Agreement\
+    \ of passive participles with nouns in gender, number, and case (full paradigm\
+    \ like adjective).\n3. Using participles with είμαι to describe states vs. using\
+    \ the passive verb for ongoing actions:\n   Είναι κλειστό (It is closed — state)\
+    \ vs. Κλείνεται (It is being closed — action in progress).\n"
+  mandatory_vocabulary:
+  - κουρασμένος (tired)
+  - γραμμένος (written)
+  - ανοιχτός (opened/open)
+  - κλειστός (closed)
+  - αγαπημένος (beloved/favourite)
+  - χαλασμένος (broken/spoiled)
+  - φτιαγμένος (made/fixed)
+  - ντυμένος (dressed)
+  - επιχείρηση (business)
+  - κοινωνία (society)
+- id: b8_c4
+  order: 4
+  suggested_length: medium
+  language_skill: 'Skill: Reporting speech and commands using indirect speech.'
+  target_grammar: "1. Direct and Indirect Speech — statements (Εύθυς και Πλάγιος λόγος):\n\
+    \   Reporting statements using ότι/πως (that).\n   Example Direct: \"Είμαι άρρωστος.\"\
+    \ (I am sick.)\n   Example Indirect: Είπε ότι είναι άρρωστος. (He said that he\
+    \ is sick.)\n2. Reported commands using να:\n   Direct: \"Φύγε!\" (Leave!)\n \
+    \  Indirect: Μου είπε να φύγω. (He told me to leave.)\n3. Tense backshift: present\
+    \ in reported speech often stays as present in Modern Greek (unlike English).\n"
+  mandatory_vocabulary:
+  - ότι / πως (that — conjunction)
+  - είπε ότι (said that)
+  - μου είπε να (told me to)
+  - ισχυρίστηκε (claimed)
+  - παραδέχτηκε (admitted)
+  - κράτος (state)
+  - κυβέρνηση (government)
+  - νόμος (law)
+  - σκοπός (purpose)
+  - στόχος (goal)
+- id: b8_c5
+  order: 5
+  suggested_length: short
+  language_skill: 'Skill: Reporting questions and using indirect questions naturally.'
+  target_grammar: "1. Reported questions using αν (if/whether) for yes/no questions:\n\
+    \   Example: Με ρώτησε αν θέλω καφέ. (He asked me if I want coffee.)\n2. Reported\
+    \ questions retaining the interrogative word (τι, πού, πότε, πώς, γιατί):\n  \
+    \ Example: Ρώτησε πού μένω. (She asked where I live.)\n3. Verbs of asking, wondering,\
+    \ not knowing + indirect question: ρωτώ, αναρωτιέμαι, δεν ξέρω.\n"
+  mandatory_vocabulary:
+  - ρώτησα (I asked)
+  - απάντησα (I answered)
+  - αν (if/whether)
+  - εξήγησα (I explained)
+  - αναρωτιέμαι (I wonder)
+  - δεν ξέρω αν (I don't know if)
+  - δεν ξέρω πού (I don't know where)
+  - προσπάθεια (effort)
+  - απορία (question/doubt)
+  - κατανόηση (understanding)
+- id: b8_c6
+  order: 6
+  suggested_length: medium
+  language_skill: 'Skill: Using the passive voice of Type B verbs (-ώ → -ιέμαι/-ιέται).'
+  target_grammar: "1. Passive voice of Type B verbs (ending in -ώ) — present tense:\n\
+    \   Pattern: -ιέμαι, -ιέσαι, -ιέται, -ιόμαστε, -ιέστε, -ιούνται.\n   Examples:\
+    \ αγαπιέμαι (I am loved), γεννιέμαι (I am born), εξηγούμαι (I am explained), κρατιέμαι\
+    \ (I hold myself).\n2. Aorist of Type B passive verbs: -ήθηκα ending.\n   Examples:\
+    \ γεννήθηκα (I was born), αγαπήθηκα (I was loved), ενημερώθηκα (I was informed).\n\
+    3. Compare with Type A passive (-ομαι) forms to highlight the pattern difference.\n"
+  mandatory_vocabulary:
+  - αγαπιέμαι (I am loved)
+  - γεννιέμαι (I am born)
+  - γεννήθηκα (I was born)
+  - εξηγούμαι (I am explained)
+  - κρατιέμαι (I hold myself back)
+  - ενημερώθηκα (I was informed)
+  - αγαπήθηκα (I was loved)
+  - εμπειρία (experience)
+  - γνώμη (opinion)
+  - σκέψη (thought)
+- id: b8_c7
+  order: 7
+  suggested_length: short
+  language_skill: 'Skill: Using impersonal passive expressions to make general statements.'
+  target_grammar: "1. Impersonal passive expressions — third-person singular passive\
+    \ for general statements:\n   λέγεται ότι (it is said that), θεωρείται (it is\
+    \ considered), απαγορεύεται (it is forbidden), επιτρέπεται (it is allowed), προβλέπεται\
+    \ (it is foreseen/stipulated).\n2. Adding ότι/να after impersonal expressions:\n\
+    \   Απαγορεύεται να καπνίζεις εδώ. (Smoking is forbidden here.)\n   Επιτρέπεται\
+    \ να μπεις. (You are allowed to enter.)\n3. Register: these expressions appear\
+    \ in formal, legal, and public written contexts.\n"
+  mandatory_vocabulary:
+  - λέγεται (it is said)
+  - θεωρείται (it is considered)
+  - απαγορεύεται (it is forbidden)
+  - επιτρέπεται (it is allowed)
+  - προβλέπεται (it is foreseen/stipulated)
+  - δικαίωμα (right)
+  - υποχρέωση (obligation)
+  - ευθύνη (responsibility)
+  - κανόνας (rule)
+  - εξαίρεση (exception)

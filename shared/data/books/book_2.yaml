@@ -1,0 +1,114 @@
+id: book_2
+title: Interacting with the World
+description: Express what you want, describe objects with adjectives, and move through
+  everyday situations.
+order: 2
+level: A1.2
+chapters:
+- id: b2_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Expressing desires and intentions.'
+  target_grammar: "1. The modal verb θέλω (to want) fully conjugated in the present\
+    \ tense:\n   θέλω, θέλεις, θέλει, θέλουμε, θέλετε, θέλουν.\n2. Introduction to\
+    \ the subjunctive mood with να: θέλω να + verb stem expresses \"I want to do something\"\
+    .\n   Example: Θέλω να πάω (I want to go), Θέλεις να φας; (Do you want to eat?).\n\
+    3. Cardinal numbers 1–20: ένα/μία, δύο, τρία, τέσσερα, πέντε, έξι, επτά, οκτώ,\
+    \ εννέα, δέκα,\n   έντεκα, δώδεκα, δεκατρία, δεκατέσσερα, δεκαπέντε, δεκαέξι,\
+    \ δεκαεπτά, δεκαοκτώ, δεκαεννέα, είκοσι.\n"
+  mandatory_vocabulary:
+  - θέλω (I want)
+  - θέλει (he/she wants)
+  - να (to/that — subjunctive particle)
+  - ένα (one)
+  - δέκα (ten)
+  - πρέπει (must)
+  - μπορώ (I can)
+  - έρχομαι (I come)
+  - τρία (three)
+  - πέντε (five)
+- id: b2_c2
+  order: 2
+  suggested_length: medium
+  language_skill: 'Skill: Describing interactions with objects.'
+  target_grammar: "1. The accusative case for definite articles (direct object):\n\
+    \   masculine τον (τον άνδρα), feminine την (την γυναίκα), neuter το (το παιδί).\n\
+    2. Direct objects: how the noun's article changes when it is the object of a verb\
+    \ (accusative) vs the subject (nominative).\n   Example: Ο Γιώργης βλέπει τον\
+    \ άνδρα. (nominative subject → accusative object)\n3. The verb βλέπω (to see)\
+    \ and πηγαίνω/πάω (to go) in the present tense as key transitive/motion verbs\
+    \ to demonstrate accusative.\n"
+  mandatory_vocabulary:
+  - τον (the — masculine accusative)
+  - την (the — feminine accusative)
+  - βλέπω (I see)
+  - πάω (I go)
+  - αγοράζω (I buy)
+  - τον φίλο (the friend - acc)
+  - την πόρτα (the door - acc)
+  - το νερό (the water)
+  - κάνω (I do)
+  - ξέρω (I know)
+- id: b2_c3
+  order: 3
+  suggested_length: long
+  language_skill: 'Skill: Describing the qualities of objects and people.'
+  target_grammar: "1. Adjective-noun agreement in gender, number, and case (nominative\
+    \ and accusative):\n   Adjectives must match their noun in gender (m/f/n), number\
+    \ (singular/plural), and case (nominative/accusative).\n   Example paradigm using\
+    \ καλός (good): καλός άνδρας, καλή γυναίκα, καλό παιδί (nominative singular).\n\
+    \   Accusative singular: καλόν/καλό άνδρα, καλή γυναίκα, καλό παιδί.\n2. Common\
+    \ colour adjectives and their agreement:\n   κόκκινος/η/ο (red), μπλε (blue —\
+    \ indeclinable), πράσινος/η/ο (green),\n   κίτρινος/η/ο (yellow), άσπρος/η/ο (white),\
+    \ μαύρος/η/ο (black).\n3. Plural forms of definite articles: οι (m/f plural nominative),\
+    \ τα (n plural nominative).\n"
+  mandatory_vocabulary:
+  - καλός/ή/ό (good)
+  - κόκκινος/η/ο (red)
+  - μεγάλος/η/ο (big)
+  - μικρός/ή/ό (small)
+  - ωραίος/α/ο (nice/beautiful)
+  - άσπρος/η/ο (white)
+  - μαύρος/η/ο (black)
+  - καινούργιος/α/ο (new)
+  - παλιός/ά/ό (old)
+  - ακριβός/ή/ό (expensive)
+- id: b2_c4
+  order: 4
+  suggested_length: long
+  language_skill: 'Skill: Navigating space and giving directions.'
+  target_grammar: '1. Prepositions of place: σε (in/at/to), πάνω (on/above), κάτω
+    (under), δίπλα (next to), μέσα (inside), έξω (outside).
+
+    2. Combining σε with definite articles (στο, στη, στον, κτλ).'
+  mandatory_vocabulary:
+  - σε
+  - πάνω
+  - κάτω
+  - δίπλα
+  - μέσα
+  - μπροστά (in front)
+  - πίσω (behind)
+  - απέναντι (opposite)
+  - κοντά (near)
+  - μακριά (far)
+- id: b2_c5
+  order: 5
+  suggested_length: long
+  language_skill: 'Skill: Talking about time, schedules, and seasons.'
+  target_grammar: '1. Telling time (Τι ώρα είναι;).
+
+    2. Months of the year and seasons.
+
+    3. Using ''στις'' for time (στις τρεις - at three).'
+  mandatory_vocabulary:
+  - ώρα
+  - και μισή
+  - και τέταρτο
+  - μήνας
+  - καλοκαίρι
+  - λεπτό (minute)
+  - πρωί (morning)
+  - βράδυ (evening)
+  - χειμώνας (winter)
+  - χρόνος (year)

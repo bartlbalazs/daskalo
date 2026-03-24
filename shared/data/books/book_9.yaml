@@ -1,0 +1,167 @@
+id: book_9
+title: Fluency and Complexity
+description: Express hypothetical pasts, connect complex arguments, and use idiomatic
+  Greek.
+order: 9
+level: C1.2
+chapters:
+- id: b9_c1
+  order: 1
+  suggested_length: medium
+  language_skill: 'Skill: Expressing unreal past situations using Type 3 Conditionals.'
+  target_grammar: "1. Type 3 Conditionals (Unreal/Impossible past):\n   Expressing\
+    \ situations that did not happen in the past and their hypothetical results.\n\
+    \   Structure: Αν + είχα + aorist infinitive (Past Perfect), θα + είχα + aorist\
+    \ infinitive.\n   Example: Αν είχα διαβάσει, θα είχα περάσει τις εξετάσεις. (If\
+    \ I had studied, I would have passed the exams.)\n2. All 6 persons of the Past\
+    \ Perfect (Υπερσυντέλικος): είχα, είχες, είχε, είχαμε, είχατε, είχαν + aorist\
+    \ infinitive.\n3. Negation: Αν δεν είχα ..., θα είχα ...\n"
+  mandatory_vocabulary:
+  - θα είχα (I would have)
+  - αν είχα (if I had)
+  - εξετάσεις (exams)
+  - ευκαιρία (opportunity)
+  - απόφαση (decision)
+  - έχανα (I was missing/losing — imperfect)
+  - κέρδιζα (I was winning — imperfect)
+  - μετανιώνω (I regret)
+  - αν δεν είχα (if I hadn't)
+  - θα είχες (you would have)
+- id: b9_c2
+  order: 2
+  suggested_length: short
+  language_skill: 'Skill: Mixing conditional types for nuanced hypothetical expressions.'
+  target_grammar: "1. Mixed Conditionals — combining Type 2 and Type 3:\n   Past condition\
+    \ with present result: Αν + Past Perfect, θα + Imperfect/Present.\n   Example:\
+    \ Αν είχα σπουδάσει ιατρική, τώρα θα δούλευα ως γιατρός. (If I had studied medicine,\
+    \ I would be working as a doctor now.)\n2. Present condition with past result:\
+    \ Αν + Imperfect, θα + Past Perfect.\n   Example: Αν ήμουν πλούσιος, θα είχα αγοράσει\
+    \ εκείνο το σπίτι. (If I were rich, I would have bought that house.)\n3. Recognising\
+    \ which tense goes in which clause.\n"
+  mandatory_vocabulary:
+  - τώρα θα (now would)
+  - αλλά τώρα (but now)
+  - εκείνη την εποχή (at that time)
+  - αν ήμουν (if I were)
+  - αν είχα σπουδάσει (if I had studied)
+  - αποτέλεσμα (result)
+  - επιλογή (choice)
+  - μοίρα (fate/destiny)
+  - πράγματι (indeed)
+  - υποθετικά (hypothetically)
+- id: b9_c3
+  order: 3
+  suggested_length: medium
+  language_skill: 'Skill: Using contrast and conclusion connectors to build cohesive
+    arguments.'
+  target_grammar: '1. Contrast connectors: ωστόσο (however), μολονότι + clause (although),
+    παρόλο που (even though), εντούτοις (nevertheless — formal).
+
+    2. Conclusion/result connectors: επομένως (therefore), συνεπώς (consequently),
+    κατά συνέπεια (as a consequence — formal).
+
+    3. Using these connectors correctly at the start or middle of a sentence; punctuation
+    rules.
+
+    '
+  mandatory_vocabulary:
+  - ωστόσο (however)
+  - μολονότι (although)
+  - παρόλο που (even though)
+  - επομένως (therefore)
+  - συνεπώς (consequently)
+  - εντούτοις (nevertheless — formal)
+  - κατά συνέπεια (as a consequence)
+  - αντίθετα (on the contrary)
+  - εξάλλου (besides/moreover)
+  - πάντως (anyway/however)
+- id: b9_c4
+  order: 4
+  suggested_length: short
+  language_skill: 'Skill: Expressing purpose and using purpose connectors fluently.'
+  target_grammar: '1. Purpose connector: προκειμένου να + subjunctive (in order to
+    — formal).
+
+    2. Contrast with για να (informal/standard) and ώστε να (result/purpose).
+
+    3. Purpose clauses in professional and written registers.
+
+    4. Negative purpose: για να μη(ν) + subjunctive (so that ... not).
+
+    '
+  mandatory_vocabulary:
+  - προκειμένου να (in order to — formal)
+  - για να μην (so that ... not)
+  - με σκοπό να (with the aim of)
+  - με στόχο να (with the goal of)
+  - χωρίς να (without doing)
+  - αντί να (instead of doing)
+  - παρά να (rather than doing)
+  - επίτευξη (achievement)
+  - αποτελεσματικός (effective)
+  - επαγγελματικός (professional)
+- id: b9_c5
+  order: 5
+  suggested_length: medium
+  language_skill: 'Skill: Expanding vocabulary through prefix/compound verbs.'
+  target_grammar: "1. Prefix verbs (Compound verbs): Understanding how prepositions\
+    \ combine with basic verbs to change meaning.\n   Example base: γράφω (write).\n\
+    \   Compounds: υπογράφω (sign), περιγράφω (describe), καταγράφω (record), διαγράφω\
+    \ (delete).\n2. Example base: φέρνω (bring).\n   Compounds: καταφέρνω (manage/succeed),\
+    \ προσφέρω (offer), αναφέρω (mention), συμφέρω (be worth/profitable).\n3. Recognizing\
+    \ root meanings to guess vocabulary in context.\n"
+  mandatory_vocabulary:
+  - υπογράφω (I sign)
+  - περιγράφω (I describe)
+  - διαγράφω (I delete)
+  - καταφέρνω (I manage/succeed)
+  - προσφέρω (I offer)
+  - αναφέρω (I mention)
+  - καταγράφω (I record)
+  - συμφέρω (it is worth)
+  - αναλαμβάνω (I undertake)
+  - αποδέχομαι (I accept)
+- id: b9_c6
+  order: 6
+  suggested_length: short
+  language_skill: 'Skill: Using idiomatic body-part expressions naturally in conversation.'
+  target_grammar: "1. Idioms using body parts (σώμα):\n   χέρι: βάζω το χέρι μου στη\
+    \ φωτιά (I put my hand in fire / I am certain), πλένω τα χέρια μου (I wash my\
+    \ hands of it).\n   μάτι: βάζω στο μάτι (I set my eye on), ρίχνω ματιά (I glance).\n\
+    \   αυτί: έχω αυτιά (I have ears / I'm listening), στρίβω το αυτί (to ignore).\n\
+    \   πλάτη: γυρίζω την πλάτη μου (I turn my back on).\n2. Recognising idioms in\
+    \ context; idiomatic vs. literal meaning.\n"
+  mandatory_vocabulary:
+  - χέρι (hand)
+  - φωτιά (fire)
+  - μάτι (eye)
+  - αυτί (ear)
+  - πλάτη (back)
+  - βάζω το χέρι μου στη φωτιά (I am certain)
+  - γυρίζω την πλάτη (I turn my back)
+  - ρίχνω ματιά (I glance/take a look)
+  - πλένω τα χέρια μου (I wash my hands of it)
+  - βάζω στο μάτι (I set my sights on)
+- id: b9_c7
+  order: 7
+  suggested_length: medium
+  language_skill: 'Skill: Recognising and using Katharevousa remnants in formal and
+    everyday contexts.'
+  target_grammar: "1. Formal Greek (Katharevousa) remnants in modern speech.\n2. Adjectives\
+    \ in -ων, -ουσα, -ον (originally present active participles):\n   ενδιαφέρων/ενδιαφέρουσα/ενδιαφέρον\
+    \ (interesting), επείγον (urgent), κατάλληλος vs. κατάλληλον.\n3. Fixed prepositional/adverbial\
+    \ phrases from Ancient Greek: υπέρ (in favour of / per), κατά (against / per),\
+    \ υπ' όψιν (in mind / under consideration), εν τω μεταξύ (in the meantime), εν\
+    \ τάξει (OK — shortened in daily speech to εντάξει).\n4. Recognising these forms\
+    \ in public signs, official documents, and formal speech.\n"
+  mandatory_vocabulary:
+  - ενδιαφέρων (interesting — formal adj.)
+  - επείγον (urgent — formal adj.)
+  - υπέρ (in favour of / per)
+  - κατά (against / per)
+  - εν τω μεταξύ (in the meantime)
+  - υπ' όψιν (under consideration)
+  - εν τάξει / εντάξει (OK)
+  - εν συντομία (briefly/in short)
+  - εξ ολοκλήρου (entirely/completely — formal)
+  - αναφορικά με (regarding — formal)

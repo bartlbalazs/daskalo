@@ -2,8 +2,20 @@
 # Deployment environment variables
 .env.deploy
 .idea
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Firebase emulator
 firebase-debug.log
 firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+database-debug.log
+storage-debug.log
+.firebase/
 frontend/.firebase-emulator-data
+
 frontend/.angular
 frontend/.vscode

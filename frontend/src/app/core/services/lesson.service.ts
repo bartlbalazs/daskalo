@@ -73,28 +73,33 @@ export class LessonService {
 
   /**
    * Submit an AI-graded exercise attempt:
-   *   1. Write the attempt document to Firestore (records the attempt).
-   *   2. Call the evaluate-attempt Cloud Function with the attempt ID.
-   *   3. The function evaluates via Gemini and writes the result back to Firestore.
+   *   1. Write the attempt document to Firestore (records the attempt — no audio stored).
+   *   2. Call the evaluate-attempt Cloud Function with the attempt ID and optional audioBase64.
+   *   3. The function evaluates via STT + Gemini and writes the result back to Firestore.
    *   4. Returns the evaluation result directly to the caller.
+   *
+   * audioBase64 is sent ONLY in the HTTP request body and is NEVER written to Firestore.
    */
   async evaluateAttempt(
     chapterId: string,
     exerciseId: string,
     type: ExerciseType,
-    payload: AttemptPayload
+    payload: AttemptPayload & { audioBase64?: string }
   ): Promise<EvaluationResult> {
     const userId = this.authService.firebaseUser()?.uid;
     if (!userId) throw new Error('User not authenticated.');
 
-    // 1. Write attempt to Firestore
+    // Separate the audio from the Firestore payload — audio is never persisted.
+    const { audioBase64, ...firestorePayload } = payload;
+
+    // 1. Write attempt to Firestore (status tracking only, no audio)
     const attempt: Omit<ExerciseAttempt, 'evaluation'> & { evaluation: null } = {
       userId,
       chapterId,
       exerciseId,
       type,
       submittedAt: serverTimestamp() as never,
-      payload,
+      payload: firestorePayload,
       status: 'pending',
       evaluation: null,
     };
@@ -102,14 +107,18 @@ export class LessonService {
     const attemptId = ref.id;
 
     // 2. Call the evaluate-attempt Cloud Function
+    //    audioBase64 is included in the request body only (not in Firestore).
     const idToken = await this.auth.currentUser?.getIdToken();
+    const requestData: Record<string, unknown> = { attemptId };
+    if (audioBase64) requestData['audioBase64'] = audioBase64;
+
     const response = await fetch(environment.evaluateAttemptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
       },
-      body: JSON.stringify({ data: { attemptId } }),
+      body: JSON.stringify({ data: requestData }),
     });
 
     const body = await response.json();

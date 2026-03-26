@@ -9,6 +9,7 @@ dependencies = [
     "functions-framework>=3.8.2",
     "google-cloud-aiplatform>=1.142.0",
     "google-cloud-firestore>=2.25.0",
+    "google-cloud-speech>=2.0.0",
     "pydantic>=2.12.5",
     "uvicorn[standard]>=0.42.0",
 ]

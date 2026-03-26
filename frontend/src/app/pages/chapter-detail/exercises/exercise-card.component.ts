@@ -14,6 +14,7 @@ import { ImageDescriptionComponent } from './image-description.component';
 import { TranslationChallengeComponent } from './translation-challenge.component';
 import { DictationComponent } from './dictation.component';
 import { ConversationComponent } from './conversation.component';
+import { PronunciationPracticeComponent } from './pronunciation-practice.component';
 
 export type ExerciseState = 'unanswered' | 'correct' | 'incorrect' | 'evaluating' | 'evaluated';
 
@@ -52,6 +53,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
     TranslationChallengeComponent,
     DictationComponent,
     ConversationComponent,
+    PronunciationPracticeComponent,
   ],
   template: `
     <div class="rounded-2xl border shadow-sm transition-all duration-200"
@@ -115,17 +117,13 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
         <!-- Exercise content -->
 
         @if (isPronunciation()) {
-          <!-- Pronunciation: coming soon -->
-          <div class="bg-surface-50 border border-surface-200 rounded-xl px-5 py-6 text-center">
-            <div class="w-10 h-10 rounded-full bg-surface-100 flex items-center justify-center mx-auto mb-3">
-              <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
-              </svg>
-            </div>
-            <p class="text-sm font-medium text-surface-600">Pronunciation practice coming soon</p>
-            <p class="text-xs text-surface-400 mt-1">This exercise type requires microphone support.</p>
-          </div>
+          <app-pronunciation-practice
+            #pronunciationPractice
+            [exercise]="exercise"
+            [chapterStoragePath]="chapterStoragePath"
+            (submitted$)="onPronunciationSubmit($event)"
+            (answered)="onAiAnswered($event)"
+          />
         }
 
         @if (isMCQ()) {
@@ -275,6 +273,7 @@ export class ExerciseCardComponent {
   @ViewChild('translationChallenge') translationChallengeRef?: TranslationChallengeComponent;
   @ViewChild('dictation') dictationRef?: DictationComponent;
   @ViewChild('conversationComp') conversationCompRef?: ConversationComponent;
+  @ViewChild('pronunciationPractice') pronunciationPracticeRef?: PronunciationPracticeComponent;
 
   typeLabel(): string {
     return TYPE_LABELS[this.exercise.type] ?? this.exercise.type;
@@ -289,7 +288,7 @@ export class ExerciseCardComponent {
   }
 
   isAiGraded(): boolean {
-    return ['image_description', 'translation_challenge', 'dictation'].includes(this.exercise.type);
+    return ['image_description', 'translation_challenge', 'dictation', 'pronunciation_practice'].includes(this.exercise.type);
   }
 
   isAnswered(): boolean {
@@ -343,6 +342,32 @@ export class ExerciseCardComponent {
       this.imageDescRef?.setEvaluation(errorResult);
       this.translationChallengeRef?.setEvaluation(errorResult);
       this.dictationRef?.setEvaluation(errorResult);
+      this.answered.emit({ index: this.index, correct: false });
+    }
+  }
+
+  /** Called when the pronunciation component submits a base64-encoded audio recording. */
+  async onPronunciationSubmit(audioBase64: string): Promise<void> {
+    this.state.set('evaluating');
+    const exerciseId = `ex_${this.index}`;
+    try {
+      const result = await this.lessonService.evaluateAttempt(
+        this.chapterId,
+        exerciseId,
+        this.exercise.type,
+        { audioBase64 }
+      );
+      this.state.set(result.isCorrect ? 'correct' : 'incorrect');
+      this.pronunciationPracticeRef?.setEvaluation(result);
+      this.answered.emit({ index: this.index, correct: result.isCorrect });
+    } catch {
+      this.state.set('incorrect');
+      const errorResult: EvaluationResult = {
+        score: 0,
+        feedback: 'Evaluation failed. Please try again.',
+        isCorrect: false,
+      };
+      this.pronunciationPracticeRef?.setEvaluation(errorResult);
       this.answered.emit({ index: this.index, correct: false });
     }
   }

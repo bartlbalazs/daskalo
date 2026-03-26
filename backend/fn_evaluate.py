@@ -26,6 +26,7 @@ The function:
 from __future__ import annotations
 
 import logging
+import os
 
 import firebase_admin
 import flask
@@ -39,7 +40,7 @@ from callable_helpers import (
     verify_firebase_token,
 )
 from models.firestore import AttemptStatus, ExerciseAttempt, ExerciseType
-from services.evaluation import evaluate_attempt
+from services.evaluation import evaluate_attempt, evaluate_pronunciation
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -49,8 +50,6 @@ logging.basicConfig(level=logging.INFO)
 # Uses the attached service account in Cloud Functions; falls back to
 # GOOGLE_APPLICATION_CREDENTIALS for local dev.
 # ---------------------------------------------------------------------------
-
-import os
 
 
 def _init_firebase() -> None:
@@ -68,6 +67,7 @@ _AI_GRADED_TYPES = {
     ExerciseType.image_description,
     ExerciseType.translation_challenge,
     ExerciseType.dictation,
+    ExerciseType.pronunciation_practice,
 }
 
 
@@ -95,6 +95,7 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
         attempt_id: str = data["attemptId"]
         if not attempt_id:
             raise ValueError("attemptId must not be empty.")
+        audio_base64: str | None = data.get("audioBase64")
     except (ValueError, KeyError) as exc:
         return callable_error("INVALID_ARGUMENT", str(exc), 400)
 
@@ -135,23 +136,35 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
     # 6. Mark as evaluating
     ref.update({"status": AttemptStatus.evaluating.value})
 
-    # 7. Fetch the exercise prompt from the chapter document
+    # 7. Fetch the exercise prompt (and target_text for pronunciation) from the chapter document
     chapter_ref = db.collection("chapters").document(attempt_data.get("chapterId", ""))
     chapter_snap = chapter_ref.get()
     prompt = ""
+    target_text = ""
     if chapter_snap.exists:
         exercises = chapter_snap.to_dict().get("exercises", [])
         try:
             ex_index = int(attempt_data.get("exerciseId", "ex_0").split("_")[-1])
             if 0 <= ex_index < len(exercises):
-                prompt = exercises[ex_index].get("prompt", "")
+                exercise_data = exercises[ex_index]
+                prompt = exercise_data.get("prompt", "")
+                target_text = exercise_data.get("data", {}).get("targetText", "")
         except (ValueError, IndexError):
-            logger.warning("Could not resolve exercise prompt for exerciseId=%s", attempt_data.get("exerciseId"))
+            logger.warning("Could not resolve exercise data for exerciseId=%s", attempt_data.get("exerciseId"))
 
     # 8. Evaluate with Gemini
     try:
         attempt = ExerciseAttempt(**attempt_data)
-        result = evaluate_attempt(attempt, prompt)
+        if exercise_type == ExerciseType.pronunciation_practice:
+            if not audio_base64:
+                return callable_error("INVALID_ARGUMENT", "audioBase64 is required for pronunciation_practice.", 400)
+            result = evaluate_pronunciation(attempt, target_text, audio_base64)
+        else:
+            result = evaluate_attempt(attempt, prompt)
+    except ValueError as exc:
+        logger.warning("Validation error for attempt '%s': %s", attempt_id, exc)
+        ref.update({"status": AttemptStatus.error.value})
+        return callable_error("INVALID_ARGUMENT", str(exc), 400)
     except Exception as exc:
         logger.exception("Evaluation failed for attempt '%s': %s", attempt_id, exc)
         ref.update({"status": AttemptStatus.error.value})

@@ -529,7 +529,7 @@ export class ChapterDetailPage implements OnInit {
   }
 
   /** Exercise types that are never graded (no answered event emitted). */
-  private readonly _nonGradableTypes = new Set(['pronunciation_practice', 'lyrics_fill']);
+  private readonly _nonGradableTypes = new Set(['lyrics_fill']);
 
   /** Number of exercises that produce a gradable result. */
   gradableCount(chapter: Chapter): number {

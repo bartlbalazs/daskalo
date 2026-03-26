@@ -8,6 +8,7 @@ __pycache__/
 *.py[cod]
 
 # Firebase emulator
+firebase-export-*/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log

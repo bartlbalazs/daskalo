@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# Example Terraform variable values — safe to commit.
+# Copy to terraform.tfvars (gitignored) and fill in real values.
+# ---------------------------------------------------------------------------
+
+project_id                = "your-gcp-project-id"
+region                    = "europe-west1"
+db_name                   = "(default)"
+public_assets_bucket_name = "your-project-public-assets-unique-id"
+firebase_app_display_name = "Daskalo"
+
+# Optional: override function sizing
+# evaluate_function_memory          = "512M"
+# evaluate_function_timeout         = 120
+# complete_chapter_function_memory  = "512M"
+# complete_chapter_function_timeout = 180

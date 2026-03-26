@@ -3,6 +3,17 @@
 .env.deploy
 .idea
 
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/.build/
+
+# Generated frontend environment (written by deploy.sh --hosting)
+frontend/src/environments/environment.prod.ts
+
 # Python
 __pycache__/
 *.py[cod]

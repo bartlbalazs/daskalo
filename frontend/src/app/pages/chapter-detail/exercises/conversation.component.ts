@@ -488,7 +488,16 @@ export class ConversationComponent implements OnInit, OnDestroy {
   submitConversation(): void {
     this.submitted.set(true);
     let allCorrect = true;
-    this.checkpointAnswers().forEach(v => { if (!v) allCorrect = false; });
+    this.checkpointAnswers().forEach((isCorrect, cpIdx) => {
+      if (isCorrect) return;
+      // Translation checkpoints inside a dialogue are excluded from the
+      // pass/fail result — getting the exact phrasing right is too strict.
+      const step = this.steps().find(
+        (s): s is CheckpointStep => s.kind === 'checkpoint' && s.checkpointIndex === cpIdx
+      );
+      if (step?.checkpoint.type === 'translation') return;
+      allCorrect = false;
+    });
     this.answered.emit(allCorrect);
   }
 

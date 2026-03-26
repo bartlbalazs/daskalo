@@ -93,6 +93,8 @@ def evaluate_attempt(attempt: ExerciseAttempt, prompt: str) -> EvaluationResult:
 
     raw = response.text.strip().removeprefix("```json").removesuffix("```").strip()
     data = json.loads(raw)
+    # Override AI's boolean judgment: anything above 60 is considered correct.
+    data["isCorrect"] = data.get("score", 0) > 60
     return EvaluationResult(**data)
 
 
@@ -161,4 +163,6 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     response = model.generate_content(full_prompt)
     raw = response.text.strip().removeprefix("```json").removesuffix("```").strip()
     data = json.loads(raw)
+    # Override AI's boolean judgment: anything above 60 is considered correct.
+    data["isCorrect"] = data.get("score", 0) > 60
     return EvaluationResult(**data)

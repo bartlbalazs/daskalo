@@ -46,10 +46,9 @@ do NOT fictionalize real historical events.
 Then craft a punchy English chapter title and a single warm, inviting English sentence that \
 pitches the scenario to the learner.
 
-Next, write a chapter_introduction (2-3 paragraphs in English). This is the 'hook' that students read before the lesson begins. \
+Next, write a chapter_introduction (1 short paragraph in English, maximum 3 sentences). This is the 'hook' that students read before the lesson begins. \
 Its sole purpose is to raise the mood, spark interest, and lure them into learning. \
-Make them curious and excited! Vividly set the cultural, historical, or modern context of the scenario. \
-Why does this situation matter? What interesting cultural nuance are they about to encounter? \
+Make them curious and excited! Briefly set the cultural or modern context of the scenario. \
 Do NOT include any Greek text, and do NOT mention the grammar rules. Purely set the stage and the hype.
 
 Also provide a chapter_image_prompt: a rich English description of a cover image. \
@@ -341,8 +340,9 @@ CRITICAL LANGUAGE RULES:
 - For example, an exercise prompt should be "Fill in the blank with the correct word." (English), but the sentence itself "Ο σκύλος είναι ___." (Greek).
 
 Generate {exercise_count} exercises. Each exercise must be of a DIFFERENT type, chosen from this allowed set: \
-{available_types}. You MUST include at least one image_description exercise regardless of how \
-many exercises are requested. If "conversation" is in the allowed set, you MUST include exactly one conversation exercise.
+{available_types}. You MUST include at least one image_description exercise and at least one \
+pronunciation_practice exercise regardless of how many exercises are requested. \
+If "conversation" is in the allowed set, you MUST include exactly one conversation exercise.
 
 Exercise type specifications:
   slang_matcher       — pairs of (formal Greek phrase, slang equivalent)
@@ -430,7 +430,7 @@ Evaluate each of the following categories independently:
 2. accuracy   — Is the Greek text grammatically correct and natural-sounding?
 3. level      — Is the content appropriately calibrated for a {cefr_level} student? Did they teach the Target Grammar?
 4. slang      — Is slang used correctly contextually? If the topic is Modern Everyday, does it include 1-2 authentic modern Greek colloquialisms? If the topic is Historical or Mythological, does it completely OMIT modern slang? Fail if modern slang is used in a historical setting, or if a modern setting sounds too textbook-stiff.
-5. exercises  — Are the exercises varied, clearly tied to the passage, and calibrated to the correct level? Is there a conversation exercise if one was expected?
+5. exercises  — Are the exercises varied, clearly tied to the passage, and calibrated to the correct level? Is there a conversation exercise if one was expected? Is there at least one pronunciation_practice exercise?
 6. culture    — Does the content incorporate deep, authentic cultural elements (history, mythology, art, real society) rather than shallow tourist stereotypes?
 
 Set approved to true only if ALL six categories pass AND all strict curriculum constraints (grammar/mandatory words/tables) are met.

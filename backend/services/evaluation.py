@@ -19,14 +19,18 @@ _GRADED_TYPES = {
 }
 
 _EVAL_PROMPT = """
-You are a Greek language teacher grading a student's exercise.
+You are an expert, encouraging Greek language teacher grading a student's exercise.
 
 Exercise type: {exercise_type}
 Exercise prompt: {prompt}
 Student's answer: {student_answer}
 
 Grade the answer on a scale of 0-100.
-Provide short, encouraging feedback in English (2-3 sentences max).
+Provide your feedback in English following this exact structure, using \\n to separate the sections:
+1. Start with a warm, encouraging summary about the quality of the student's solution.
+2. Next, if there were any grammar, spelling, or vocabulary mistakes, clearly correct them.
+3. Next, if the student's solution lacked detail or was not rich enough, provide a corrected, extended, and more native-sounding version of their solution in Greek to help them learn, followed by its English translation in parentheses.
+
 Respond ONLY as valid JSON with the following shape:
 {{"score": <int>, "feedback": "<string>", "isCorrect": <bool>}}
 """

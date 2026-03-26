@@ -68,7 +68,9 @@ export class SentenceReorderComponent implements OnInit {
   ngOnInit(): void {
     const d = this.exercise.data as unknown as SentenceReorderData;
     this._correctOrder = d?.correct_order ?? [];
-    this.words.set([...(d?.scrambled_order ?? [])]);
+    // Ignore the LLM-generated scrambled_order — it may have mismatched capitalisation
+    // or punctuation. Instead shuffle correct_order locally so the pieces always match.
+    this.words.set(this._shuffle([...this._correctOrder]));
   }
 
   drop(event: CdkDragDrop<string[]>): void {
@@ -91,5 +93,14 @@ export class SentenceReorderComponent implements OnInit {
     if (this.submitted()) return;
     this.submitted.set(true);
     this.answered.emit(this.isCorrect());
+  }
+
+  private _shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 }

@@ -46,6 +46,9 @@ class ContentState(TypedDict):
     grammar_notes: list[GrammarNote]
     exercises: list[Exercise]
 
+    # --- Pre-generated grammar reference (stored on the chapter, shared by all students) ---
+    grammar_summary: str  # Markdown reference: grammar tables + key vocab + usage tips
+
     # --- Internal: not included in descriptor.json ---
     image_prompts: list[ImagePrompt]  # One per image_description exercise
     review_feedback: str  # Empty string means APPROVED

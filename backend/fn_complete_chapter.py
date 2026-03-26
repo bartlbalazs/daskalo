@@ -17,9 +17,14 @@ Firebase Callable wire protocol:
 
 The function:
   1. Verifies the caller's Firebase ID token (extracts uid).
-  2. Runs the progress service: generates a grammar book entry and
-     progress summary via Gemini, then updates the user document in Firestore.
+  2. Runs the progress service: generates a progress summary via Gemini and
+     updates the user document in Firestore (completedChapterIds, lastActive,
+     lastProgressSummary).
   3. Returns the progress data to the caller.
+
+Note: grammar book entries are no longer generated here. Each chapter document
+contains a pre-generated grammarSummary field (written by the content-cli pipeline).
+The frontend assembles the grammar book at runtime from completed chapter summaries.
 """
 
 from __future__ import annotations
@@ -87,7 +92,7 @@ def complete_chapter_fn(request: flask.Request) -> tuple:
     except (ValueError, KeyError) as exc:
         return callable_error("INVALID_ARGUMENT", str(exc), 400)
 
-    # 3. Run the progress workflow (10-30s — two sequential Gemini calls)
+    # 3. Run the progress workflow (~10s — one Gemini call for the progress summary)
     try:
         result = complete_chapter(uid=uid, chapter_id=chapter_id)
     except ValueError as exc:

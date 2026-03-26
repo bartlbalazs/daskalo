@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
 import { Exercise, ListeningComprehensionData, ListeningOption } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 
@@ -22,7 +22,7 @@ import { AudioPlayerComponent } from './audio-player.component';
 
       <!-- Options -->
       <div class="space-y-2.5">
-        @for (opt of data().options; track $index) {
+        @for (opt of options(); track $index) {
           <button
             (click)="select($index)"
             [disabled]="submitted()"
@@ -55,7 +55,7 @@ import { AudioPlayerComponent } from './audio-player.component';
     </div>
   `,
 })
-export class ListeningComprehensionComponent {
+export class ListeningComprehensionComponent implements OnInit {
   @Input({ required: true }) exercise!: Exercise;
   /** Base GCS path of the chapter, e.g. gs://bucket/chapters/chapterId */
   @Input() chapterStoragePath = '';
@@ -65,6 +65,16 @@ export class ListeningComprehensionComponent {
 
   selectedIndex = signal<number | null>(null);
   submitted = signal(false);
+  private _options = signal<ListeningOption[]>([]);
+
+  ngOnInit(): void {
+    const raw = (this.exercise.data as unknown as ListeningComprehensionData)?.options ?? [];
+    this._options.set(this._shuffle(raw));
+  }
+
+  options(): ListeningOption[] {
+    return this._options();
+  }
 
   data(): ListeningComprehensionData {
     return this.exercise.data as unknown as ListeningComprehensionData;
@@ -89,13 +99,13 @@ export class ListeningComprehensionComponent {
   submit(): void {
     if (this.selectedIndex() === null || this.submitted()) return;
     this.submitted.set(true);
-    const correct = this.data().options[this.selectedIndex()!]?.isCorrect ?? false;
+    const correct = this.options()[this.selectedIndex()!]?.isCorrect ?? false;
     this.answered.emit(correct);
   }
 
   isCorrect(): boolean {
     if (!this.submitted() || this.selectedIndex() === null) return false;
-    return this.data().options[this.selectedIndex()!]?.isCorrect ?? false;
+    return this.options()[this.selectedIndex()!]?.isCorrect ?? false;
   }
 
   optionClass(index: number): string {
@@ -104,7 +114,7 @@ export class ListeningComprehensionComponent {
         ? 'border-greek-500 bg-greek-50 text-greek-800'
         : 'border-surface-200 bg-white text-surface-700 hover:border-greek-300 hover:bg-greek-50/50';
     }
-    const opt = this.data().options[index];
+    const opt = this.options()[index];
     if (opt.isCorrect) return 'border-emerald-300 bg-emerald-50 text-emerald-800';
     if (this.selectedIndex() === index) return 'border-red-300 bg-red-50 text-red-800';
     return 'border-surface-100 bg-surface-50 text-surface-400';
@@ -116,7 +126,7 @@ export class ListeningComprehensionComponent {
         ? 'border-greek-500 bg-greek-500 text-white'
         : 'border-surface-300 text-surface-500';
     }
-    const opt = this.data().options[index];
+    const opt = this.options()[index];
     if (opt.isCorrect) return 'border-emerald-400 bg-emerald-400 text-white';
     if (this.selectedIndex() === index) return 'border-red-400 bg-red-400 text-white';
     return 'border-surface-200 text-surface-300';
@@ -124,5 +134,14 @@ export class ListeningComprehensionComponent {
 
   optionLetter(index: number): string {
     return String.fromCharCode(65 + index);
+  }
+
+  private _shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 }

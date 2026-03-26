@@ -124,9 +124,14 @@ export class LessonService {
 
   /**
    * Mark a chapter as complete by calling the complete-chapter Cloud Function.
-   * The function generates a grammar book entry and progress summary via Gemini
-   * and updates the user document in Firestore.
-   * Blocks until the function responds (up to ~30s is acceptable per design).
+   * The function generates a progress summary via Gemini and updates the user
+   * document in Firestore (completedChapterIds, lastActive, lastProgressSummary).
+   *
+   * The grammar book is NOT generated here — each chapter document contains a
+   * pre-generated grammarSummary field written by the content-cli pipeline.
+   * The grammar book page assembles summaries from completed chapters at runtime.
+   *
+   * Blocks until the function responds (up to ~10s is acceptable per design).
    */
   async completeChapter(chapterId: string): Promise<void> {
     const userId = this.authService.firebaseUser()?.uid;

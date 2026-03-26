@@ -27,7 +27,7 @@ The application consists of three main components:
 - **Wire Protocol**: Firebase Callable convention — request body `{"data": {...}}`, success response `{"result": {...}}`, error response `{"error": {"status": "...", "message": "..."}}`.
 - **Functions**:
   - `evaluate_attempt_fn` (`fn_evaluate.py`): Evaluates an AI-graded exercise attempt using Gemini and writes the result to Firestore.
-  - `complete_chapter_fn` (`fn_complete_chapter.py`): Generates a grammar book entry and progress summary via Gemini, then updates the user document in Firestore.
+  - `complete_chapter_fn` (`fn_complete_chapter.py`): Generates a progress summary via Gemini and updates the user document in Firestore (completedChapterIds, lastActive, lastProgressSummary). Grammar book entries are NOT generated here — see the content-cli pipeline.
 - **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, and response formatting used by both functions.
 - **AI Integration**: Uses Gemini for exercise evaluation and progress summary generation.
 
@@ -36,10 +36,11 @@ The application consists of three main components:
 - **Tech Stack**: Python, LangGraph, Vertex AI (Gemini for text generation), local Piper TTS.
 - **Process**:
   1. Operator inputs chapter, topic, and optional student interests.
-  2. LangGraph nodes generate text, vocabulary, and grammar explanations.
-  3. A Reviewer Node ensures quality and appropriateness (max 2 retries).
-  4. Media is generated (TTS audio, Vertex AI images).
-  5. Content is written directly to the Firestore emulator (local) or production Firestore (`--no-local`).
+  2. LangGraph nodes generate text, vocabulary, grammar explanations, and a pre-built grammar summary (`grammarSummary`).
+  3. The `generate_grammar_summary` node (Gemini Pro) runs after `generate_grammar_notes` and produces a thorough Markdown reference (grammar tables, key vocabulary, tips & common mistakes). This is stored on the chapter document and is identical for all students.
+  4. A Reviewer Node ensures quality and appropriateness (max 2 retries).
+  5. Media is generated (TTS audio, Vertex AI images).
+  6. Content is written directly to the Firestore emulator (local) or production Firestore (`--no-local`).
 
 ## 3. Data Flow
 
@@ -55,9 +56,17 @@ The application consists of three main components:
 ### 3.2 Chapter Completion
 1. User finishes a chapter in the Angular app.
 2. Angular app calls the `complete-chapter` Cloud Function via `fetch()`, passing the `chapterId` in the Callable request body.
-3. The Cloud Function verifies the token, runs two sequential Gemini calls (grammar book entry + progress summary), and updates the user's document in Firestore.
+3. The Cloud Function verifies the token, runs one Gemini call (progress summary), and updates the user's document in Firestore (`completedChapterIds`, `lastActive`, `lastProgressSummary`).
 4. The Cloud Function returns `{ chapterId, progressSummary, completedChapterIds }` to the caller.
 5. The Angular app updates the UI with the returned progress data.
+
+### 3.3 Grammar Book Assembly
+The grammar book is assembled at runtime on the frontend — no backend call needed:
+1. The grammar book page reads `completedChapterIds` from the authenticated user's Firestore document.
+2. It fetches the chapter documents for those IDs (batched Firestore `in` query).
+3. For each completed chapter, it renders the pre-generated `grammarSummary` Markdown field.
+4. Chapters are grouped by book and sorted in curriculum order (book order → chapter order within each book).
+5. Each summary entry links back to the corresponding lesson page.
 
 ## 4. Local Development Strategy
 

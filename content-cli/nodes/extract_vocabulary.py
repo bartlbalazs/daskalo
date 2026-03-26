@@ -5,17 +5,15 @@ Calls gemini-2.5-flash via structured output to extract the vocabulary list from
 Runs in parallel with extract_grammar_outlines after draft_lesson_core.
 """
 
-import json
 import logging
 import os
-import time
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from pydantic import ValidationError
 
 from models.content_models import LESSON_CONFIG, LessonLength, VocabularyResult
 from prompts.content_prompts import EXTRACT_VOCABULARY_PROMPT
 from state import ContentState
+from utils.llm_utils import invoke_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +30,8 @@ def extract_vocabulary(state: ContentState) -> dict:
         model=MODEL_NAME,
         project=os.environ["GOOGLE_CLOUD_PROJECT"],
         location=os.getenv("GEMINI_LOCATION", "global"),
+        timeout=240.0,
+        max_retries=1,
     )
     structured_model = model.with_structured_output(VocabularyResult, method="json_schema")
 
@@ -52,27 +52,12 @@ def extract_vocabulary(state: ContentState) -> dict:
         vocab_count=config["vocab_count"],
     )
 
-    result: VocabularyResult = _invoke_with_retry(structured_model, prompt)
+    result: VocabularyResult = invoke_with_retry(
+        structured_model,
+        prompt,
+        pydantic_model=VocabularyResult,
+        retries=_INVOKE_RETRIES,
+        sleep_sec=_RETRY_SLEEP,
+        log_prefix="extract_vocabulary",
+    )
     return {"vocabulary": result.vocabulary}
-
-
-def _invoke_with_retry(structured_model, prompt: str) -> VocabularyResult:
-    """Invoke the structured LLM with simple retry-on-failure logic."""
-    last_exc: Exception | None = None
-    for attempt in range(1, _INVOKE_RETRIES + 1):
-        try:
-            result = structured_model.invoke(prompt)
-            if not isinstance(result, VocabularyResult):
-                result = VocabularyResult.model_validate(result)
-            return result
-        except (ValidationError, ValueError, json.JSONDecodeError) as exc:
-            last_exc = exc
-            logger.warning(
-                "Structured output parse failed (attempt %d/%d): %s",
-                attempt,
-                _INVOKE_RETRIES,
-                exc,
-            )
-            if attempt < _INVOKE_RETRIES:
-                time.sleep(_RETRY_SLEEP)
-    raise RuntimeError(f"Failed to get valid structured output after {_INVOKE_RETRIES} attempts") from last_exc

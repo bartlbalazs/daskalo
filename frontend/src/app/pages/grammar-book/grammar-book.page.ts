@@ -1,17 +1,21 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, computed, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Firestore, doc, docData } from '@angular/fire/firestore';
-import { AsyncPipe } from '@angular/common';
-import { Observable, map, of, switchMap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { User } from '../../core/models/firestore.models';
+import { LessonService } from '../../core/services/lesson.service';
+import { Book, Chapter } from '../../core/models/firestore.models';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+
+interface BookGroup {
+  book: Book;
+  chapters: Chapter[];
+}
 
 @Component({
   selector: 'app-grammar-book',
   standalone: true,
-  imports: [RouterLink, AsyncPipe],
+  imports: [RouterLink],
   template: `
     <div class="px-6 py-8 max-w-3xl mx-auto">
 
@@ -41,32 +45,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
       <hr class="border-surface-200 mb-8">
 
-      @if (grammarBook$ | async; as content) {
-        @if (content) {
-          <!-- Rendered grammar book -->
-          <div class="prose prose-sm max-w-none grammar-book-content"
-            [innerHTML]="renderMarkdown(content)">
-          </div>
-        } @else {
-          <!-- Empty state -->
-          <div class="flex flex-col items-center justify-center py-16 text-center">
-            <div class="w-16 h-16 rounded-2xl bg-surface-100 flex items-center justify-center mb-4">
-              <svg class="w-8 h-8 text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-              </svg>
-            </div>
-            <h2 class="font-serif text-lg font-semibold text-surface-700 mb-2">Your grammar book is empty</h2>
-            <p class="text-surface-400 text-sm max-w-sm">
-              Complete chapters to automatically build your personal grammar reference.
-            </p>
-            <a routerLink="/chapters"
-              class="mt-6 px-5 py-2.5 rounded-xl bg-greek-600 text-white text-sm font-semibold hover:bg-greek-700 transition-colors">
-              Go to Chapters
-            </a>
-          </div>
-        }
-      } @else {
+      @if (loading()) {
         <!-- Loading skeleton -->
         <div class="animate-pulse space-y-4">
           <div class="h-6 bg-surface-200 rounded w-1/3 mb-2"></div>
@@ -77,6 +56,71 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           <div class="h-4 bg-surface-100 rounded w-full"></div>
           <div class="h-4 bg-surface-100 rounded w-3/4"></div>
         </div>
+      } @else if (bookGroups().length === 0) {
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-surface-100 flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+          </div>
+          <h2 class="font-serif text-lg font-semibold text-surface-700 mb-2">Your grammar book is empty</h2>
+          <p class="text-surface-400 text-sm max-w-sm">
+            Complete chapters to automatically build your personal grammar reference.
+          </p>
+          <a routerLink="/chapters"
+            class="mt-6 px-5 py-2.5 rounded-xl bg-greek-600 text-white text-sm font-semibold hover:bg-greek-700 transition-colors">
+            Go to Chapters
+          </a>
+        </div>
+      } @else {
+        <!-- Grammar book content grouped by book -->
+        @for (group of bookGroups(); track group.book.id) {
+          <!-- Book heading -->
+          <div class="mb-6">
+            <h2 class="font-serif text-xl font-semibold text-greek-900 mb-1">{{ group.book.title }}</h2>
+            <p class="text-surface-400 text-xs">{{ group.book.description }}</p>
+          </div>
+
+          @for (chapter of group.chapters; track chapter.id) {
+            <div class="mb-10">
+              @if (chapter.grammarSummary) {
+                <!-- Grammar summary content -->
+                <div class="prose prose-sm max-w-none grammar-book-content"
+                  [innerHTML]="renderMarkdown(chapter.grammarSummary)">
+                </div>
+              } @else {
+                <!-- No summary available for this chapter -->
+                <div class="rounded-xl border border-surface-200 bg-surface-50 px-5 py-4 text-sm text-surface-400 italic">
+                  Grammar summary not available for this chapter.
+                </div>
+              }
+
+              <!-- Link back to the chapter -->
+              <div class="mt-4">
+                <a [routerLink]="['/chapters', chapter.id]"
+                  class="inline-flex items-center gap-1.5 text-xs font-medium text-greek-600 hover:text-greek-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  Go to lesson: {{ chapter.title }}
+                </a>
+              </div>
+            </div>
+
+            <!-- Divider between chapters (not after last in a book) -->
+            @if (!isLastChapterInGroup(group, chapter)) {
+              <hr class="border-surface-100 mb-10">
+            }
+          }
+
+          <!-- Divider between book groups (not after last) -->
+          @if (!isLastGroup(group)) {
+            <hr class="border-surface-200 mb-8 mt-2">
+          }
+        }
       }
     </div>
   `,
@@ -158,27 +202,79 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     }
   `],
 })
-export class GrammarBookPage {
-  private firestore = inject(Firestore);
+export class GrammarBookPage implements OnInit {
   private authService = inject(AuthService);
+  private lessonService = inject(LessonService);
   private sanitizer = inject(DomSanitizer);
 
-  grammarBook$: Observable<string | null> = new Observable(observer => {
-    const uid = this.authService.firebaseUser()?.uid;
-    if (!uid) {
-      observer.next(null);
-      observer.complete();
+  loading = signal(true);
+
+  private completedChapters = signal<Chapter[]>([]);
+  private books = signal<Book[]>([]);
+
+  /** Chapters grouped by book, sorted by book order then chapter order. */
+  bookGroups = computed<BookGroup[]>(() => {
+    const chapters = this.completedChapters();
+    const allBooks = this.books();
+    if (chapters.length === 0 || allBooks.length === 0) return [];
+
+    // Build a map of bookId → book for quick lookup
+    const bookMap = new Map(allBooks.map(b => [b.id, b]));
+
+    // Group chapters by bookId
+    const grouped = new Map<string, Chapter[]>();
+    for (const ch of chapters) {
+      const existing = grouped.get(ch.bookId) ?? [];
+      grouped.set(ch.bookId, [...existing, ch]);
+    }
+
+    // Sort chapters within each book by order
+    for (const [bookId, chs] of grouped) {
+      grouped.set(bookId, [...chs].sort((a, b) => a.order - b.order));
+    }
+
+    // Build BookGroup array sorted by book order
+    const groups: BookGroup[] = [];
+    for (const [bookId, chs] of grouped) {
+      const book = bookMap.get(bookId);
+      if (book) {
+        groups.push({ book, chapters: chs });
+      }
+    }
+    groups.sort((a, b) => a.book.order - b.book.order);
+    return groups;
+  });
+
+  async ngOnInit(): Promise<void> {
+    const completedIds = this.authService.currentUser()?.progress?.completedChapterIds ?? [];
+
+    if (completedIds.length === 0) {
+      this.loading.set(false);
       return;
     }
-    const ref = doc(this.firestore, 'users', uid);
-    const sub = (docData(ref) as Observable<User>)
-      .pipe(map(u => u?.grammar_book ?? null))
-      .subscribe(observer);
-    return () => sub.unsubscribe();
-  });
+
+    // Fetch chapters and books in parallel
+    const [chapters, books] = await Promise.all([
+      firstValueFrom(this.lessonService.getChaptersByIds(completedIds)),
+      firstValueFrom(this.lessonService.getBooks()),
+    ]);
+
+    this.completedChapters.set(chapters ?? []);
+    this.books.set(books ?? []);
+    this.loading.set(false);
+  }
 
   renderMarkdown(md: string): SafeHtml {
     const html = marked.parse(md, { async: false }) as string;
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  isLastChapterInGroup(group: BookGroup, chapter: Chapter): boolean {
+    return group.chapters[group.chapters.length - 1]?.id === chapter.id;
+  }
+
+  isLastGroup(group: BookGroup): boolean {
+    const groups = this.bookGroups();
+    return groups[groups.length - 1]?.book.id === group.book.id;
   }
 }

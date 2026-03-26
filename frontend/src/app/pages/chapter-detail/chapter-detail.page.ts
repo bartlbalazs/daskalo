@@ -251,10 +251,18 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
                 </div>
-                <div>
+                <div class="flex-1">
                   <p class="font-semibold text-greek-800 text-sm">Chapter already completed</p>
                   <p class="text-greek-600 text-xs mt-0.5">Feel free to review the content and practise the exercises.</p>
                 </div>
+                <a routerLink="/grammar-book"
+                  class="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-greek-600 hover:text-greek-800 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                  Grammar Book
+                </a>
               </div>
             }
 
@@ -296,11 +304,20 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 </div>
                 <p class="font-bold text-emerald-800 text-xl font-serif mb-1">Chapter Complete!</p>
                 <p class="text-emerald-700 text-sm">
-                  Your progress and grammar book have been updated.
+                  Your progress has been saved.
                 </p>
-                <a routerLink="/chapters" class="mt-4 inline-block text-sm font-semibold text-greek-600 hover:text-greek-800 transition-colors">
-                  Back to course &rarr;
-                </a>
+                <div class="mt-4 flex items-center justify-center gap-4 flex-wrap">
+                  <a routerLink="/chapters" class="text-sm font-semibold text-greek-600 hover:text-greek-800 transition-colors">
+                    Back to course &rarr;
+                  </a>
+                  <a routerLink="/grammar-book" class="inline-flex items-center gap-1.5 text-sm font-semibold text-greek-600 hover:text-greek-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    View in Grammar Book
+                  </a>
+                </div>
               </div>
             }
 

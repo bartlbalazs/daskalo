@@ -185,6 +185,19 @@ export class PassageComprehensionComponent {
     if (this._initialized) return;
     this._initialized = true;
     const d = this.exercise.data as unknown as PassageComprehensionData;
+    // Shuffle options for each question in-place so indices remain consistent
+    (d?.questions ?? []).forEach(q => {
+      q.options = this._shuffle(q.options);
+    });
     this._states.set((d?.questions ?? []).map(() => ({ selected: null })));
+  }
+
+  private _shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 }

@@ -208,7 +208,6 @@ export interface User {
   lastActive: Timestamp;
   progress: UserProgress;
   vocabularyList: VocabularyListItem[];
-  grammar_book?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +268,9 @@ export interface Chapter {
   coverImageUrl?: string;
   languageSkill?: string;
   grammarNotes: GrammarNote[];
+  /** Pre-generated Markdown grammar reference (grammar tables, key vocabulary, tips).
+   *  Shared across all students. Only shown after the chapter is completed. */
+  grammarSummary?: string;
   vocabulary: VocabularyItem[];
   exercises: Exercise[];
 }

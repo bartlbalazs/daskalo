@@ -68,6 +68,7 @@ def package_output(state: ContentState) -> dict:
                 f"assets/images/{Path(state['chapter_image_path']).name}" if state.get("chapter_image_path") else None
             ),
             "grammarNotes": [_serialise_grammar_note(n) for n in state.get("grammar_notes", [])],
+            "grammarSummary": state.get("grammar_summary", ""),
             "vocabulary": [_serialise_vocab(v) for v in state.get("vocabulary", [])],
             "exercises": [_serialise_exercise(ex) for ex in state.get("exercises", [])],
         },

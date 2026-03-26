@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
 import {
   Exercise,
   FillInTheBlankData,
@@ -74,12 +74,17 @@ export type McOption = { text: string; isCorrect: boolean };
     </div>
   `,
 })
-export class MultipleChoiceComponent {
+export class MultipleChoiceComponent implements OnInit {
   @Input({ required: true }) exercise!: Exercise;
   @Output() answered = new EventEmitter<boolean>();
 
   selectedIndex = signal<number | null>(null);
   submitted = signal(false);
+  private _options = signal<McOption[]>([]);
+
+  ngOnInit(): void {
+    this._options.set(this._shuffle(this._rawOptions()));
+  }
 
   get selectedText(): () => string | null {
     return () => {
@@ -89,6 +94,10 @@ export class MultipleChoiceComponent {
   }
 
   options(): McOption[] {
+    return this._options();
+  }
+
+  private _rawOptions(): McOption[] {
     const d = this.exercise.data as Record<string, unknown>;
     if (!d) return [];
     switch (this.exercise.type) {
@@ -105,6 +114,15 @@ export class MultipleChoiceComponent {
       default:
         return [];
     }
+  }
+
+  private _shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
   select(index: number): void {

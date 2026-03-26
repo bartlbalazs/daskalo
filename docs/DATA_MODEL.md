@@ -16,7 +16,6 @@ Documents representing the students.
   "status": "pending", // Enum: ["pending", "active"]. Controls access to the app.
   "createdAt": "Timestamp",
   "lastActive": "Timestamp",
-  "grammar_book": "## Lost in Monastiraki\n\n### The Accusative Case\n...", // Additive Markdown string; appended on each chapter completion by the backend.
   "progress": {
     "currentPhaseId": "phase_1_the_tourist",
     "completedChapterIds": ["chapter_1_airport", "chapter_2_taverna"],
@@ -75,6 +74,7 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
       "imageUrl": "gs://public-assets-bucket/images/grammar_note_00.jpg"
     }
   ],
+  "grammarSummary": "## Lost in Monastiraki\n\n### Grammar: The Accusative Case\n...", // Pre-generated Markdown reference (grammar tables + key vocabulary + tips). Generated once by the content-cli pipeline and shared across all students. Displayed in the Grammar Book page only after the student completes the chapter.
   "vocabulary": [
     {
       "greek": "Καλημέρα",
@@ -176,14 +176,15 @@ When the LangGraph CLI generates content, it packages it into a `.zip` file. The
        "assets/audio/sentence_00_p1_c1_hotel.mp3"
      ],
      "coverImagePath": "assets/images/chapter_cover.jpg",
-     "grammarNotes": [
-       {
-         "heading": "Polite requests with θα ήθελα",
-         "explanation": "...",
-         "examples": [{ "greek": "Θα ήθελα ένα δωμάτιο.", "english": "I would like a room.", "note": null }],
-         "imagePath": "assets/images/grammar_note_00.jpg"
-       }
-     ],
+      "grammarNotes": [
+        {
+          "heading": "Polite requests with θα ήθελα",
+          "explanation": "...",
+          "examples": [{ "greek": "Θα ήθελα ένα δωμάτιο.", "english": "I would like a room.", "note": null }],
+          "imagePath": "assets/images/grammar_note_00.jpg"
+        }
+      ],
+      "grammarSummary": "## Check-in Chaos\n\n### Grammar: Polite Requests...", // Pre-generated Markdown reference; plain string, no asset paths.
      "vocabulary": [
        {
          "greek": "Ξενοδοχείο",

@@ -6,18 +6,16 @@ creative scenario, chapter title, summary, cover image prompt, and Greek passage
 Vocabulary extraction and grammar outline extraction run in parallel after this node.
 """
 
-import json
 import logging
 import os
 import re
-import time
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from pydantic import ValidationError
 
 from models.content_models import LESSON_CONFIG, DraftLesson, LessonLength
 from prompts.content_prompts import DRAFT_LESSON_CORE_PROMPT
 from state import ContentState
+from utils.llm_utils import invoke_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +34,8 @@ def draft_lesson_core(state: ContentState) -> dict:
         model=MODEL_NAME,
         project=os.environ["GOOGLE_CLOUD_PROJECT"],
         location=os.getenv("GEMINI_LOCATION", "global"),
+        timeout=240.0,
+        max_retries=1,
     )
     structured_model = model.with_structured_output(DraftLesson, method="json_schema")
 
@@ -57,7 +57,14 @@ def draft_lesson_core(state: ContentState) -> dict:
     if feedback:
         prompt += f"\n\nPREVIOUS REVIEW FEEDBACK TO ADDRESS:\n{feedback}"
 
-    draft: DraftLesson = _invoke_with_retry(structured_model, prompt)
+    draft: DraftLesson = invoke_with_retry(
+        structured_model,
+        prompt,
+        pydantic_model=DraftLesson,
+        retries=_INVOKE_RETRIES,
+        sleep_sec=_RETRY_SLEEP,
+        log_prefix="draft_lesson_core",
+    )
 
     # Derive a clean variant_id from the LLM-generated title.
     # e.g. chapter_id="b1_c2", title="Lost in Monastiraki" → variant_id="b1_c2_lost_in_monastiraki"
@@ -82,25 +89,3 @@ def _slugify(text: str) -> str:
     text = text.lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
     return text.strip("_")
-
-
-def _invoke_with_retry(structured_model, prompt: str) -> DraftLesson:
-    """Invoke the structured LLM with simple retry-on-failure logic."""
-    last_exc: Exception | None = None
-    for attempt in range(1, _INVOKE_RETRIES + 1):
-        try:
-            result = structured_model.invoke(prompt)
-            if not isinstance(result, DraftLesson):
-                result = DraftLesson.model_validate(result)
-            return result
-        except (ValidationError, ValueError, json.JSONDecodeError) as exc:
-            last_exc = exc
-            logger.warning(
-                "Structured output parse failed (attempt %d/%d): %s",
-                attempt,
-                _INVOKE_RETRIES,
-                exc,
-            )
-            if attempt < _INVOKE_RETRIES:
-                time.sleep(_RETRY_SLEEP)
-    raise RuntimeError(f"Failed to get valid structured output after {_INVOKE_RETRIES} attempts") from last_exc

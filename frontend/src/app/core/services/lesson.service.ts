@@ -133,7 +133,7 @@ export class LessonService {
    *
    * Blocks until the function responds (up to ~10s is acceptable per design).
    */
-  async completeChapter(chapterId: string): Promise<void> {
+  async completeChapter(chapterId: string): Promise<{ xpGained: number }> {
     const userId = this.authService.firebaseUser()?.uid;
     if (!userId) throw new Error('User not authenticated.');
 
@@ -157,5 +157,7 @@ export class LessonService {
     // Refresh the local user profile so completedChapterIds is up-to-date
     // everywhere (sidebar, chapters list, vocabulary page) without a page reload.
     await this.authService.loadCurrentUser();
+
+    return { xpGained: body.result.xpGained };
   }
 }

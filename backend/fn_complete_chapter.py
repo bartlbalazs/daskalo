@@ -11,6 +11,7 @@ Firebase Callable wire protocol:
             Body: { "data": { "chapterId": "<Firestore chapter document ID>" } }
 
   Success:  { "result": { "chapterId": str,
+                           "xpGained": int,
                            "progressSummary": str,
                            "completedChapterIds": [str, ...] } }
   Error:    { "error": { "status": "...", "message": "..." } }
@@ -105,6 +106,7 @@ def complete_chapter_fn(request: flask.Request) -> tuple:
     return callable_response(
         {
             "chapterId": result["chapter_id"],
+            "xpGained": result["xp_gained"],
             "progressSummary": result["progress_summary"],
             "completedChapterIds": result["completed_chapter_ids"],
         }

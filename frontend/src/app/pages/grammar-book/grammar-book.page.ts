@@ -1,4 +1,5 @@
 import { Component, inject, computed, OnInit, signal } from '@angular/core';
+import { ViewportScroller } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,44 +18,57 @@ interface BookGroup {
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="px-6 py-8 max-w-3xl mx-auto">
-
-      <!-- Header -->
-      <div class="mb-8">
-        <nav class="flex items-center gap-1.5 text-sm text-surface-400 mb-6">
-          <a routerLink="/chapters" class="hover:text-greek-600 transition-colors">Course</a>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-          <span class="text-surface-600">Grammar Book</span>
-        </nav>
-
-        <div class="flex items-center gap-3 mb-2">
-          <div class="w-9 h-9 rounded-lg bg-greek-600 flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
+    <!-- Dashboard Header (Gamified Ribbon) -->
+    <div class="w-full bg-gradient-to-b from-greek-700 to-greek-600 border-b border-greek-800 pb-10 pt-8 px-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+          <div>
+            <nav class="flex items-center gap-1.5 text-sm text-greek-200 mb-4">
+              <a routerLink="/chapters" class="hover:text-white transition-colors">Course</a>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+              <span class="text-white">Grammar Dashboard</span>
+            </nav>
+            <h1 class="font-serif text-3xl md:text-4xl font-semibold text-white mb-2">My Grammar Book</h1>
+            <p class="text-greek-100 text-sm md:text-base max-w-xl leading-relaxed">
+              Your personal language reference. This library grows automatically as you master new chapters.
+            </p>
           </div>
-          <h1 class="font-serif text-3xl font-semibold text-greek-900">My Grammar Book</h1>
+          
+          <!-- Trophy Stats -->
+          <div class="flex items-center gap-4 bg-white/10 rounded-2xl p-4 border border-white/20 backdrop-blur-sm shadow-inner">
+            <div class="text-center px-4 border-r border-white/20">
+              <p class="text-2xl font-bold text-white">{{ currentUser()?.progress?.xp || 0 }}</p>
+              <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Total XP</p>
+            </div>
+            <div class="text-center px-4 border-r border-white/20">
+              <p class="text-2xl font-bold text-white">{{ completedChapters().length }}</p>
+              <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Mastered</p>
+            </div>
+            <div class="text-center px-4">
+              <p class="text-2xl font-bold text-white">{{ bookGroups().length }}</p>
+              <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Books</p>
+            </div>
+          </div>
         </div>
-        <p class="text-surface-500 text-sm leading-relaxed">
-          Your personal grammar reference, built automatically as you complete chapters.
-        </p>
       </div>
+    </div>
 
-      <hr class="border-surface-200 mb-8">
-
+    <!-- Main Content Area (Two Columns) -->
+    <div class="px-6 py-10 max-w-6xl mx-auto">
       @if (loading()) {
         <!-- Loading skeleton -->
-        <div class="animate-pulse space-y-4">
-          <div class="h-6 bg-surface-200 rounded w-1/3 mb-2"></div>
-          <div class="h-4 bg-surface-100 rounded w-full"></div>
-          <div class="h-4 bg-surface-100 rounded w-5/6"></div>
-          <div class="h-4 bg-surface-100 rounded w-4/6"></div>
-          <div class="mt-6 h-6 bg-surface-200 rounded w-1/4"></div>
-          <div class="h-4 bg-surface-100 rounded w-full"></div>
-          <div class="h-4 bg-surface-100 rounded w-3/4"></div>
+        <div class="flex flex-col lg:flex-row gap-10">
+          <div class="lg:w-1/4 hidden lg:block animate-pulse">
+             <div class="h-6 bg-surface-200 rounded w-1/2 mb-4"></div>
+             <div class="h-4 bg-surface-100 rounded w-3/4 mb-2"></div>
+             <div class="h-4 bg-surface-100 rounded w-2/3"></div>
+          </div>
+          <div class="lg:w-3/4 animate-pulse space-y-6">
+            <div class="h-40 bg-surface-200 rounded-2xl w-full"></div>
+            <div class="h-64 bg-surface-200 rounded-2xl w-full"></div>
+          </div>
         </div>
       } @else if (bookGroups().length === 0) {
         <!-- Empty state -->
@@ -70,57 +84,81 @@ interface BookGroup {
             Complete chapters to automatically build your personal grammar reference.
           </p>
           <a routerLink="/chapters"
-            class="mt-6 px-5 py-2.5 rounded-xl bg-greek-600 text-white text-sm font-semibold hover:bg-greek-700 transition-colors">
+            class="mt-6 px-5 py-2.5 rounded-xl bg-greek-600 text-white text-sm font-semibold hover:bg-greek-700 transition-colors shadow-sm">
             Go to Chapters
           </a>
         </div>
       } @else {
-        <!-- Grammar book content grouped by book -->
-        @for (group of bookGroups(); track group.book.id) {
-          <!-- Book heading -->
-          <div class="mb-6">
-            <h2 class="font-serif text-xl font-semibold text-greek-900 mb-1">{{ group.book.title }}</h2>
-            <p class="text-surface-400 text-xs">{{ group.book.description }}</p>
-          </div>
-
-          @for (chapter of group.chapters; track chapter.id) {
-            <div class="mb-10">
-              @if (chapter.grammarSummary) {
-                <!-- Grammar summary content -->
-                <div class="prose prose-sm max-w-none grammar-book-content"
-                  [innerHTML]="renderMarkdown(chapter.grammarSummary)">
-                </div>
-              } @else {
-                <!-- No summary available for this chapter -->
-                <div class="rounded-xl border border-surface-200 bg-surface-50 px-5 py-4 text-sm text-surface-400 italic">
-                  Grammar summary not available for this chapter.
+        <div class="flex flex-col lg:flex-row gap-10 items-start">
+          <!-- Left Sidebar (Table of Contents) -->
+          <aside class="w-full lg:w-1/4 lg:sticky lg:top-8 bg-white border border-surface-200 rounded-2xl p-5 shadow-sm">
+            <h3 class="font-serif text-lg font-semibold text-greek-900 mb-4 border-b border-surface-100 pb-3">Table of Contents</h3>
+            <div class="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+              @for (group of bookGroups(); track group.book.id) {
+                <div>
+                  <h4 class="font-bold text-surface-400 text-xs uppercase tracking-widest mb-3">{{ group.book.title }}</h4>
+                  <ul class="space-y-1 border-l-2 border-surface-100 ml-1.5 pl-3">
+                    @for (chapter of group.chapters; track chapter.id) {
+                      <li>
+                        <button (click)="scrollTo(chapter.id)"
+                           class="text-left text-sm font-medium text-surface-600 hover:text-greek-600 transition-colors w-full truncate leading-tight py-1.5 px-2 rounded-lg hover:bg-surface-50 focus:outline-none focus:bg-surface-50">
+                          {{ chapter.order }}. {{ chapter.title }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
                 </div>
               }
-
-              <!-- Link back to the chapter -->
-              <div class="mt-4">
-                <a [routerLink]="['/chapters', chapter.id]"
-                  class="inline-flex items-center gap-1.5 text-xs font-medium text-greek-600 hover:text-greek-700 transition-colors">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                  </svg>
-                  Go to lesson: {{ chapter.title }}
-                </a>
-              </div>
             </div>
+          </aside>
 
-            <!-- Divider between chapters (not after last in a book) -->
-            @if (!isLastChapterInGroup(group, chapter)) {
-              <hr class="border-surface-100 mb-10">
+          <!-- Right Content Area -->
+          <main class="w-full lg:w-3/4 space-y-12">
+            @for (group of bookGroups(); track group.book.id) {
+              <div class="space-y-8">
+                <!-- Book heading separator -->
+                <div class="flex items-center gap-4 mb-2">
+                  <div class="flex-1 h-px bg-surface-200"></div>
+                  <h2 class="font-serif text-xl font-bold text-surface-400 uppercase tracking-widest">{{ group.book.title }}</h2>
+                  <div class="flex-1 h-px bg-surface-200"></div>
+                </div>
+
+                @for (chapter of group.chapters; track chapter.id) {
+                  <!-- Chapter Card -->
+                  <article [id]="chapter.id" class="bg-white border border-surface-200 rounded-2xl shadow-sm overflow-hidden scroll-mt-8 transition-shadow hover:shadow-md">
+                    <!-- Card Header -->
+                    <div class="bg-surface-50 border-b border-surface-200 px-6 md:px-8 py-5 flex items-center justify-between gap-4">
+                       <div>
+                         <span class="text-xs font-bold uppercase tracking-widest text-greek-600 mb-1.5 block">Chapter {{ chapter.order }}</span>
+                         <h3 class="font-serif text-2xl font-semibold text-greek-900 m-0">{{ chapter.title }}</h3>
+                       </div>
+                       <a [routerLink]="['/chapters', chapter.id]"
+                          class="shrink-0 w-10 h-10 rounded-full bg-white border border-surface-200 flex items-center justify-center text-surface-400 hover:text-greek-600 hover:border-greek-300 hover:bg-greek-50 transition-all shadow-sm"
+                          title="Review Lesson">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                         </svg>
+                       </a>
+                    </div>
+                    
+                    <!-- Card Body -->
+                    <div class="p-6 md:p-8">
+                      @if (chapter.grammarSummary) {
+                        <div class="prose prose-sm max-w-none grammar-book-content"
+                          [innerHTML]="renderMarkdown(chapter.grammarSummary)">
+                        </div>
+                      } @else {
+                        <div class="rounded-xl bg-surface-50 px-5 py-8 border border-surface-100 text-center text-sm text-surface-400 italic">
+                          Grammar summary not available for this chapter.
+                        </div>
+                      }
+                    </div>
+                  </article>
+                }
+              </div>
             }
-          }
-
-          <!-- Divider between book groups (not after last) -->
-          @if (!isLastGroup(group)) {
-            <hr class="border-surface-200 mb-8 mt-2">
-          }
-        }
+          </main>
+        </div>
       }
     </div>
   `,
@@ -130,61 +168,73 @@ interface BookGroup {
     :host ::ng-deep .grammar-book-content h3 {
       font-family: var(--font-serif, Georgia, serif);
       color: #1a1060;
-      margin-top: 1.5rem;
+      margin-top: 2rem;
       margin-bottom: 0.5rem;
     }
+    :host ::ng-deep .grammar-book-content h1:first-child,
+    :host ::ng-deep .grammar-book-content h2:first-child,
+    :host ::ng-deep .grammar-book-content h3:first-child {
+      margin-top: 0;
+    }
     :host ::ng-deep .grammar-book-content h2 {
-      font-size: 1.125rem;
+      font-size: 1.25rem;
       font-weight: 600;
       border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 0.25rem;
+      padding-bottom: 0.5rem;
     }
     :host ::ng-deep .grammar-book-content h3 {
-      font-size: 0.9375rem;
+      font-size: 1.05rem;
       font-weight: 600;
       color: #3d3093;
     }
     :host ::ng-deep .grammar-book-content p {
       color: #4a5568;
       line-height: 1.7;
-      margin-bottom: 0.75rem;
-      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
     }
     :host ::ng-deep .grammar-book-content table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8125rem;
-      margin: 0.75rem 0;
+      margin: 1.25rem 0;
       overflow-x: auto;
       display: block;
+      border-radius: 0.5rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     :host ::ng-deep .grammar-book-content th,
     :host ::ng-deep .grammar-book-content td {
-      border: 1px solid #e2e8f0;
-      padding: 0.375rem 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      padding: 0.6rem 0.875rem;
       text-align: left;
     }
     :host ::ng-deep .grammar-book-content th {
-      background-color: #f8f7f4;
+      background-color: #0d5eaf; /* Primary Greek blue */
       font-weight: 600;
-      color: #3d3093;
+      color: white;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
     }
     :host ::ng-deep .grammar-book-content tr:nth-child(even) td {
-      background-color: #faf9f7;
+      background-color: #f8f9fb;
     }
     :host ::ng-deep .grammar-book-content ul,
     :host ::ng-deep .grammar-book-content ol {
-      padding-left: 1.25rem;
-      margin-bottom: 0.75rem;
-      font-size: 0.875rem;
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
       color: #4a5568;
     }
     :host ::ng-deep .grammar-book-content li {
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.4rem;
     }
     :host ::ng-deep .grammar-book-content strong {
-      color: #1a1060;
-      font-weight: 600;
+      color: #0d5eaf; /* Distinct Greek blue for highlights */
+      font-weight: 700;
     }
     :host ::ng-deep .grammar-book-content em {
       color: #3d3093;
@@ -194,22 +244,59 @@ interface BookGroup {
       margin: 1.5rem 0;
     }
     :host ::ng-deep .grammar-book-content blockquote {
-      border-left: 3px solid #3d3093;
-      padding-left: 1rem;
-      color: #718096;
-      font-style: italic;
-      margin: 0.75rem 0;
+      background-color: #eef5fc; /* Soft Greek blue background */
+      border-left: 4px solid #4293d8; /* Brighter border */
+      border-radius: 0 0.5rem 0.5rem 0;
+      padding: 1rem 1.25rem;
+      color: #0a4d92; /* Deep blue text */
+      margin: 1.25rem 0;
+      position: relative;
+    }
+    :host ::ng-deep .grammar-book-content blockquote p {
+      color: inherit;
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    :host ::ng-deep .grammar-book-content blockquote::before {
+      content: "ℹ️ TIP";
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4293d8;
+      margin-bottom: 0.25rem;
+      font-family: var(--font-sans);
+    }
+    
+    /* Custom scrollbar for the TOC */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f3f7;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cdd3df;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #9aa3b5;
     }
   `],
 })
 export class GrammarBookPage implements OnInit {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private lessonService = inject(LessonService);
   private sanitizer = inject(DomSanitizer);
+  private scroller = inject(ViewportScroller);
 
   loading = signal(true);
+  currentUser = this.authService.currentUser;
 
-  private completedChapters = signal<Chapter[]>([]);
+  completedChapters = signal<Chapter[]>([]);
   private books = signal<Book[]>([]);
 
   /** Chapters grouped by book, sorted by book order then chapter order. */
@@ -269,12 +356,7 @@ export class GrammarBookPage implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
-  isLastChapterInGroup(group: BookGroup, chapter: Chapter): boolean {
-    return group.chapters[group.chapters.length - 1]?.id === chapter.id;
-  }
-
-  isLastGroup(group: BookGroup): boolean {
-    const groups = this.bookGroups();
-    return groups[groups.length - 1]?.book.id === group.book.id;
+  scrollTo(id: string): void {
+    this.scroller.scrollToAnchor(id);
   }
 }

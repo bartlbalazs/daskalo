@@ -42,6 +42,7 @@ from rich.text import Text
 
 load_dotenv(".env")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
+logging.getLogger("google_genai.models").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 console = Console()

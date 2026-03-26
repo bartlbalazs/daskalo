@@ -33,8 +33,10 @@ modern Greek slang words or colloquial expressions (e.g. χαλαρά, τέλε�
 - If Historical or Mythological: DROP modern slang entirely. Use a slightly more formal, \
 storytelling tone appropriate for the era, while ensuring the core vocabulary remains standard, \
 modern Greek accessible to the CEFR level. A few archaic nouns (e.g. 'musket', 'chariot') are acceptable \
-for flavor, but do not focus the lesson on them. Third-person narrative is great here, though inventing \
-dialogue between historical/mythological figures is also highly encouraged to keep the text engaging.
+for flavor, but do not focus the lesson on them. Third-person narrative is great here.
+
+CRITICAL PASSAGE RULE: Do NOT include any dialogue or direct speech in the passage under any circumstances, \
+regardless of the era. The passage will be narrated by a single continuous voice, so dialogue sounds unnatural.
 
 Treat the topic seed as a creative starting point. Invent a vivid scenario that brings the topic \
 to life. Go beyond shallow tourist stereotypes. Deeply weave authentic Greek culture, history, \
@@ -43,6 +45,12 @@ do NOT fictionalize real historical events.
 
 Then craft a punchy English chapter title and a single warm, inviting English sentence that \
 pitches the scenario to the learner.
+
+Next, write a chapter_introduction (2-3 paragraphs in English). This is the 'hook' that students read before the lesson begins. \
+Its sole purpose is to raise the mood, spark interest, and lure them into learning. \
+Make them curious and excited! Vividly set the cultural, historical, or modern context of the scenario. \
+Why does this situation matter? What interesting cultural nuance are they about to encounter? \
+Do NOT include any Greek text, and do NOT mention the grammar rules. Purely set the stage and the hype.
 
 Also provide a chapter_image_prompt: a rich English description of a cover image. \
 CRITICAL FOR IMAGES: You have total freedom over the art style. Choose a style that perfectly matches \
@@ -75,7 +83,7 @@ bare-bones grammar exercise. \
 IMPORTANT: Return the passage as a JSON list of objects, each with "greek" (one Greek sentence) \
 and "english" (its full English translation). Do NOT return the passage as a plain string.
 
-Output fields: chapter_title, chapter_summary, chapter_image_prompt, passage.
+Output fields: chapter_title, chapter_summary, chapter_introduction, chapter_image_prompt, passage.
 Do NOT output vocabulary or grammar outlines — those are generated separately.
 """.strip()
 
@@ -193,8 +201,10 @@ modern Greek slang words or colloquial expressions (e.g. χαλαρά, τέλε�
 - If Historical or Mythological: DROP modern slang entirely. Use a slightly more formal, \
 storytelling tone appropriate for the era, while ensuring the core vocabulary remains standard, \
 modern Greek accessible to the CEFR level. A few archaic nouns (e.g. 'musket', 'chariot') are acceptable \
-for flavor, but do not focus the lesson on them. Third-person narrative is great here, though inventing \
-dialogue between historical/mythological figures is also highly encouraged to keep the text engaging.
+for flavor, but do not focus the lesson on them. Third-person narrative is great here.
+
+CRITICAL PASSAGE RULE: Do NOT include any dialogue or direct speech in the passage under any circumstances, \
+regardless of the era. The passage will be narrated by a single continuous voice, so dialogue sounds unnatural.
 
 Treat the topic seed as a creative starting point. Invent a vivid scenario that brings the topic \
 to life. Go beyond shallow tourist stereotypes. Deeply weave authentic Greek culture, history, \

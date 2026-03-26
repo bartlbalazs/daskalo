@@ -56,6 +56,8 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
   "title": "Lost in Monastiraki",
   "order": 1,
   "languageSkill": "Speaking", // Optional label e.g. "Speaking", "Reading", "Listening", "Writing", "Grammar".
+  "length": "medium", // Optional: "short", "medium", or "long"
+  "introduction": "A 2-3 paragraph English introduction designed to spark interest before the lesson begins.",
   "summary": "You're wandering through the flea market and need to ask for directions.",
   "passage_text": "Ο Γιώργος είναι στο Μοναστηράκι...",
   "passageAudioUrl": "gs://public-assets-bucket/chapters/p1_c1_airport/passage_p1_c1_airport.mp3",

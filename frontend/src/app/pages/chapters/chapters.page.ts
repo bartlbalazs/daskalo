@@ -85,6 +85,11 @@ interface BookWithChapters extends Book {
                             <p class="font-semibold text-surface-800 group-hover:text-greek-700 transition-colors truncate">
                               {{ chapter.title }}
                             </p>
+                            @if (chapter.length) {
+                              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-surface-100 text-surface-500 capitalize ml-2 align-middle">
+                                ⏱️ {{ chapter.length }}
+                              </span>
+                            }
                             <p class="text-surface-400 text-sm mt-0.5 truncate">{{ chapter.summary }}</p>                          </div>
 
                           <!-- Arrow -->

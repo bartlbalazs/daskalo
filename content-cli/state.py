@@ -4,6 +4,8 @@ All generated content is carried as typed Pydantic model instances so that nodes
 downstream of generate_content work with validated, attribute-accessible objects.
 """
 
+from typing import Annotated
+
 from typing_extensions import TypedDict
 
 from models.content_models import (
@@ -37,7 +39,9 @@ class ContentState(TypedDict):
     # --- LLM-generated metadata ---
     chapter_title: str  # Creative title invented by the LLM (e.g. "Lost in Monastiraki")
     chapter_summary: str  # One-sentence learner pitch invented by the LLM
+    chapter_introduction: str  # 2-3 paragraph hook
     chapter_image_prompt: str  # English prompt for generating the chapter cover image
+    narrator_gender: str  # 'male' or 'female'
 
     # --- Generated text content (Pydantic model instances) ---
     passage: list[PassageSentence]  # Reading passage as list of {greek, english} sentence objects
@@ -51,7 +55,7 @@ class ContentState(TypedDict):
 
     # --- Internal: not included in descriptor.json ---
     image_prompts: list[ImagePrompt]  # One per image_description exercise
-    review_feedback: str  # Empty string means APPROVED
+    review_feedback: Annotated[str, lambda _, new: new]  # Empty string means APPROVED
     generation_attempts: int  # Incremented on each generate_content call
 
     # --- Generated asset paths (local filesystem within work_dir) ---

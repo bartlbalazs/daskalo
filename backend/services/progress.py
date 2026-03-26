@@ -57,7 +57,7 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     Synchronously:
       1. Loads the chapter document and the user document from Firestore.
       2. Calls Gemini to produce a short progress summary sentence.
-      3. Updates the user's progress (completedChapterIds, lastActive, progressSummary).
+      3. Updates the user's progress (completedChapterIds, lastActive, progressSummary, xp).
       4. Returns a dict with the fields written.
 
     The grammar book is no longer generated here — it is pre-generated per chapter
@@ -79,6 +79,7 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
 
     chapter_title: str = chapter_data.get("title", chapter_id)
     chapter_summary: str = chapter_data.get("summary", "")
+    chapter_length: str = chapter_data.get("length", "short")
     grammar_notes: list[dict] = chapter_data.get("grammarNotes", [])
 
     # ------------------------------------------------------------------
@@ -99,6 +100,7 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
         logger.info("Chapter '%s' already completed for user '%s' — skipping.", chapter_id, uid)
         return {
             "chapter_id": chapter_id,
+            "xp_gained": 0,
             "progress_summary": progress.get("lastProgressSummary", ""),
             "completed_chapter_ids": completed_ids,
         }
@@ -122,7 +124,13 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     progress_summary: str = summary_response.text.strip()
 
     # ------------------------------------------------------------------
-    # 5. Update completedChapterIds
+    # 5. Calculate XP based on length
+    # ------------------------------------------------------------------
+    xp_map = {"short": 100, "medium": 150, "long": 200}
+    xp_gained = xp_map.get(chapter_length, 100)
+
+    # ------------------------------------------------------------------
+    # 6. Update completedChapterIds and XP
     # ------------------------------------------------------------------
     completed_ids = [*completed_ids, chapter_id]
 
@@ -130,14 +138,16 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     update_payload = {
         "progress.completedChapterIds": completed_ids,
         "progress.lastProgressSummary": progress_summary,
+        "progress.xp": firestore.Increment(xp_gained),
         "lastActive": now,
     }
 
     user_ref.update(update_payload)
-    logger.info("User '%s' chapter '%s' completion saved.", uid, chapter_id)
+    logger.info("User '%s' chapter '%s' completion saved (+%d XP).", uid, chapter_id, xp_gained)
 
     return {
         "chapter_id": chapter_id,
+        "xp_gained": xp_gained,
         "progress_summary": progress_summary,
         "completed_chapter_ids": completed_ids,
     }

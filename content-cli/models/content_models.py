@@ -482,7 +482,7 @@ class ConversationData(BaseModel):
         )
     )
     checkpoints: list[
-        Annotated[Union[McqCheckpoint, TrueFalseCheckpoint, TranslationCheckpoint], Field(discriminator="type")]
+        Annotated[McqCheckpoint | TrueFalseCheckpoint | TranslationCheckpoint, Field(discriminator="type")]
     ] = Field(
         description=(
             "2-4 checkpoints placed at natural break points in the conversation. "
@@ -561,6 +561,13 @@ class LessonPlan(BaseModel):
             "Written in second person, warm and inviting."
         )
     )
+    chapter_introduction: str = Field(
+        description=(
+            "A 2-3 paragraph English introduction designed to spark interest and raise the mood before the lesson begins. "
+            "It should 'lure' the student in by vividly setting the cultural or historical context of the scenario. "
+            "Make them curious and excited to learn. Do NOT include any Greek text or grammar rules here."
+        )
+    )
     chapter_image_prompt: str = Field(
         description=(
             "An English prompt for AI image generation that captures the lesson's scenario as a cover image. "
@@ -621,11 +628,21 @@ class DraftLesson(BaseModel):
             "Written in second person, warm and inviting."
         )
     )
+    chapter_introduction: str = Field(
+        description=(
+            "A 2-3 paragraph English introduction designed to spark interest and raise the mood before the lesson begins. "
+            "It should 'lure' the student in by vividly setting the cultural or historical context of the scenario. "
+            "Make them curious and excited to learn. Do NOT include any Greek text or grammar rules here."
+        )
+    )
     chapter_image_prompt: str = Field(
         description=(
             "An English prompt for AI image generation that captures the lesson's scenario as a cover image. "
             "Should depict the main scene of the lesson vividly. No text or letters in the image."
         )
+    )
+    narrator_gender: Literal["male", "female"] = Field(
+        description="Choose the most appropriate voice gender for narrating this passage based on its perspective or main character."
     )
     passage: list[PassageSentence] = Field(
         description=(

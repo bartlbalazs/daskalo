@@ -106,7 +106,10 @@ def generate_media(state: ContentState) -> dict:
 
     book_id: str = state.get("book_id", "")
     narration_rate = _passage_rate(book_id)
-    logger.info("Book '%s' - passage speaking rate %.2f", book_id, narration_rate)
+
+    narrator_gender = state.get("narrator_gender", "female")
+    narrator_voice = VOICE_MALE if narrator_gender == "male" else VOICE_FEMALE
+    logger.info("Book '%s' - passage speaking rate %.2f, voice gender: %s", book_id, narration_rate, narrator_gender)
 
     audio_files: list[str] = []
     sentence_audio_files: list[str] = []
@@ -143,45 +146,41 @@ def generate_media(state: ContentState) -> dict:
 
     # --- 2. Full passage audio ---
     if passage:
-        full_greek = "  ".join(s.greek for s in passage if s.greek)
+        full_greek = " ".join([p.greek for p in passage])
         passage_out = str(Path(work_dir) / f"{prefix}passage.mp3")
-        tts_tasks.append((full_greek, VOICE_NARRATOR, passage_out, narration_rate, "audio"))
+        tts_tasks.append((full_greek, narrator_voice, passage_out, narration_rate, "audio"))
 
-    # --- 3. Per-sentence passage audio ---
+    # --- 3. Per-sentence audio ---
     for idx, sentence_obj in enumerate(passage):
         sentence = sentence_obj.greek
-        if not sentence.strip():
+        if not sentence:
             continue
-        out_path = str(Path(work_dir) / f"{prefix}sentence_{idx:02d}.mp3")
-        tts_tasks.append((sentence, VOICE_NARRATOR, out_path, narration_rate, f"sentence:{idx}"))
+        safe_name = re.sub(r"[^\w]", "_", sentence)[:30]
+        out_path = str(Path(work_dir) / f"{prefix}sentence_{idx:02d}_{safe_name}.mp3")
+        tts_tasks.append((sentence, narrator_voice, out_path, narration_rate, f"sentence:{idx}"))
 
-    # --- 4. Grammar note audio ---
-    _TERMINALS = ".!?;"
+    # --- 4. Grammar example sentences audio (female default) ---
     for idx, note in enumerate(grammar_notes):
         greek_examples = [ex.greek for ex in note.examples if ex.greek]
         if not greek_examples:
             continue
-        cleaned = []
-        for ex in greek_examples:
-            stripped = ex.rstrip()
-            if stripped and stripped[-1] in _TERMINALS:
-                cleaned.append(stripped)
-            else:
-                cleaned.append(stripped + ".")
-        combined_text = "  ".join(cleaned)
-        out_path = str(Path(work_dir) / f"{prefix}grammar_note_{idx:02d}_audio.mp3")
-        tts_tasks.append((combined_text, VOICE_NARRATOR, out_path, narration_rate, f"grammar:{idx}"))
+        # Join examples with a short pause (represented by punctuation or natural phrasing;
+        # SSML <break> is better but plain text usually works okay with commas).
+        combined_text = " . ".join(greek_examples)
+        safe_name = re.sub(r"[^\w]", "_", note.heading)[:30]
+        out_path = str(Path(work_dir) / f"{prefix}grammar_{idx:02d}_{safe_name}.mp3")
+        tts_tasks.append((combined_text, VOICE_FEMALE, out_path, narration_rate, f"grammar:{idx}"))
 
-    # --- 5. Pronunciation practice audio ---
+    # --- 5. Pronunciation practice target text audio (female default) ---
     for idx, exercise in enumerate(exercises):
-        if not isinstance(exercise, PronunciationPracticeExercise):
+        if exercise.type != "pronunciation_practice":
             continue
         target_text = exercise.data.target_text
         if not target_text:
             continue
         safe_name = re.sub(r"[^\w]", "_", target_text)[:30]
         out_path = str(Path(work_dir) / f"{prefix}pronunciation_{idx:02d}_{safe_name}.mp3")
-        tts_tasks.append((target_text, VOICE_NARRATOR, out_path, 1.0, f"pronunciation:{idx}"))
+        tts_tasks.append((target_text, VOICE_FEMALE, out_path, 1.0, f"pronunciation:{idx}"))
 
     # --- 6. Conversation exercise audio ---
     for ex_idx, exercise in enumerate(exercises):

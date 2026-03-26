@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DOCUMENT } from '@angular/common';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Chapter, Exercise, GrammarNote, PassageSentence, VocabularyItem } from '../../core/models/firestore.models';
@@ -53,11 +53,59 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 {{ chapter.languageSkill }}
               </span>
             }
+            @if (chapter.length) {
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-surface-200 text-surface-800 shadow-sm capitalize">
+                ⏱️ {{ chapter.length }}
+              </span>
+            }
           </div>
 
           <!-- Title + summary -->
           <h1 class="font-serif text-4xl md:text-5xl font-semibold text-white mb-4 leading-tight">{{ chapter.title }}</h1>
           <p class="text-xl text-greek-100 leading-relaxed">{{ chapter.summary }}</p>
+        </div>
+      </div>
+
+      <!-- ===== INTRODUCTION & STORY TEASER BAND ===== -->
+      <div class="w-full bg-white border-b border-greek-100">
+        <div class="px-6 py-14 max-w-5xl mx-auto">
+          @if (chapter.introduction) {
+            <div class="mb-12 text-lg md:text-xl text-surface-600 leading-relaxed font-serif text-center max-w-3xl mx-auto">
+              @for (paragraph of chapter.introduction.split('\n'); track $index) {
+                @if (paragraph.trim()) {
+                  <p class="mb-4">{{ paragraph }}</p>
+                }
+              }
+            </div>
+          }
+
+          @if (firstSentence(chapter); as first) {
+            <div class="max-w-3xl mx-auto mb-10">
+              <blockquote class="relative p-6 md:p-8 bg-greek-50 rounded-3xl border border-greek-100 text-center shadow-sm">
+                <!-- Quote icon decorative -->
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-white px-2 text-greek-300">
+                  <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+                </div>
+                <p class="font-serif text-2xl md:text-3xl font-medium text-greek-900 leading-snug mb-4 mt-2">
+                  "{{ first.greek }}"
+                </p>
+                <p class="text-surface-500 font-medium">
+                  {{ first.english }}
+                </p>
+              </blockquote>
+            </div>
+          }
+
+          <!-- Ear Training Audio Player -->
+          @if (chapter.passageAudioUrl) {
+            <div class="max-w-md mx-auto text-center">
+              <h3 class="font-bold text-xs uppercase tracking-widest text-surface-400 mb-3">Ear Training</h3>
+              <p class="text-sm text-surface-500 mb-4">Listen to the full story before we dive into the grammar. Don't worry if you don't understand it all yet!</p>
+              <app-audio-player [src]="chapter.passageAudioUrl" />
+            </div>
+          }
         </div>
       </div>
 
@@ -304,7 +352,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 </div>
                 <p class="font-bold text-emerald-800 text-xl font-serif mb-1">Chapter Complete!</p>
                 <p class="text-emerald-700 text-sm">
-                  Your progress has been saved.
+                  Your progress has been saved. 🎉 +{{ earnedXp() }} XP
                 </p>
                 <div class="mt-4 flex items-center justify-center gap-4 flex-wrap">
                   <a routerLink="/chapters" class="text-sm font-semibold text-greek-600 hover:text-greek-800 transition-colors">
@@ -414,6 +462,7 @@ export class ChapterDetailPage implements OnInit {
   private authService = inject(AuthService);
   private storage = inject(Storage);
   private sanitizer = inject(DomSanitizer);
+  private document = inject(DOCUMENT);
 
   chapter$!: Observable<Chapter>;
   playingWord = signal<string | null>(null);
@@ -425,20 +474,31 @@ export class ChapterDetailPage implements OnInit {
   /** True when the chapter was already completed on page load (prior session). */
   alreadyCompleted = signal(false);
   completeError = signal<string | null>(null);
+  earnedXp = signal<number>(0);
 
   ngOnInit(): void {
     this.chapter$ = this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id')!;
+        
+        // Reset scroll position on the main scrolling container
+        this.document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
         this.answeredMap.set(new Map());
         this.chapterCompleted.set(false);
         this.completeError.set(null);
+        this.earnedXp.set(0);
         // Check if this chapter was already completed in a prior session.
         const completedIds = this.authService.currentUser()?.progress?.completedChapterIds ?? [];
         this.alreadyCompleted.set(completedIds.includes(id));
         return this.lessonService.getChapter(id);
       })
     );
+  }
+
+  /** Return the first passage sentence, or undefined if the passage is empty. */
+  firstSentence(chapter: Chapter): PassageSentence | undefined {
+    return chapter.passage?.[0];
   }
 
   /** Exercise types that have no interactive implementation and should be hidden. */
@@ -498,8 +558,9 @@ export class ChapterDetailPage implements OnInit {
     this.completing.set(true);
     this.completeError.set(null);
     try {
-      await this.lessonService.completeChapter(chapterId);
+      const result = await this.lessonService.completeChapter(chapterId);
       this.chapterCompleted.set(true);
+      this.earnedXp.set(result.xpGained || 0);
     } catch (err) {
       this.completeError.set(err instanceof Error ? err.message : 'Failed to save progress. Please try again.');
     } finally {

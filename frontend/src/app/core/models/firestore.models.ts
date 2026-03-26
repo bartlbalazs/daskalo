@@ -259,6 +259,8 @@ export interface Chapter {
   title: string;
   order: number;
   summary: string;
+  length?: 'short' | 'medium' | 'long';
+  introduction?: string;
   /** Reading passage as an array of {greek, english} sentence objects. */
   passage?: PassageSentence[];
   /** Legacy plain-text passage field (may be present on older chapters). */

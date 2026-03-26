@@ -78,7 +78,9 @@ def draft_lesson_core(state: ContentState) -> dict:
         "variant_id": variant_id,
         "chapter_title": draft.chapter_title,
         "chapter_summary": draft.chapter_summary,
+        "chapter_introduction": draft.chapter_introduction,
         "chapter_image_prompt": draft.chapter_image_prompt,
+        "narrator_gender": draft.narrator_gender,
         "passage": draft.passage,
         "review_feedback": "",  # Reset feedback for the new attempt
     }

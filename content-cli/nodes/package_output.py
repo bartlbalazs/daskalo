@@ -60,6 +60,8 @@ def package_output(state: ContentState) -> dict:
             "title": state["chapter_title"],
             "order": state["chapter_order"],
             "summary": state.get("chapter_summary", ""),
+            "length": state.get("lesson_length", "medium"),
+            "introduction": state.get("chapter_introduction", ""),
             "languageSkill": state.get("language_skill", ""),
             "passage": passage_for_descriptor,
             "passageAudioPath": passage_audio_path,
@@ -83,7 +85,7 @@ def package_output(state: ContentState) -> dict:
             if name.startswith(f"{chapter_id}") and "_conv_" in name:
                 _pack_file(zf, audio_path, "assets/audio/conversation")
             # Grammar note audio goes into its own sub-folder
-            elif "_grammar_note_" in name and name.endswith("_audio.mp3"):
+            elif "_grammar_" in name and name.endswith(".mp3"):
                 _pack_file(zf, audio_path, "assets/audio/grammar")
             else:
                 _pack_file(zf, audio_path, "assets/audio")

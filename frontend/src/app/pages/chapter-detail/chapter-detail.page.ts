@@ -251,11 +251,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             </div>
             <div>
               <h2 class="font-serif text-3xl font-semibold text-greek-900 leading-none">Exercises</h2>
-              <p class="text-sm text-surface-400 mt-0.5">{{ visibleExercises(chapter).length }} exercises — complete all to finish the chapter</p>
+              <p class="text-sm text-surface-400 mt-0.5">{{ chapter.exercises.length }} exercises — complete all to finish the chapter</p>
             </div>
           </div>
 
-          @if (visibleExercises(chapter).length) {
+          @if (chapter.exercises.length) {
 
             <!-- Progress bar -->
             @if (gradableCount(chapter) > 0) {
@@ -275,7 +275,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             }
 
             <div class="space-y-12 mb-8">
-              @for (exercise of visibleExercises(chapter); track $index) {
+              @for (exercise of chapter.exercises; track $index) {
                 <app-exercise-card
                   [exercise]="exercise"
                   [index]="$index"
@@ -501,14 +501,6 @@ export class ChapterDetailPage implements OnInit {
     return chapter.passage?.[0];
   }
 
-  /** Exercise types that have no interactive implementation and should be hidden. */
-  private readonly _hiddenTypes = new Set(['vocab_flashcard', 'lyrics_fill']);
-
-  /** Return exercises that should be shown (skip unimplemented types). */
-  visibleExercises(chapter: Chapter): Exercise[] {
-    return chapter.exercises.filter(ex => !this._hiddenTypes.has(ex.type));
-  }
-
   /** Return vocabulary sorted alphabetically by Greek word. */
   sortedVocabulary(chapter: Chapter) {
     return [...chapter.vocabulary].sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
@@ -529,16 +521,16 @@ export class ChapterDetailPage implements OnInit {
   }
 
   /** Exercise types that are never graded (no answered event emitted). */
-  private readonly _nonGradableTypes = new Set(['lyrics_fill']);
+  private readonly _nonGradableTypes = new Set(['lyrics_fill', 'vocab_flashcard']);
 
   /** Number of exercises that produce a gradable result. */
   gradableCount(chapter: Chapter): number {
-    return this.visibleExercises(chapter).filter(ex => !this._nonGradableTypes.has(ex.type)).length;
+    return chapter.exercises.filter(ex => !this._nonGradableTypes.has(ex.type)).length;
   }
 
   /** Number of gradable exercises that have been answered. */
   answeredCount(chapter: Chapter): number {
-    const gradableIndices = this.visibleExercises(chapter)
+    const gradableIndices = chapter.exercises
       .map((ex, i) => ({ ex, i }))
       .filter(({ ex }) => !this._nonGradableTypes.has(ex.type))
       .map(({ i }) => i);

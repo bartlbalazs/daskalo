@@ -41,6 +41,7 @@ from firebase_admin import credentials
 from callable_helpers import (
     callable_error,
     callable_response,
+    cors_preflight,
     parse_callable_request,
     verify_firebase_token,
 )
@@ -74,6 +75,10 @@ def _init_firebase() -> None:
 @functions_framework.http
 def complete_chapter_fn(request: flask.Request) -> tuple:
     """HTTP Cloud Function entry point for chapter completion."""
+    # Handle CORS preflight before any auth/logic.
+    if request.method == "OPTIONS":
+        return cors_preflight()
+
     _init_firebase()
 
     # 1. Verify caller identity

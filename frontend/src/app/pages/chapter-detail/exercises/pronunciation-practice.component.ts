@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal, OnDestroy } from '@angular/core';
 import { Exercise, EvaluationResult, PronunciationPracticeData } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
+import { NgClass } from '@angular/common';
 
 /** Maximum recording duration in seconds — stays within a single 15s STT billing increment. */
 const MAX_RECORD_SECONDS = 14;
@@ -10,7 +11,7 @@ type RecordingState = 'idle' | 'requesting' | 'recording' | 'recorded' | 'submit
 @Component({
   selector: 'app-pronunciation-practice',
   standalone: true,
-  imports: [AudioPlayerComponent],
+  imports: [AudioPlayerComponent, NgClass],
   template: `
     <div class="space-y-5">
 
@@ -128,22 +129,37 @@ type RecordingState = 'idle' | 'requesting' | 'recording' | 'recorded' | 'submit
             Evaluating your pronunciation…
           </div>
         } @else {
-          <div class="rounded-xl border p-4 text-sm"
-            [class]="evaluation()!.isCorrect ? 'border-emerald-300 bg-emerald-50' : 'border-amber-200 bg-amber-50'">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="font-semibold"
-                [class]="evaluation()!.isCorrect ? 'text-emerald-700' : 'text-amber-700'">
-                Score: {{ evaluation()!.score }}/100
-              </span>
-              @if (evaluation()!.isCorrect) {
-                <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-              }
+          <div class="space-y-3">
+            <!-- Score + feedback -->
+            <div class="rounded-xl border p-4 text-sm"
+              [ngClass]="evaluation()!.isCorrect ? 'border-emerald-300 bg-emerald-50' : 'border-amber-200 bg-amber-50'">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="font-semibold"
+                  [ngClass]="evaluation()!.isCorrect ? 'text-emerald-700' : 'text-amber-700'">
+                  Score: {{ evaluation()!.score }}/100
+                </span>
+                @if (evaluation()!.isCorrect) {
+                  <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                }
+              </div>
+              <p [ngClass]="evaluation()!.isCorrect ? 'text-emerald-800' : 'text-amber-800'">
+                {{ evaluation()!.feedback }}
+              </p>
             </div>
-            <p [class]="evaluation()!.isCorrect ? 'text-emerald-800' : 'text-amber-800'">
-              {{ evaluation()!.feedback }}
-            </p>
+
+            <!-- Try Again button — always shown after evaluation -->
+            <button
+              (click)="retry()"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-greek-300 text-greek-700 font-semibold text-sm hover:bg-greek-50 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Try Again
+            </button>
           </div>
         }
       }
@@ -157,6 +173,8 @@ export class PronunciationPracticeComponent implements OnDestroy {
   /** Emits base64-encoded audio string when the student submits. */
   @Output() submitted$ = new EventEmitter<string>();
   @Output() answered = new EventEmitter<boolean>();
+  /** Emits when the student clicks Try Again — parent should reset its state. */
+  @Output() retried = new EventEmitter<void>();
 
   readonly MAX_RECORD_SECONDS = MAX_RECORD_SECONDS;
 
@@ -261,6 +279,20 @@ export class PronunciationPracticeComponent implements OnDestroy {
   setEvaluation(result: EvaluationResult): void {
     this.evaluation.set(result);
     this.answered.emit(result.isCorrect);
+  }
+
+  /** Reset to idle so the student can record again after seeing feedback. */
+  retry(): void {
+    if (this.recordedUrl()) {
+      URL.revokeObjectURL(this.recordedUrl()!);
+    }
+    this.chunks = [];
+    this.recordedUrl.set(null);
+    this.evaluation.set(null);
+    this.micError.set(null);
+    this.elapsed.set(0);
+    this.recordingState.set('idle');
+    this.retried.emit();
   }
 
   ngOnDestroy(): void {

@@ -1,5 +1,5 @@
 import {
-  Component, Input, OnDestroy, OnInit, signal, inject
+  Component, OnDestroy, signal, inject, input, effect
 } from '@angular/core';
 import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 
@@ -83,9 +83,9 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
     }
   `,
 })
-export class AudioPlayerComponent implements OnInit, OnDestroy {
+export class AudioPlayerComponent implements OnDestroy {
   /** A gs:// URI or plain HTTP URL. */
-  @Input({ required: true }) src!: string;
+  src = input.required<string>();
 
   private storage = inject(Storage);
 
@@ -97,20 +97,17 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
   error = signal(false);
 
   private audio: HTMLAudioElement | null = null;
-  private resolvedUrl = '';
 
-  async ngOnInit(): Promise<void> {
-    try {
-      if (this.src.startsWith('gs://')) {
-        this.resolvedUrl = await getDownloadURL(ref(this.storage, this.src));
-      } else {
-        this.resolvedUrl = this.src;
-      }
-      this._initAudio(this.resolvedUrl);
-    } catch {
-      this.loading.set(false);
-      this.error.set(true);
-    }
+  // Generation counter: if src changes while a getDownloadURL() promise is in
+  // flight, the stale promise resolution will see a mismatched generation and
+  // discard its result rather than overwriting the new audio.
+  private generation = 0;
+
+  constructor() {
+    effect(() => {
+      const src = this.src();
+      this._loadSrc(src);
+    }, { allowSignalWrites: true });
   }
 
   ngOnDestroy(): void {
@@ -148,12 +145,45 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
+  private async _loadSrc(src: string): Promise<void> {
+    // Tear down any existing audio immediately so the old chapter stops.
+    this._destroyAudio();
+
+    // Reset state for the new source.
+    this.loading.set(true);
+    this.error.set(false);
+    this.currentTime.set(0);
+    this.duration.set(0);
+    this.progressPercent.set(0);
+    this.playing.set(false);
+
+    // Capture this load's generation so a stale promise can't overwrite a
+    // newer one if src changes again before this resolves.
+    const gen = ++this.generation;
+
+    try {
+      const url = src.startsWith('gs://')
+        ? await getDownloadURL(ref(this.storage, src))
+        : src;
+
+      // If src changed while we were awaiting, discard this result.
+      if (gen !== this.generation) return;
+
+      this._initAudio(url);
+    } catch {
+      if (gen !== this.generation) return;
+      this.loading.set(false);
+      this.error.set(true);
+    }
+  }
+
   private _initAudio(url: string): void {
     this.audio = new Audio(url);
     this.audio.preload = 'metadata';
 
     this.audio.addEventListener('loadedmetadata', () => {
-      this.duration.set(this.audio!.duration);
+      if (!this.audio) return;
+      this.duration.set(this.audio.duration);
       this.loading.set(false);
     });
     this.audio.addEventListener('play', () => this.playing.set(true));
@@ -164,8 +194,9 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
       this.progressPercent.set(0);
     });
     this.audio.addEventListener('timeupdate', () => {
-      const t = this.audio!.currentTime;
-      const d = this.audio!.duration || 1;
+      if (!this.audio) return;
+      const t = this.audio.currentTime;
+      const d = this.audio.duration || 1;
       this.currentTime.set(t);
       this.progressPercent.set((t / d) * 100);
     });

@@ -29,7 +29,8 @@ First, silently classify the topic into one of these categories:
 
 Based on this classification, adapt your tone and style:
 - If Modern Everyday: Use a conversational, warm, and encouraging tone. Weave in 1-2 genuine \
-modern Greek slang words or colloquial expressions (e.g. χαλαρά, τέλεια, ρε φίλε) naturally.
+modern Greek slang words or colloquial expressions (e.g. τέλεια, ρε φίλε, σιγά) naturally. \
+IMPORTANT: Do not overuse the word "χαλαρά".
 - If Historical or Mythological: DROP modern slang entirely. Use a slightly more formal, \
 storytelling tone appropriate for the era, while ensuring the core vocabulary remains standard, \
 modern Greek accessible to the CEFR level. A few archaic nouns (e.g. 'musket', 'chariot') are acceptable \
@@ -196,7 +197,8 @@ First, silently classify the topic into one of these categories:
 
 Based on this classification, adapt your tone and style:
 - If Modern Everyday: Use a conversational, warm, and encouraging tone. Weave in 1-2 genuine \
-modern Greek slang words or colloquial expressions (e.g. χαλαρά, τέλεια, ρε φίλε) naturally.
+modern Greek slang words or colloquial expressions (e.g. τέλεια, ρε φίλε, σιγά) naturally. \
+IMPORTANT: Do not overuse the word "χαλαρά".
 - If Historical or Mythological: DROP modern slang entirely. Use a slightly more formal, \
 storytelling tone appropriate for the era, while ensuring the core vocabulary remains standard, \
 modern Greek accessible to the CEFR level. A few archaic nouns (e.g. 'musket', 'chariot') are acceptable \

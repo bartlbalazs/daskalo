@@ -2,8 +2,8 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   Auth,
-  GoogleAuthProvider,
-  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   user,
   User as FirebaseUser
@@ -38,9 +38,8 @@ export class AuthService {
     return firstValueFrom(user(this.auth));
   }
 
-  async signInWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    const credential = await signInWithPopup(this.auth, provider);
+  async signIn(email: string, password: string): Promise<void> {
+    const credential = await signInWithEmailAndPassword(this.auth, email, password);
     await this._ensureUserDocument(credential.user);
     await this._loadUserDocument(credential.user.uid);
 
@@ -49,6 +48,14 @@ export class AuthService {
     } else {
       this.router.navigate(['/pending']);
     }
+  }
+
+  async signUp(email: string, password: string): Promise<void> {
+    const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    await this._ensureUserDocument(credential.user);
+    await this._loadUserDocument(credential.user.uid);
+    // New accounts are always 'pending' — redirect to the waiting page.
+    this.router.navigate(['/pending']);
   }
 
   async signOut(): Promise<void> {
@@ -79,7 +86,7 @@ export class AuthService {
       // New users start as 'pending' — an admin must activate them.
       await setDoc(ref, {
         email: fbUser.email ?? '',
-        displayName: fbUser.displayName ?? '',
+        displayName: fbUser.email ?? '',
         status: 'pending',
         createdAt: serverTimestamp(),
         lastActive: serverTimestamp(),

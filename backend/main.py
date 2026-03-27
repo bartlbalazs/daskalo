@@ -119,12 +119,16 @@ async def _shim(request: Request) -> _FlaskRequestShim:
 @app.post("/evaluate", summary="Evaluate an AI-graded exercise attempt")
 async def evaluate_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
-    body, status = evaluate_attempt_fn(shim)
+    result = evaluate_attempt_fn(shim)
+    # Handlers return (body, status) or (body, status, headers).
+    # CORS headers are already handled by FastAPI CORSMiddleware locally.
+    body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)
 
 
 @app.post("/complete-chapter", summary="Complete a chapter and update the grammar book")
 async def complete_chapter_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
-    body, status = complete_chapter_fn(shim)
+    result = complete_chapter_fn(shim)
+    body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)

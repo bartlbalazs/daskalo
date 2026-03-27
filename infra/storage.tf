@@ -20,9 +20,15 @@ resource "google_storage_bucket" "public_assets" {
   depends_on = [google_project_service.apis]
 }
 
-# Make all objects in the bucket publicly readable.
-resource "google_storage_bucket_iam_member" "public_assets_public_read" {
-  bucket = google_storage_bucket.public_assets.name
-  role   = "roles/storage.objectViewer"
-  member = "allUsers"
+# ---------------------------------------------------------------------------
+# Link the assets bucket to Firebase Storage so the Firebase SDK and
+# storage.rules govern client-side read access.
+# The GCS SDK (used by content-cli) bypasses these rules and can still write.
+# ---------------------------------------------------------------------------
+resource "google_firebase_storage_bucket" "public_assets" {
+  provider  = google-beta
+  project   = var.project_id
+  bucket_id = google_storage_bucket.public_assets.id
+
+  depends_on = [google_project_service.apis]
 }

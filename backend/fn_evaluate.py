@@ -31,11 +31,13 @@ import os
 import firebase_admin
 import flask
 import functions_framework
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials
+from google.cloud.firestore import Client as FirestoreClient
 
 from callable_helpers import (
     callable_error,
     callable_response,
+    cors_preflight,
     parse_callable_request,
     verify_firebase_token,
 )
@@ -79,6 +81,10 @@ _AI_GRADED_TYPES = {
 @functions_framework.http
 def evaluate_attempt_fn(request: flask.Request) -> tuple:
     """HTTP Cloud Function entry point for exercise evaluation."""
+    # Handle CORS preflight before any auth/logic.
+    if request.method == "OPTIONS":
+        return cors_preflight()
+
     _init_firebase()
 
     # 1. Verify caller identity
@@ -100,7 +106,7 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
         return callable_error("INVALID_ARGUMENT", str(exc), 400)
 
     # 3. Load the attempt document
-    db = firestore.client()
+    db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
     ref = db.collection("exercise_attempts").document(attempt_id)
     snap = ref.get()
 
@@ -136,11 +142,15 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
     # 6. Mark as evaluating
     ref.update({"status": AttemptStatus.evaluating.value})
 
-    # 7. Fetch the exercise prompt (and target_text for pronunciation) from the chapter document
+    # 7. Fetch exercise metadata from the chapter document
+    #    - prompt: displayed to the student (all AI-graded types)
+    #    - target_text: the Greek text to pronounce (pronunciation_practice)
+    #    - image_url: GCS gs:// URI of the exercise image (image_description)
     chapter_ref = db.collection("chapters").document(attempt_data.get("chapterId", ""))
     chapter_snap = chapter_ref.get()
     prompt = ""
     target_text = ""
+    image_url = ""
     if chapter_snap.exists:
         exercises = chapter_snap.to_dict().get("exercises", [])
         try:
@@ -148,7 +158,8 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
             if 0 <= ex_index < len(exercises):
                 exercise_data = exercises[ex_index]
                 prompt = exercise_data.get("prompt", "")
-                target_text = exercise_data.get("data", {}).get("targetText", "")
+                target_text = exercise_data.get("data", {}).get("target_text", "")
+                image_url = exercise_data.get("imageUrl", "")
         except (ValueError, IndexError):
             logger.warning("Could not resolve exercise data for exerciseId=%s", attempt_data.get("exerciseId"))
 
@@ -160,7 +171,7 @@ def evaluate_attempt_fn(request: flask.Request) -> tuple:
                 return callable_error("INVALID_ARGUMENT", "audioBase64 is required for pronunciation_practice.", 400)
             result = evaluate_pronunciation(attempt, target_text, audio_base64)
         else:
-            result = evaluate_attempt(attempt, prompt)
+            result = evaluate_attempt(attempt, prompt, image_url=image_url)
     except ValueError as exc:
         logger.warning("Validation error for attempt '%s': %s", attempt_id, exc)
         ref.update({"status": AttemptStatus.error.value})

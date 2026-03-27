@@ -23,6 +23,9 @@ Examples:
 
     # Upload an existing ZIP and ingest directly into Firestore emulator:
     uv run daskalo upload output/b1_c2_boxing.zip
+
+    # Upload an existing ZIP directly to production GCP (Firestore + GCS):
+    uv run daskalo upload --remote output/b1_c2_boxing.zip
 """
 
 from __future__ import annotations
@@ -267,8 +270,21 @@ def generate(
 
 @cli.command("upload")
 @click.argument("zip_path", type=click.Path(exists=True, dir_okay=False, readable=True))
-def upload(zip_path: str) -> None:
-    """Upload an existing ZIP file directly into the local Firestore emulator.
+@click.option(
+    "--remote",
+    is_flag=True,
+    default=False,
+    help=(
+        "Write directly to production GCP (Firestore + GCS) instead of the local emulator. "
+        "Reads project config from infra/terraform.tfvars. "
+        "Requires Application Default Credentials (gcloud auth application-default login)."
+    ),
+)
+def upload(zip_path: str, remote: bool) -> None:
+    """Upload an existing ZIP file into Firestore and GCS.
+
+    By default targets the local Firebase Emulator Suite.
+    Pass --remote to write directly to production GCP.
 
     ZIP_PATH is the path to a previously generated chapter ZIP file.
     """
@@ -280,6 +296,16 @@ def upload(zip_path: str) -> None:
     console.print(Panel(Text("Daskalo Content Upload", justify="center"), style="bold blue"))
     console.print()
     console.print(f"  ZIP file : [cyan]{zip_path}[/cyan]")
+
+    if remote:
+        _upload_remote(zip_path)
+    else:
+        _upload_local(zip_path)
+
+
+def _upload_local(zip_path: str) -> None:
+    """Ingest ZIP into the local Firebase Emulator Suite."""
+    console.print("  Target   : [cyan]local emulators[/cyan]")
     console.print()
 
     from services.local_ingest import ingest_direct
@@ -295,6 +321,52 @@ def upload(zip_path: str) -> None:
     except Exception as exc:  # noqa: BLE001
         console.print(f"\n[bold red]Direct ingest failed:[/bold red] {exc}")
         console.print("Make sure the Firebase Emulator Suite is running (dev.sh).")
+        raise SystemExit(1) from exc
+
+
+def _upload_remote(zip_path: str) -> None:
+    """Ingest ZIP directly into production GCP (Firestore + GCS)."""
+    from services.remote_ingest import get_remote_config, ingest_remote
+
+    # Load and display config so the operator knows exactly what will be targeted.
+    try:
+        config = get_remote_config()
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"\n[bold red]Config error:[/bold red] {exc}")
+        raise SystemExit(1) from exc
+
+    console.print("  Target   : [bold red]PRODUCTION[/bold red]")
+    console.print(f"  Project  : [cyan]{config['project_id']}[/cyan]")
+    console.print(f"  Bucket   : [cyan]{config['public_assets_bucket_name']}[/cyan]")
+    console.print(f"  Database : [cyan]{config['db_name']}[/cyan]")
+    console.print()
+
+    # Require explicit confirmation before touching production.
+    confirmed = click.confirm(
+        "You are about to write to PRODUCTION Firestore and GCS. Continue?",
+        default=False,
+    )
+    if not confirmed:
+        console.print("[yellow]Aborted.[/yellow]")
+        raise SystemExit(0)
+
+    console.print()
+    console.print("[bold yellow]Writing content to production Firestore and GCS…[/bold yellow]")
+    try:
+        chapter_id_written = ingest_remote(zip_path)
+        console.print(
+            f"\n[bold green]Done![/bold green] Chapter [cyan]{chapter_id_written}[/cyan] "
+            f"written to production Firestore (db=[cyan]{config['db_name']}[/cyan])."
+        )
+        console.print(
+            f"Assets uploaded to [cyan]gs://{config['public_assets_bucket_name']}/chapters/{chapter_id_written}/[/cyan]"
+        )
+        console.print(
+            f"ZIP archived at [cyan]gs://{config['public_assets_bucket_name']}/archives/{chapter_id_written}.zip[/cyan]"
+        )
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"\n[bold red]Remote ingest failed:[/bold red] {exc}")
+        console.print("Ensure you are authenticated: [cyan]gcloud auth application-default login[/cyan]")
         raise SystemExit(1) from exc
 
 

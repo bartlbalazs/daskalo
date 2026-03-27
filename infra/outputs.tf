@@ -39,7 +39,7 @@ output "firebase_messaging_sender_id" {
   value       = data.google_firebase_web_app_config.daskalo.messaging_sender_id
 }
 
-output "public_assets_bucket_url" {
-  description = "Public base URL for assets bucket (images, audio)."
-  value       = "https://storage.googleapis.com/${google_storage_bucket.public_assets.name}"
+output "public_assets_bucket_name" {
+  description = "Name of the assets bucket (images, audio). Accessed via Firebase Storage SDK, governed by storage.rules."
+  value       = google_storage_bucket.public_assets.name
 }

@@ -41,7 +41,6 @@ LESSON_CONFIG: dict[str, dict] = {
         "exercise_count": "4-5",
         "available_types": [
             "slang_matcher",
-            "vocab_flashcard",
             "fill_in_the_blank",
             "word_scramble",
             "odd_one_out",
@@ -60,7 +59,6 @@ LESSON_CONFIG: dict[str, dict] = {
         "exercise_count": "7-9",
         "available_types": [
             "slang_matcher",
-            "vocab_flashcard",
             "fill_in_the_blank",
             "word_scramble",
             "odd_one_out",
@@ -83,7 +81,6 @@ LESSON_CONFIG: dict[str, dict] = {
         "exercise_count": "11-14",
         "available_types": [
             "slang_matcher",
-            "vocab_flashcard",
             "fill_in_the_blank",
             "word_scramble",
             "odd_one_out",

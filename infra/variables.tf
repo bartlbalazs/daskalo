@@ -32,6 +32,12 @@ variable "evaluate_function_memory" {
   default     = "512M"
 }
 
+variable "evaluate_function_cpu" {
+  description = "vCPU allocation for the evaluate-attempt Cloud Function. Set to '1' when memory > 512Mi."
+  type        = string
+  default     = "0.333"
+}
+
 variable "evaluate_function_timeout" {
   description = "Timeout (seconds) for the evaluate-attempt Cloud Function."
   type        = number
@@ -42,6 +48,12 @@ variable "complete_chapter_function_memory" {
   description = "Memory for the complete-chapter Cloud Function."
   type        = string
   default     = "512M"
+}
+
+variable "complete_chapter_function_cpu" {
+  description = "vCPU allocation for the complete-chapter Cloud Function. Set to '1' when memory > 512Mi."
+  type        = string
+  default     = "0.333"
 }
 
 variable "complete_chapter_function_timeout" {

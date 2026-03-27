@@ -111,6 +111,11 @@ export class LessonService {
     const idToken = await this.auth.currentUser?.getIdToken();
     const requestData: Record<string, unknown> = { attemptId };
     if (audioBase64) requestData['audioBase64'] = audioBase64;
+    // Also include the token in the body: the API Gateway replaces the
+    // Authorization header with its own service-account JWT when proxying to
+    // Cloud Run, so the backend reads the Firebase ID token from the body
+    // instead (falls back to the header for local dev without a gateway).
+    if (idToken) requestData['idToken'] = idToken;
 
     const response = await fetch(environment.evaluateAttemptUrl, {
       method: 'POST',
@@ -154,7 +159,10 @@ export class LessonService {
         'Content-Type': 'application/json',
         ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
       },
-      body: JSON.stringify({ data: { chapterId } }),
+      // Include the token in the body: the API Gateway replaces the Authorization
+      // header with its own JWT, so the backend reads the Firebase ID token from
+      // the body (falls back to the header in local dev without a gateway).
+      body: JSON.stringify({ data: { chapterId, ...(idToken ? { idToken } : {}) } }),
     });
 
     const body = await response.json();

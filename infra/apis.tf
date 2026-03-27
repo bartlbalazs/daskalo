@@ -19,6 +19,7 @@ locals {
     "servicecontrol.googleapis.com",
     "servicemanagement.googleapis.com",
     "firebase.googleapis.com",
+    "firebasestorage.googleapis.com",
   ]
 }
 

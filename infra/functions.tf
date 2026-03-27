@@ -50,6 +50,10 @@ resource "google_cloudfunctions2_function" "evaluate_attempt" {
     runtime     = "python311"
     entry_point = "evaluate_attempt_fn"
 
+    environment_variables = {
+      GOOGLE_FUNCTION_SOURCE = "fn_evaluate.py"
+    }
+
     source {
       storage_source {
         bucket = google_storage_bucket.cf_source.name
@@ -60,6 +64,7 @@ resource "google_cloudfunctions2_function" "evaluate_attempt" {
 
   service_config {
     available_memory               = var.evaluate_function_memory
+    available_cpu                  = var.evaluate_function_cpu
     timeout_seconds                = var.evaluate_function_timeout
     max_instance_count             = 10
     min_instance_count             = 0
@@ -69,6 +74,7 @@ resource "google_cloudfunctions2_function" "evaluate_attempt" {
 
     environment_variables = {
       GOOGLE_CLOUD_PROJECT = var.project_id
+      FIRESTORE_DB         = var.db_name
     }
   }
 
@@ -101,6 +107,10 @@ resource "google_cloudfunctions2_function" "complete_chapter" {
     runtime     = "python311"
     entry_point = "complete_chapter_fn"
 
+    environment_variables = {
+      GOOGLE_FUNCTION_SOURCE = "fn_complete_chapter.py"
+    }
+
     source {
       storage_source {
         bucket = google_storage_bucket.cf_source.name
@@ -111,6 +121,7 @@ resource "google_cloudfunctions2_function" "complete_chapter" {
 
   service_config {
     available_memory               = var.complete_chapter_function_memory
+    available_cpu                  = var.complete_chapter_function_cpu
     timeout_seconds                = var.complete_chapter_function_timeout
     max_instance_count             = 10
     min_instance_count             = 0
@@ -120,6 +131,7 @@ resource "google_cloudfunctions2_function" "complete_chapter" {
 
     environment_variables = {
       GOOGLE_CLOUD_PROJECT = var.project_id
+      FIRESTORE_DB         = var.db_name
     }
   }
 

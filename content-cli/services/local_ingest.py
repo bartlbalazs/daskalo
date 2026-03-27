@@ -31,7 +31,7 @@ import logging
 import os
 import sys
 import zipfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 from google.cloud import firestore, storage
 
@@ -41,6 +41,8 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 from shared.data.curriculum_loader import load_curriculum  # noqa: E402
+
+from services.ingest_helpers import process_chapter_assets  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -148,71 +150,8 @@ def ingest_direct(zip_path: str) -> str:
         # Upsert the parent book document before writing the chapter
         upsert_book(fs_client, book_id)
 
-        # Upload chapter cover image
-        if chapter.get("coverImagePath"):
-            gcs_url = _upload_asset(zf, chapter["coverImagePath"], chapter_id, assets_bucket)
-            chapter["coverImageUrl"] = gcs_url
-            del chapter["coverImagePath"]
-
-        # Upload vocabulary audio assets
-        for vocab_item in chapter.get("vocabulary", []):
-            if vocab_item.get("audioPath"):
-                gcs_url = _upload_asset(zf, vocab_item["audioPath"], chapter_id, assets_bucket)
-                vocab_item["audioUrl"] = gcs_url
-                del vocab_item["audioPath"]
-
-        # Upload grammar note images and audio
-        for grammar_note in chapter.get("grammarNotes", []):
-            if grammar_note.get("imagePath"):
-                gcs_url = _upload_asset(zf, grammar_note["imagePath"], chapter_id, assets_bucket)
-                grammar_note["imageUrl"] = gcs_url
-                del grammar_note["imagePath"]
-            if grammar_note.get("audioPath"):
-                gcs_url = _upload_asset(zf, grammar_note["audioPath"], chapter_id, assets_bucket)
-                grammar_note["audioUrl"] = gcs_url
-                del grammar_note["audioPath"]
-
-        # Upload sentence audio assets and replace paths with GCS URLs
-        uploaded_sentence_urls: list[str] = []
-        for path in chapter.get("sentenceAudioPaths", []):
-            if path:
-                gcs_url = _upload_asset(zf, path, chapter_id, assets_bucket)
-                uploaded_sentence_urls.append(gcs_url)
-            else:
-                uploaded_sentence_urls.append("")
-        if "sentenceAudioPaths" in chapter:
-            chapter["sentenceAudioUrls"] = uploaded_sentence_urls
-            del chapter["sentenceAudioPaths"]
-
-        # Upload passage audio
-        if chapter.get("passageAudioPath"):
-            gcs_url = _upload_asset(zf, chapter["passageAudioPath"], chapter_id, assets_bucket)
-            chapter["passageAudioUrl"] = gcs_url
-            del chapter["passageAudioPath"]
-
-        # Upload exercise image / audio assets
-        for exercise in chapter.get("exercises", []):
-            if exercise.get("imagePath"):
-                gcs_url = _upload_asset(zf, exercise["imagePath"], chapter_id, assets_bucket)
-                exercise["imageUrl"] = gcs_url
-                del exercise["imagePath"]
-            if exercise.get("audioPath"):
-                audio_path: str = exercise["audioPath"]
-                if not audio_path.startswith("gs://") and not audio_path.startswith("http"):
-                    gcs_url = _upload_asset(zf, audio_path, chapter_id, assets_bucket)
-                    exercise["audioUrl"] = gcs_url
-                    del exercise["audioPath"]
-
-            # Upload conversation line audio files and replace relative paths with gs:// URIs
-            if exercise.get("type") == "conversation":
-                data = exercise.get("data")
-                if isinstance(data, dict):
-                    for line in data.get("lines", []):
-                        if isinstance(line, dict) and line.get("audioPath"):
-                            audio_path: str = line["audioPath"]
-                            if not audio_path.startswith("gs://") and not audio_path.startswith("http"):
-                                gcs_url = _upload_asset(zf, audio_path, chapter_id, assets_bucket)
-                                line["audioPath"] = gcs_url
+        # Upload all media assets and replace *Path fields with gs:// *Url fields
+        process_chapter_assets(zf, chapter, chapter_id, assets_bucket)
 
     # Write chapter document to Firestore emulator
     chapter["bookId"] = book_id
@@ -242,34 +181,3 @@ def _ensure_bucket(client: storage.Client, bucket_name: str) -> storage.Bucket:
     object and let the SDK discover/create it on the first blob upload.
     """
     return client.bucket(bucket_name)
-
-
-def _upload_asset(
-    zf: zipfile.ZipFile,
-    asset_path: str,
-    chapter_id: str,
-    bucket: storage.Bucket,
-) -> str:
-    """Upload a single asset from the ZIP to the GCS/emulator bucket. Returns the gs:// URI."""
-    filename = PurePosixPath(asset_path).name
-    gcs_path = f"chapters/{chapter_id}/{filename}"
-    try:
-        asset_bytes = zf.read(asset_path)
-    except KeyError as exc:
-        raise ValueError(f"Asset '{asset_path}' not found in ZIP") from exc
-    content_type = _guess_content_type(filename)
-    blob = bucket.blob(gcs_path)
-    blob.upload_from_string(asset_bytes, content_type=content_type)
-    uri = f"gs://{bucket.name}/{gcs_path}"
-    logger.info("Uploaded asset: %s", uri)
-    return uri
-
-
-def _guess_content_type(filename: str) -> str:
-    ext = PurePosixPath(filename).suffix.lower()
-    return {
-        ".mp3": "audio/mpeg",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-    }.get(ext, "application/octet-stream")

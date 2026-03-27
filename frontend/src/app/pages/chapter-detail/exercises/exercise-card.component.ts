@@ -123,6 +123,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             [chapterStoragePath]="chapterStoragePath"
             (submitted$)="onPronunciationSubmit($event)"
             (answered)="onAiAnswered($event)"
+            (retried)="onPronunciationRetry()"
           />
         }
 
@@ -374,6 +375,11 @@ export class ExerciseCardComponent {
 
   /** No-op — state managed in onAiSubmit watcher. */
   onAiAnswered(_correct: boolean): void {}
+
+  /** Reset card state so the student can attempt pronunciation again. */
+  onPronunciationRetry(): void {
+    this.state.set('unanswered');
+  }
 
   cardBorderClass(): string {
     switch (this.state()) {

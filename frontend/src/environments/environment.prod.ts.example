@@ -7,6 +7,7 @@ export const environment = {
   // Cloud Function URLs — printed by deploy.sh after each deployment
   evaluateAttemptUrl: 'https://YOUR_EVALUATE_ATTEMPT_FUNCTION_URL',
   completeChapterUrl: 'https://YOUR_COMPLETE_CHAPTER_FUNCTION_URL',
+  firestoreDb: 'YOUR_FIRESTORE_DB_NAME', // e.g. 'daskalo-db' (leave empty for default db)
   firebase: {
     apiKey: 'YOUR_API_KEY',
     authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',

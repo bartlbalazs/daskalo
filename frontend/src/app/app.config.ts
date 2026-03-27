@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
 import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 import { provideStorage, getStorage, connectStorageEmulator } from '@angular/fire/storage';
@@ -23,7 +23,9 @@ export const appConfig: ApplicationConfig = {
     }),
 
     provideFirestore(() => {
-      const firestore = getFirestore();
+      const firestore = environment.firestoreDb
+        ? getFirestore(getApp(), environment.firestoreDb)
+        : getFirestore();
       if (environment.useEmulators) {
         connectFirestoreEmulator(firestore, 'localhost', 8081);
       }

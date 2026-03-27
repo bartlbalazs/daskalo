@@ -18,7 +18,8 @@ import os
 from datetime import UTC, datetime
 
 import vertexai
-from firebase_admin import firestore
+from google.cloud import firestore as gc_firestore
+from google.cloud.firestore import Client as FirestoreClient
 from vertexai.generative_models import GenerativeModel
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
         ValueError  — if the chapter or user document is not found.
         Exception   — propagated from Firestore / Gemini on unexpected errors.
     """
-    db = firestore.client()
+    db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
 
     # ------------------------------------------------------------------
     # 1. Load chapter
@@ -138,7 +139,7 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     update_payload = {
         "progress.completedChapterIds": completed_ids,
         "progress.lastProgressSummary": progress_summary,
-        "progress.xp": firestore.Increment(xp_gained),
+        "progress.xp": gc_firestore.Increment(xp_gained),
         "lastActive": now,
     }
 

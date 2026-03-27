@@ -11,6 +11,8 @@ firebase_app_display_name = "Daskalo"
 
 # Optional: override function sizing
 # evaluate_function_memory          = "512M"
+# evaluate_function_cpu             = "0.333"   # set to "1" when memory > 512Mi
 # evaluate_function_timeout         = 120
 # complete_chapter_function_memory  = "512M"
+# complete_chapter_function_cpu     = "0.333"   # set to "1" when memory > 512Mi
 # complete_chapter_function_timeout = 180

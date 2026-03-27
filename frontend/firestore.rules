@@ -12,7 +12,13 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read: if request.auth.uid == userId;
+      // Client may only create its own document (on first sign-in) with status = "pending".
+      // All subsequent updates (xp, completedChapterIds, lastActive, etc.) are performed
+      // exclusively by the backend via the Admin SDK, which bypasses these rules.
+      allow create: if request.auth.uid == userId
+        && request.resource.data.status == "pending";
+      allow update, delete: if false;
     }
 
     match /books/{bookId} {
@@ -29,7 +35,8 @@ service cloud.firestore {
       allow read: if isActiveUser() && resource.data.userId == request.auth.uid;
       allow create: if isActiveUser()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.evaluation == null;
+        && request.resource.data.evaluation == null
+        && request.resource.data.status == "pending";
       allow update, delete: if false;
     }
   }

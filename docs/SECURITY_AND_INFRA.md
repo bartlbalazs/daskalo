@@ -99,7 +99,7 @@ The gateway spec (`infra/openapi.yaml.tpl`) is rendered with actual Cloud Functi
 | Bucket | Access | Purpose |
 |--------|--------|---------|
 | `{project_id}-cf-source` | Private | Cloud Function source zips |
-| `{var.public_assets_bucket_name}` | `allUsers:objectViewer` | Images and audio served to the Angular app |
+| `{var.public_assets_bucket_name}` | Firebase Storage rules (`request.auth != null`) | Images and audio served to the Angular app via Firebase Storage SDK |
 | `{project_id}-terraform-state` | Private (created by bootstrap.sh) | Terraform remote state |
 
 ### 2.6 Cloud Functions Source Zip

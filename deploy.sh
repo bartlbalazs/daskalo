@@ -90,6 +90,13 @@ if [[ "$DO_INFRA" == true ]]; then
   step "INFRA: Running terraform plan"
   terraform -chdir="${INFRA_DIR}" plan -out="${BUILD_DIR}/tfplan"
 
+  echo ""
+  read -r -p "[deploy] Apply the plan above? [y/N] " CONFIRM
+  if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    log "Aborted by user."
+    exit 0
+  fi
+
   step "INFRA: Running terraform apply"
   terraform -chdir="${INFRA_DIR}" apply "${BUILD_DIR}/tfplan"
 
@@ -107,6 +114,7 @@ if [[ "$DO_HOSTING" == true ]]; then
   FIREBASE_API_KEY=$(terraform -chdir="${INFRA_DIR}" output -raw firebase_api_key)
   FIREBASE_MESSAGING_SENDER_ID=$(terraform -chdir="${INFRA_DIR}" output -raw firebase_messaging_sender_id)
   FIREBASE_WEB_APP_ID=$(terraform -chdir="${INFRA_DIR}" output -raw firebase_web_app_id)
+  PUBLIC_ASSETS_BUCKET=$(terraform -chdir="${INFRA_DIR}" output -raw public_assets_bucket_name)
 
   # Derive project_id and other Firebase config fields from tfvars.
   PROJECT_ID=$(terraform -chdir="${INFRA_DIR}" output -json 2>/dev/null | python3 -c "
@@ -121,8 +129,13 @@ import sys, json
     die "Could not determine project_id from infra/terraform.tfvars."
   fi
 
+  # Read Firestore database name from terraform.tfvars (defaults to "(default)" if absent).
+  DB_NAME=$(grep -E '^db_name\s*=' "${INFRA_DIR}/terraform.tfvars" | sed 's/.*=\s*"\(.*\)"/\1/' || true)
+  DB_NAME="${DB_NAME:-(default)}"
+
   log "  API Gateway URL:  ${API_GATEWAY_URL}"
   log "  Project ID:       ${PROJECT_ID}"
+  log "  Firestore DB:     ${DB_NAME}"
 
   step "HOSTING: Generating environment.prod.ts"
   cat > "${ENV_PROD_TS}" <<EOF
@@ -136,11 +149,12 @@ export const environment = {
   // API Gateway URL — all Cloud Function calls go through here.
   evaluateAttemptUrl: '${API_GATEWAY_URL}/evaluate',
   completeChapterUrl: '${API_GATEWAY_URL}/complete-chapter',
+  firestoreDb: '${DB_NAME}',
   firebase: {
     apiKey: '${FIREBASE_API_KEY}',
     authDomain: '${PROJECT_ID}.firebaseapp.com',
     projectId: '${PROJECT_ID}',
-    storageBucket: '${PROJECT_ID}.appspot.com',
+    storageBucket: '${PUBLIC_ASSETS_BUCKET}',
     messagingSenderId: '${FIREBASE_MESSAGING_SENDER_ID}',
     appId: '${FIREBASE_WEB_APP_ID}',
   },
@@ -155,12 +169,31 @@ EOF
   )
 
   step "HOSTING: Deploying to Firebase Hosting + Firestore rules + Storage rules"
+
+  # Generate a temporary firebase.json with the storage bucket injected.
+  # The committed firebase.json has no bucket (used by the local emulator).
+  # The Firebase CLI requires an explicit bucket when no project-level default
+  # bucket exists, so we provide one here at deploy time.
+  FIREBASE_DEPLOY_JSON="${FRONTEND_DIR}/firebase.deploy.json"
+  python3 - <<PYEOF
+import json
+with open("${FRONTEND_DIR}/firebase.json") as f:
+    cfg = json.load(f)
+cfg["storage"] = [{"bucket": "${PUBLIC_ASSETS_BUCKET}", "rules": cfg["storage"]["rules"]}]
+cfg["firestore"]["database"] = "${DB_NAME}"
+with open("${FIREBASE_DEPLOY_JSON}", "w") as f:
+    json.dump(cfg, f, indent=2)
+PYEOF
+
   (
     cd "${FRONTEND_DIR}"
     firebase deploy \
-      --only hosting,firestore:rules,storage \
+      --only hosting,firestore,storage \
+      --config firebase.deploy.json \
       --project "${PROJECT_ID}"
   )
+
+  rm -f "${FIREBASE_DEPLOY_JSON}"
 
   HOSTING_URL=$(terraform -chdir="${INFRA_DIR}" output -raw hosting_default_url 2>/dev/null || echo "https://${PROJECT_ID}.web.app")
   log ""

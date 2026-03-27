@@ -51,19 +51,13 @@ Daskalo is built as a modern, cloud-native monorepo:
 
 Daskalo is heavily optimized for local development without the need to hit production databases or incur cloud costs. It relies on the **Firebase Local Emulator Suite** (Auth, Firestore, Storage) to provide a safe sandbox.
 
-**1. Start the emulators and frontend:**
+The easiest way to start the entire stack (Frontend, Backend, and Emulators) is using the included development script:
+
 ```bash
-cd frontend
-npm start
+./dev.sh
 ```
 
-**2. Start the backend API locally:**
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
-*For more details on simulating Eventarc triggers locally, please see the Architecture documentation.*
+This will start the emulators, the FastAPI backend (with hot-reload), and the Angular frontend.
 
 ## 🚀 Deployment
 

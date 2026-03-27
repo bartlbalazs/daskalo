@@ -5,14 +5,12 @@ Provides two modes for targeting the local Firebase Emulator Suite:
 
   upload_to_storage_emulator(zip_path)
       Uploads the generated ZIP to the local Storage emulator ingestion bucket.
-      The watcher script picks it up and POSTs to the local FastAPI backend,
-      which then runs the full ingestion pipeline (asset upload + Firestore write).
 
   ingest_direct(zip_path)
       Bypasses the ZIP → Storage → backend flow entirely.
       Reads the ZIP locally, uploads assets to the Storage emulator, and writes
       the chapter document directly to the Firestore emulator. Useful for fast
-      local iteration without running the backend or watcher.
+      local iteration without running the backend.
 
 Both modes require the Firebase Emulator Suite to be running (dev.sh).
 

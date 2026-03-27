@@ -83,7 +83,7 @@ Local development uses Firebase Emulator Suite for Firestore/Auth and a FastAPI 
 
 - **Firebase Emulator Suite**: Runs Firestore and Auth locally. The Angular app connects to these instead of production.
 - **Backend (local)**: `main.py` is a FastAPI dev server that bundles both Cloud Function handlers as standard POST endpoints (`/evaluate`, `/complete-chapter`). It uses a `_FlaskRequestShim` to adapt FastAPI `Request` objects to the Flask-compatible interface expected by `callable_helpers`. This file is **not deployed to production**.
-- **No Watcher / No Eventarc simulation**: The direct HTTP Callable pattern means no background trigger simulation is needed locally.
+- **Direct HTTP Callables**: The direct HTTP Callable pattern means no background trigger simulation is needed locally.
 
 ### Starting the local environment
 Run `dev.sh` from the project root. It starts three processes in order:

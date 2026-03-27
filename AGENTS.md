@@ -6,7 +6,7 @@ When asked to build or modify features, you MUST adhere to these rules.
 ## 1. Project Overview & Architecture
 This is a Greek Language Learning application consisting of three parts:
 - **`frontend/`**: Angular SPA (Firebase Hosting, Firestore).
-- **`backend/`**: Python FastAPI (Cloud Run, Eventarc triggers).
+- **`backend/`**: Python FastAPI (Cloud Run Functions, direct HTTP Callables).
 - **`content-cli/`**: Python LangGraph local tool (Vertex AI, Piper TTS).
 - **Docs**: Always consult `/docs/ARCHITECTURE.md` and `/docs/DATA_MODEL.md` before making structural or database changes.
 
@@ -40,7 +40,7 @@ This is a Greek Language Learning application consisting of three parts:
 - **Typing**: Use strict Python type hinting (`typing` module, Pydantic models).
 - **Error Handling**: Use FastAPI's `HTTPException` for routing errors. Catch specific exceptions, not broad `except Exception:` unless logging and re-raising.
 - **File Structure**: 
-  - `main.py` (entrypoint, Eventarc endpoints)
+  - `main.py` (entrypoint, HTTP Callable endpoints)
   - `models/` (Pydantic schemas mirroring Firestore)
   - `services/` (Business logic, Gemini evaluation, ZIP processing)
 - **Firebase Admin**: Initialize the Admin SDK once globally in `main.py`.
@@ -68,4 +68,4 @@ This is a Greek Language Learning application consisting of three parts:
 
 ## 6. Local Emulation Environment
 - The project relies on the Firebase Local Emulator Suite.
-- To test the full flow locally, the "Watcher" script must be running to simulate Eventarc triggers from the Firestore emulator to the local FastAPI instance. See `docs/ARCHITECTURE.md`.
+- To start the entire stack locally (Emulators, FastAPI, Angular), use the `./dev.sh` script in the project root. See `docs/ARCHITECTURE.md`.

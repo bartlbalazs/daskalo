@@ -142,7 +142,7 @@ Records of user submissions, primarily used to trigger the backend for grading.
     "text": "Βλέπω ένα αεροπλάνο."
   },
   "status": "pending", // Enum: ["pending", "evaluating", "completed", "error"]
-  "evaluation": null // Initially null. Populated by the Cloud Run backend.
+  "evaluation": null // Initially null. Populated by the Cloud Functions backend.
   /*
     When completed:
     "evaluation": {

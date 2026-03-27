@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AsyncPipe, DOCUMENT } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Chapter, Exercise, GrammarNote, PassageSentence, VocabularyItem } from '../../core/models/firestore.models';
-import { Observable, switchMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
 import { HighlightVocabPipe } from '../../shared/pipes/highlight-vocab.pipe';
 import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
@@ -19,7 +20,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   standalone: true,
   imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent],
   template: `
-    @if (chapter$ | async; as chapter) {
+    @if (chapter(); as chapter) {
 
       <!-- ===== HERO BAND ===== -->
       <div class="w-full bg-gradient-to-b from-greek-700 to-greek-600 border-b border-greek-800">
@@ -99,13 +100,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           }
 
           <!-- Ear Training Audio Player -->
-          @if (chapter.passageAudioUrl) {
-            <div class="max-w-md mx-auto text-center">
-              <h3 class="font-bold text-xs uppercase tracking-widest text-surface-400 mb-3">Ear Training</h3>
-              <p class="text-sm text-surface-500 mb-4">Listen to the full story before we dive into the grammar. Don't worry if you don't understand it all yet!</p>
-              <app-audio-player [src]="chapter.passageAudioUrl" />
-            </div>
-          }
+          <div class="max-w-md mx-auto text-center">
+            <h3 class="font-bold text-xs uppercase tracking-widest text-surface-400 mb-3">Ear Training</h3>
+            <p class="text-sm text-surface-500 mb-4">Listen to the full story before we dive into the grammar. Don't worry if you don't understand it all yet!</p>
+            <app-audio-player [src]="chapter.passageAudioUrl ?? ''" />
+          </div>
         </div>
       </div>
 
@@ -456,7 +455,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     }
   `],
 })
-export class ChapterDetailPage implements OnInit {
+export class ChapterDetailPage {
   private route = inject(ActivatedRoute);
   private lessonService = inject(LessonService);
   private authService = inject(AuthService);
@@ -464,7 +463,6 @@ export class ChapterDetailPage implements OnInit {
   private sanitizer = inject(DomSanitizer);
   private document = inject(DOCUMENT);
 
-  chapter$!: Observable<Chapter>;
   playingWord = signal<string | null>(null);
 
   /** Tracks which exercise indices have been answered and their result (index -> correct). */
@@ -476,11 +474,14 @@ export class ChapterDetailPage implements OnInit {
   completeError = signal<string | null>(null);
   earnedXp = signal<number>(0);
 
-  ngOnInit(): void {
-    this.chapter$ = this.route.paramMap.pipe(
+  /** Signal holding the current chapter. Retains the last emitted value while
+   *  switchMap is transitioning between chapters, preventing the @if block (and
+   *  app-audio-player) from being torn down during navigation. */
+  chapter = toSignal(
+    this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id')!;
-        
+
         // Reset scroll position on the main scrolling container
         this.document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
@@ -493,8 +494,8 @@ export class ChapterDetailPage implements OnInit {
         this.alreadyCompleted.set(completedIds.includes(id));
         return this.lessonService.getChapter(id);
       })
-    );
-  }
+    )
+  );
 
   /** Return the first passage sentence, or undefined if the passage is empty. */
   firstSentence(chapter: Chapter): PassageSentence | undefined {

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges } from '@angular/core';
 import { Exercise, PassageComprehensionData, PassageSentence, VocabularyItem } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 import { HighlightVocabPipe } from '../../../shared/pipes/highlight-vocab.pipe';
@@ -84,7 +84,7 @@ interface QState {
     </div>
   `,
 })
-export class PassageComprehensionComponent {
+export class PassageComprehensionComponent implements OnChanges {
   @Input({ required: true }) exercise!: Exercise;
   /** Full GCS URL of the passage audio, e.g. gs://bucket/chapters/chapterId/passage.mp3 */
   @Input() passageAudioUrl = '';
@@ -99,7 +99,19 @@ export class PassageComprehensionComponent {
   /** Set of sentence indices whose English translation is currently revealed. */
   revealed = signal<Set<number>>(new Set());
   private _states = signal<QState[]>([]);
-  private _initialized = false;
+
+  ngOnChanges(): void {
+    // Re-initialise whenever the exercise input changes (including on navigation
+    // to a new chapter). Signal writes here are safe — ngOnChanges runs before
+    // template rendering, outside the change-detection rendering path.
+    this.submitted.set(false);
+    this.revealed.set(new Set());
+    const d = this.exercise.data as unknown as PassageComprehensionData;
+    const questions = d?.questions ?? [];
+    // Shuffle options for each question so the correct answer isn't always first.
+    questions.forEach(q => { q.options = this._shuffle(q.options); });
+    this._states.set(questions.map(() => ({ selected: null })));
+  }
 
   toggleSentence(index: number): void {
     this.revealed.update(s => {
@@ -114,18 +126,15 @@ export class PassageComprehensionComponent {
   }
 
   data(): PassageComprehensionData {
-    this._ensureInit();
     return this.exercise.data as unknown as PassageComprehensionData;
   }
 
   qState(qi: number): QState {
-    this._ensureInit();
     return this._states()[qi] ?? { selected: null };
   }
 
   select(qi: number, oi: number): void {
     if (this.submitted()) return;
-    this._ensureInit();
     const states = [...this._states()];
     states[qi] = { selected: oi };
     this._states.set(states);
@@ -142,7 +151,6 @@ export class PassageComprehensionComponent {
   }
 
   isAllAnswered(): boolean {
-    this._ensureInit();
     return this._states().every(s => s.selected !== null);
   }
 
@@ -179,17 +187,6 @@ export class PassageComprehensionComponent {
 
   optionLetter(index: number): string {
     return String.fromCharCode(65 + index);
-  }
-
-  private _ensureInit(): void {
-    if (this._initialized) return;
-    this._initialized = true;
-    const d = this.exercise.data as unknown as PassageComprehensionData;
-    // Shuffle options for each question in-place so indices remain consistent
-    (d?.questions ?? []).forEach(q => {
-      q.options = this._shuffle(q.options);
-    });
-    this._states.set((d?.questions ?? []).map(() => ({ selected: null })));
   }
 
   private _shuffle<T>(arr: T[]): T[] {

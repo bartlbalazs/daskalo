@@ -7,8 +7,7 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
   selector: 'app-audio-player',
   standalone: true,
   template: `
-    @if (!error()) {
-      <div class="flex items-center gap-3 bg-greek-50 border border-greek-100 rounded-xl px-4 py-3">
+    <div class="flex items-center gap-3 bg-greek-50 border border-greek-100 rounded-xl px-4 py-3">
       <!-- Play / Pause button -->
       <button
         (click)="toggle()"
@@ -80,12 +79,14 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
         </svg>
       </button>
     </div>
-    }
   `,
 })
 export class AudioPlayerComponent implements OnDestroy {
-  /** A gs:// URI or plain HTTP URL. */
-  src = input.required<string>();
+  /** A gs:// URI or plain HTTP URL. Required, but declared as optional to avoid
+   *  NG0950 (required input read before binding in constructor effect). The
+   *  effect guards against undefined/empty values so no audio loads until a
+   *  real URL is provided by the parent. */
+  src = input<string>();
 
   private storage = inject(Storage);
 
@@ -94,7 +95,6 @@ export class AudioPlayerComponent implements OnDestroy {
   currentTime = signal(0);
   duration = signal(0);
   progressPercent = signal(0);
-  error = signal(false);
 
   private audio: HTMLAudioElement | null = null;
 
@@ -106,6 +106,8 @@ export class AudioPlayerComponent implements OnDestroy {
   constructor() {
     effect(() => {
       const src = this.src();
+      // Guard: do nothing until Angular has bound a real URL.
+      if (!src) return;
       this._loadSrc(src);
     }, { allowSignalWrites: true });
   }
@@ -151,7 +153,6 @@ export class AudioPlayerComponent implements OnDestroy {
 
     // Reset state for the new source.
     this.loading.set(true);
-    this.error.set(false);
     this.currentTime.set(0);
     this.duration.set(0);
     this.progressPercent.set(0);
@@ -173,7 +174,6 @@ export class AudioPlayerComponent implements OnDestroy {
     } catch {
       if (gen !== this.generation) return;
       this.loading.set(false);
-      this.error.set(true);
     }
   }
 
@@ -200,17 +200,18 @@ export class AudioPlayerComponent implements OnDestroy {
       this.currentTime.set(t);
       this.progressPercent.set((t / d) * 100);
     });
-    this.audio.addEventListener('error', () => {
-      this.loading.set(false);
-      this.error.set(true);
-    });
   }
 
   private _destroyAudio(): void {
     if (this.audio) {
-      this.audio.pause();
-      this.audio.src = '';
+      // Null this.audio BEFORE clearing src so that any async error/other events
+      // fired by src='' see a null reference and bail out via their guards,
+      // rather than writing stale signal values (e.g. error.set(true)) that
+      // would permanently hide the player after navigation.
+      const dying = this.audio;
       this.audio = null;
+      dying.pause();
+      dying.src = '';
     }
   }
 }

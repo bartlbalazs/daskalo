@@ -51,6 +51,7 @@ def _upload_asset(
         raise ValueError(f"Asset '{asset_path}' not found in ZIP") from exc
     content_type = _guess_content_type(filename)
     blob = bucket.blob(gcs_path)
+    blob.cache_control = "public, max-age=31536000"
     blob.upload_from_string(asset_bytes, content_type=content_type)
     uri = f"gs://{bucket.name}/{gcs_path}"
     logger.info("Uploaded asset: %s", uri)

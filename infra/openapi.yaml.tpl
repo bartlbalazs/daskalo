@@ -10,6 +10,32 @@ produces:
   - "application/json"
 
 # ---------------------------------------------------------------------------
+# Per-user rate limiting via API Gateway quota
+# ---------------------------------------------------------------------------
+x-google-management:
+  metrics:
+    - name: "evaluate-attempt-requests"
+      displayName: "Evaluate Attempt Requests"
+      valueType: INT64
+      metricKind: DELTA
+    - name: "complete-chapter-requests"
+      displayName: "Complete Chapter Requests"
+      valueType: INT64
+      metricKind: DELTA
+  quota:
+    limits:
+      - name: "evaluate-attempt-limit"
+        metric: "evaluate-attempt-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 5
+      - name: "complete-chapter-limit"
+        metric: "complete-chapter-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 3
+
+# ---------------------------------------------------------------------------
 # Firebase JWT security definition
 # ---------------------------------------------------------------------------
 securityDefinitions:
@@ -35,6 +61,9 @@ paths:
       summary: "Evaluate an exercise attempt"
       security:
         - firebase: []
+      x-google-quota:
+        metricCosts:
+          "evaluate-attempt-requests": 1
       x-google-backend:
         address: "${evaluate_attempt_url}"
         jwt_audience: "${evaluate_attempt_url}"
@@ -99,6 +128,9 @@ paths:
       summary: "Complete a chapter and generate progress summary"
       security:
         - firebase: []
+      x-google-quota:
+        metricCosts:
+          "complete-chapter-requests": 1
       x-google-backend:
         address: "${complete_chapter_url}"
         jwt_audience: "${complete_chapter_url}"

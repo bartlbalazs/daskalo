@@ -66,7 +66,7 @@ resource "google_cloudfunctions2_function" "evaluate_attempt" {
     available_memory               = var.evaluate_function_memory
     available_cpu                  = var.evaluate_function_cpu
     timeout_seconds                = var.evaluate_function_timeout
-    max_instance_count             = 10
+    max_instance_count             = 2
     min_instance_count             = 0
     all_traffic_on_latest_revision = true
 
@@ -123,7 +123,7 @@ resource "google_cloudfunctions2_function" "complete_chapter" {
     available_memory               = var.complete_chapter_function_memory
     available_cpu                  = var.complete_chapter_function_cpu
     timeout_seconds                = var.complete_chapter_function_timeout
-    max_instance_count             = 10
+    max_instance_count             = 2
     min_instance_count             = 0
     all_traffic_on_latest_revision = true
 

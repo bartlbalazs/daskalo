@@ -93,6 +93,9 @@ Respond ONLY as valid JSON with the following shape:
 # Maximum audio duration in seconds before we reject the request
 _MAX_AUDIO_SECONDS = 15
 
+# Maximum length of a student's free-text answer
+_MAX_ANSWER_CHARS = 200
+
 
 def _get_model() -> GenerativeModel:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
@@ -113,6 +116,12 @@ def evaluate_attempt(attempt: ExerciseAttempt, prompt: str, *, image_url: str = 
     """
     if attempt.type not in _GRADED_TYPES:
         raise ValueError(f"Exercise type {attempt.type} is not evaluated by AI.")
+
+    answer_text = attempt.payload.text or ""
+    if len(answer_text) > _MAX_ANSWER_CHARS:
+        raise ValueError(
+            f"Answer exceeds maximum allowed length of {_MAX_ANSWER_CHARS} characters (got {len(answer_text)})."
+        )
 
     logger.info(
         "evaluate_attempt: attemptId=%s type=%s answer=%r prompt=%r image_url=%r",

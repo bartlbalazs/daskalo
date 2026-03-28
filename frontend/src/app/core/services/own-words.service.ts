@@ -73,6 +73,7 @@ export class OwnWordsService {
       this._ownWords.set(map);
       this._loaded = true;
     } catch (err) {
+      console.error('[OwnWordsService] Failed to load own words:', err);
       this._loaded = true; // prevent retry loops; signal stays with existing data
     }
   }

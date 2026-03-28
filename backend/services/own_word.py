@@ -174,8 +174,10 @@ def create_own_word(
     logger.info("Uploaded own-word audio to %s", audio_url)
 
     # 5. Write to Firestore
+    # NOTE: safe_name (ASCII slug) is used for the doc ID to avoid Firestore treating
+    # slashes in Greek text (e.g. "ήσυχος / ήσυχη / ήσυχο") as subcollection separators.
     db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
-    doc_id = f"{chapter_id}__{greek}"
+    doc_id = f"{chapter_id}__{safe_name}"
     word_doc = {
         "greek": greek,
         "english": english,

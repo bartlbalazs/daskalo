@@ -95,7 +95,7 @@ paths:
       summary: "CORS preflight for /evaluate"
       x-google-backend:
         address: "${evaluate_attempt_url}"
-        deadline: 10.0
+        deadline: 20.0
       parameters:
         - in: header
           name: Origin
@@ -160,7 +160,7 @@ paths:
       summary: "CORS preflight for /complete-chapter"
       x-google-backend:
         address: "${complete_chapter_url}"
-        deadline: 10.0
+        deadline: 20.0
       parameters:
         - in: header
           name: Origin

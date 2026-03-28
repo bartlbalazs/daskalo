@@ -111,8 +111,10 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
 
       <!-- Card body -->
       <div class="px-5 py-5 bg-white">
-        <!-- Prompt -->
-        <p class="text-sm font-medium text-surface-700 mb-4 leading-relaxed">{{ exercise.prompt }}</p>
+        <!-- Prompt (hidden for fill_in_the_blank — the child renders the sentence with the interactive blank) -->
+        @if (exercise.type !== 'fill_in_the_blank') {
+          <p class="text-sm font-medium text-surface-700 mb-4 leading-relaxed">{{ exercise.prompt }}</p>
+        }
 
         <!-- Exercise content -->
 

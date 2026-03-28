@@ -8,6 +8,7 @@ export const environment = {
   useEmulators: true,
   evaluateAttemptUrl: 'http://localhost:8000/evaluate',
   completeChapterUrl: 'http://localhost:8000/complete-chapter',
+  firestoreDb: undefined as string | undefined,
   firebase: {
     apiKey: 'demo-api-key',
     authDomain: 'localhost',

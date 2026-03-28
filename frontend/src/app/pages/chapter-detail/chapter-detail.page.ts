@@ -138,7 +138,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                   }
                   <div class="p-6 md:p-10">
                     <h3 class="font-serif text-xl font-semibold text-greek-900 mb-2">{{ note.heading }}</h3>
-                    <p class="text-surface-600 mb-5 leading-relaxed">{{ note.explanation }}</p>
+                    <p class="text-surface-600 mb-5 leading-relaxed"
+                       [innerHTML]="renderMarkdownInline(note.explanation)"></p>
 
                     @if (note.grammar_table) {
                       <div class="mb-5 overflow-x-auto rounded-xl border border-surface-200">
@@ -606,6 +607,12 @@ export class ChapterDetailPage implements OnInit {
   /** Render a Markdown string to trusted HTML (used for grammar tables). */
   renderMarkdown(md: string): SafeHtml {
     const html = marked.parse(md, { async: false }) as string;
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  /** Render inline Markdown (bold, italic, code) without block-level wrapping. */
+  renderMarkdownInline(md: string): SafeHtml {
+    const html = marked.parseInline(md, { async: false }) as string;
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 

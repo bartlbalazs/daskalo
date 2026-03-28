@@ -62,7 +62,7 @@ type ConversationStep = LineStep | CheckpointStep;
               <div class="flex items-center gap-2 mb-1">
                 <span class="text-xs font-semibold"
                   [class]="step.line.speaker === 'male' ? 'text-greek-700' : 'text-gold-700'">
-                  {{ step.line.speaker === 'male' ? 'Νίκος' : 'Ελένη' }}
+                  {{ step.line.speaker === 'male' ? 'Ο άντρας' : 'Η γυναίκα' }}
                 </span>
                 @if (step.line.audioPath) {
                   <button

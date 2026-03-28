@@ -50,8 +50,8 @@ or is gibberish, respond with {{"error": "not_greek"}}.
    - Fix obvious spelling mistakes.
    - For nouns: provide the nominative singular with the appropriate article \
 (e.g. "ο δάσκαλος", "η θάλασσα", "το βιβλίο").
-   - For adjectives: provide all three gender endings separated by "/" \
-(e.g. "καλός / καλή / καλό").
+   - For adjectives: provide the compact format with gender endings separated by "/" with no spaces \
+(e.g. "καλός/ή/ό" or "βαθύς/ιά/ύ").
    - For verbs: provide the first-person singular present indicative active \
 (e.g. "μιλώ", "τρέχω").
    - For short phrases: normalise spacing and capitalisation but do not alter the meaning.

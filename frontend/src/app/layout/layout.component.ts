@@ -158,7 +158,7 @@ interface SidebarBook extends Book {
 
         <!-- ====== SIDEBAR ====== -->
         <aside
-          class="fixed top-14 md:top-24 bottom-0 left-0 z-30 bg-white border-r border-greek-100 overflow-y-auto flex flex-col transition-all duration-250 ease-in-out shadow-lg"
+          class="fixed top-14 md:top-24 bottom-0 left-0 z-30 bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           [style.min-width]="sidebarOpen() ? '16rem' : '0'"
         >

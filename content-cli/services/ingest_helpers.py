@@ -86,9 +86,15 @@ def process_chapter_assets(
         if grammar_note.get("imagePath"):
             grammar_note["imageUrl"] = _upload_asset(zf, grammar_note["imagePath"], chapter_id, assets_bucket)
             del grammar_note["imagePath"]
+        # Legacy: note-level combined audio (chapters generated before per-example audio)
         if grammar_note.get("audioPath"):
             grammar_note["audioUrl"] = _upload_asset(zf, grammar_note["audioPath"], chapter_id, assets_bucket)
             del grammar_note["audioPath"]
+        # Per-example audio (new chapters)
+        for example in grammar_note.get("examples", []):
+            if isinstance(example, dict) and example.get("audioPath"):
+                example["audioUrl"] = _upload_asset(zf, example["audioPath"], chapter_id, assets_bucket)
+                del example["audioPath"]
 
     # Sentence audio (list of paths -> list of URLs)
     uploaded_sentence_urls: list[str] = []

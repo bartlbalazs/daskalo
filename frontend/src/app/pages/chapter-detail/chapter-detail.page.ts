@@ -11,6 +11,7 @@ import { HighlightVocabPipe } from '../../shared/pipes/highlight-vocab.pipe';
 import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 import { ExerciseCardComponent } from './exercises/exercise-card.component';
 import { AudioPlayerComponent } from './exercises/audio-player.component';
+import { InlineAudioButtonComponent } from '../../shared/components/inline-audio-button.component';
 import { environment } from '../../../environments/environment';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -18,7 +19,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-chapter-detail',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent],
+  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent],
   template: `
     @if (chapter(); as chapter) {
 
@@ -145,7 +146,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                       </div>
                     }
 
-                    @if (note.audioUrl) {
+                    @if (note.audioUrl && !note.examples[0]?.audioUrl) {
                       <div class="mb-5">
                         <p class="text-xs font-semibold uppercase tracking-wider text-surface-400 mb-2">Listen to examples</p>
                         <app-audio-player [src]="note.audioUrl" />
@@ -156,12 +157,19 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                       <div class="space-y-2.5">
                         @for (example of note.examples; track example.greek) {
                           <div class="bg-greek-50 rounded-xl p-4 border border-greek-100">
-                            <p class="font-medium text-greek-800 text-base mb-0.5"
-                               [innerHTML]="example.greek | highlightVocab:chapter.vocabulary"></p>
-                            <p class="text-surface-500 text-sm">{{ example.english }}</p>
-                            @if (example.note) {
-                              <p class="text-xs text-surface-400 mt-2 italic">{{ example.note }}</p>
-                            }
+                            <div class="flex items-start gap-3">
+                              @if (example.audioUrl) {
+                                <app-inline-audio-button [src]="example.audioUrl" class="mt-0.5" />
+                              }
+                              <div class="min-w-0">
+                                <p class="font-medium text-greek-800 text-base mb-0.5"
+                                   [innerHTML]="example.greek | highlightVocab:chapter.vocabulary"></p>
+                                <p class="text-surface-500 text-sm">{{ example.english }}</p>
+                                @if (example.note) {
+                                  <p class="text-xs text-surface-400 mt-2 italic">{{ example.note }}</p>
+                                }
+                              </div>
+                            </div>
                           </div>
                         }
                       </div>

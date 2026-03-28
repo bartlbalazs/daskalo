@@ -7,7 +7,8 @@ Audio output:
   - One .mp3 for the full reading passage (Chirp3-HD female narrator, speed scaled by book)
   - One .mp3 per sentence of the passage (same voice + speed as full passage)
     - referenced by listening_comprehension and dictation exercises via sentence_index
-   - One .mp3 per grammar note (Greek example sentences only, Chirp3-HD female narrator, book-scaled rate)
+  - One .mp3 per grammar example sentence (Chirp3-HD female narrator, book-scaled rate)
+    - named {prefix}grammar_{noteIdx:02d}_ex_{exIdx:02d}.mp3; stored on each GrammarExample.audioPath
   - One dedicated .mp3 per pronunciation_practice exercise target_text (Chirp3-HD female narrator)
   - One .mp3 per conversation line (male/female speaker as specified by the exercise)
 
@@ -159,17 +160,13 @@ def generate_media(state: ContentState) -> dict:
         out_path = str(Path(work_dir) / f"{prefix}sentence_{idx:02d}_{safe_name}.mp3")
         tts_tasks.append((sentence, narrator_voice, out_path, narration_rate, f"sentence:{idx}"))
 
-    # --- 4. Grammar example sentences audio (female default) ---
-    for idx, note in enumerate(grammar_notes):
-        greek_examples = [ex.greek for ex in note.examples if ex.greek]
-        if not greek_examples:
-            continue
-        # Join examples with a short pause (represented by punctuation or natural phrasing;
-        # SSML <break> is better but plain text usually works okay with commas).
-        combined_text = " . ".join(greek_examples)
-        safe_name = re.sub(r"[^\w]", "_", note.heading)[:30]
-        out_path = str(Path(work_dir) / f"{prefix}grammar_{idx:02d}_{safe_name}.mp3")
-        tts_tasks.append((combined_text, VOICE_FEMALE, out_path, narration_rate, f"grammar:{idx}"))
+    # --- 4. Grammar example sentences audio — one file per example (female default) ---
+    for note_idx, note in enumerate(grammar_notes):
+        for ex_idx, example in enumerate(note.examples):
+            if not example.greek:
+                continue
+            out_path = str(Path(work_dir) / f"{prefix}grammar_{note_idx:02d}_ex_{ex_idx:02d}.mp3")
+            tts_tasks.append((example.greek, VOICE_FEMALE, out_path, narration_rate, f"grammar:{note_idx}:{ex_idx}"))
 
     # --- 5. Pronunciation practice target text audio (female default) ---
     for idx, exercise in enumerate(exercises):
@@ -233,12 +230,13 @@ def generate_media(state: ContentState) -> dict:
         path = tts_results.get(f"sentence:{idx}")
         sentence_audio_files.append(path or "")
 
-    # Grammar notes
-    for idx, note in enumerate(grammar_notes):
-        path = tts_results.get(f"grammar:{idx}")
-        if path:
-            audio_files.append(path)
-            note.audioPath = path
+    # Grammar notes — assign per-example audio paths
+    for note_idx, note in enumerate(grammar_notes):
+        for ex_idx, example in enumerate(note.examples):
+            path = tts_results.get(f"grammar:{note_idx}:{ex_idx}")
+            if path:
+                audio_files.append(path)
+                example.audioPath = path
 
     # Pronunciation
     for idx, exercise in enumerate(exercises):

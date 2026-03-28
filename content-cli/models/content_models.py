@@ -128,9 +128,12 @@ class VocabularyItem(BaseModel):
 
 
 class GrammarExample(BaseModel):
+    model_config = ConfigDict(frozen=False)
+
     greek: str
     english: str
     note: str | None = None
+    audioPath: str | None = None  # Set by generate_media (per-example TTS); replaced with GCS URL on ingest
 
 
 class GrammarNote(BaseModel):
@@ -162,7 +165,9 @@ class GrammarNote(BaseModel):
         ),
     )
     imagePath: str | None = None  # Set by generate_media; backend replaces with GCS URL
-    audioPath: str | None = None  # Set by generate_media (Greek examples audio); backend replaces with GCS URL
+    audioPath: str | None = (
+        None  # Legacy: single combined audio for all examples (deprecated). New chapters use per-example audioPath on each GrammarExample.
+    )
 
 
 # ---------------------------------------------------------------------------

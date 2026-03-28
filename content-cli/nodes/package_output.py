@@ -113,12 +113,18 @@ def _serialise_grammar_note(note: GrammarNote) -> dict:
     """Serialise a GrammarNote, converting absolute imagePath/audioPath to ZIP-relative paths.
     Strips the internal image_prompt field (not needed in the descriptor).
     Includes grammar_table (Markdown string) if present.
+    Per-example audioPath on each example is converted to a ZIP-relative path.
     """
     d = note.model_dump(exclude={"image_prompt"})
     if d.get("imagePath"):
         d["imagePath"] = f"assets/images/{Path(d['imagePath']).name}"
+    # Legacy note-level audioPath (should be None for newly generated chapters)
     if d.get("audioPath"):
         d["audioPath"] = f"assets/audio/grammar/{Path(d['audioPath']).name}"
+    # Per-example audio paths
+    for example in d.get("examples", []):
+        if example.get("audioPath"):
+            example["audioPath"] = f"assets/audio/grammar/{Path(example['audioPath']).name}"
     return d
 
 

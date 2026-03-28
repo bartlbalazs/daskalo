@@ -226,6 +226,8 @@ export interface GrammarExample {
   greek: string;
   english: string;
   note?: string | null;
+  /** Per-example audio URL (gs:// URI). Present on newly generated chapters only. */
+  audioUrl?: string;
 }
 
 export interface GrammarNote {

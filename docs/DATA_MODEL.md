@@ -70,10 +70,16 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
       "heading": "The Accusative Case",
       "explanation": "Used for direct objects and after certain prepositions.",
       "examples": [
-        { "greek": "Βλέπω τον άνδρα.", "english": "I see the man.", "note": null }
+        {
+          "greek": "Βλέπω τον άνδρα.",
+          "english": "I see the man.",
+          "note": null,
+          "audioUrl": "gs://public-assets-bucket/chapters/p1_c1_airport/grammar_00_ex_00.mp3" // Per-example audio. Present on newly generated chapters; absent on legacy chapters.
+        }
       ],
       "grammar_table": "| Person | Singular | Plural |\n|--------|----------|--------|\n| 1st | τον | τους |", // Optional Markdown pipe-table for conjugation/declension paradigms.
-      "imageUrl": "gs://public-assets-bucket/images/grammar_note_00.jpg"
+      "imageUrl": "gs://public-assets-bucket/images/grammar_note_00.jpg",
+      "audioUrl": null // Legacy: single combined audio for all examples. Present only on chapters generated before per-example audio was introduced. New chapters use per-example audioUrl on each example instead.
     }
   ],
   "grammarSummary": "## Lost in Monastiraki\n\n### Grammar: The Accusative Case\n...", // Pre-generated Markdown reference (grammar tables + key vocabulary + tips). Generated once by the content-cli pipeline and shared across all students. Displayed in the Grammar Book page only after the student completes the chapter.

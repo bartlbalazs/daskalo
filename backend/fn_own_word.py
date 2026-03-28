@@ -122,6 +122,8 @@ def add_own_word_fn(request: flask.Request) -> tuple:
                             "audioUrl": d.get("audioUrl", ""),
                             "chapterId": d.get("chapterId", ""),
                             "bookId": d.get("bookId", ""),
+                            "docId": doc.id,
+                            "alreadyExisted": True,
                             "createdAt": d.get("createdAt", ""),
                         }
                     )

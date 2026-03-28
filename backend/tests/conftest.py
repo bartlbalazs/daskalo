@@ -14,7 +14,6 @@ from models.firestore import (
     ExerciseType,
 )
 
-
 # ---------------------------------------------------------------------------
 # Prevent Firebase Admin SDK from initialising during tests
 # ---------------------------------------------------------------------------

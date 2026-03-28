@@ -455,21 +455,26 @@ export class VocabularyPage implements OnInit {
     if (completedIds.length === 0) {
       await Promise.all([favoritesPromise, ownWordsPromise]);
       // Still merge own words even if no chapters are completed
-      this._mergeOwnWords([]);
+      this._mergeOwnWords([], new Map(), new Map());
       this.loading.set(false);
       return;
     }
 
     try {
+      // Own words load independently — a failure should not prevent chapter vocab from rendering.
+      await ownWordsPromise.catch(err =>
+        console.error('[VocabularyPage] Own words failed to load:', err)
+      );
+
       const [chapters, books] = await Promise.all([
         firstValueFrom(this.lessonService.getChaptersByIds(completedIds)),
         firstValueFrom(this.lessonService.getBooks()),
         favoritesPromise,
-        ownWordsPromise,
       ]);
 
       this.completedChapters.set(chapters ?? []);
       const bookMap = new Map(books?.map(b => [b.id, b]) ?? []);
+      const chapterMap = new Map((chapters ?? []).map(c => [c.id, c]));
 
       const seen = new Set<string>();
       const rows: VocabRow[] = [];
@@ -495,7 +500,7 @@ export class VocabularyPage implements OnInit {
         }
       }
 
-      this._mergeOwnWords(rows);
+      this._mergeOwnWords(rows, chapterMap, bookMap);
       
     } catch (err) {
       console.error("Failed to load vocabulary:", err);
@@ -505,23 +510,27 @@ export class VocabularyPage implements OnInit {
   }
 
   /** Merge own words into the rows array and set allRows signal. */
-  private _mergeOwnWords(chapterRows: VocabRow[]): void {
+  private _mergeOwnWords(
+    chapterRows: VocabRow[],
+    chapterMap: Map<string, Chapter>,
+    bookMap: Map<string, Book>
+  ): void {
     const seen = new Set<string>(chapterRows.map(r => r.greek.toLowerCase()));
-    const ownRows: VocabRow[] = this.ownWordsService.allOwnWords().map(w => ({
-      greek: w.greek,
-      english: w.english,
-      ...(w.audioUrl ? { audioUrl: w.audioUrl } : {}),
-      chapterId: w.chapterId,
-      chapterTitle: 'My Words',
-      chapterOrder: 9999,
-      bookId: w.bookId,
-      bookTitle: 'My Words',
-      bookOrder: 9999,
-      isOwnWord: true,
-    })).filter(r => {
-      // Include own word even if the same greek exists in chapter vocab
-      // (they may differ in form/context). Use docId-style key to avoid dedup.
-      return true;
+    const ownRows: VocabRow[] = this.ownWordsService.allOwnWords().map(w => {
+      const chapter = chapterMap.get(w.chapterId);
+      const book = bookMap.get(w.bookId);
+      return {
+        greek: w.greek,
+        english: w.english,
+        ...(w.audioUrl ? { audioUrl: w.audioUrl } : {}),
+        chapterId: w.chapterId,
+        chapterTitle: chapter?.title ?? 'My Words',
+        chapterOrder: chapter?.order ?? 9999,
+        bookId: w.bookId,
+        bookTitle: book?.title ?? 'My Words',
+        bookOrder: book?.order ?? 9999,
+        isOwnWord: true,
+      };
     });
 
     // Deduplicate own words by greek (in case of near-duplicates across chapters)

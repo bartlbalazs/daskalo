@@ -45,7 +45,7 @@ def _get_model() -> GenerativeModel:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
     vertexai.init(project=project, location=region)
-    return GenerativeModel("gemini-2.0-flash")
+    return GenerativeModel("gemini-2.5-flash")
 
 
 # ---------------------------------------------------------------------------

@@ -65,13 +65,13 @@ variable "complete_chapter_function_timeout" {
 variable "add_own_word_function_memory" {
   description = "Memory for the add-own-word Cloud Function."
   type        = string
-  default     = "512M"
+  default     = "1Gi"
 }
 
 variable "add_own_word_function_cpu" {
   description = "vCPU allocation for the add-own-word Cloud Function. Set to '1' when memory > 512Mi."
   type        = string
-  default     = "0.333"
+  default     = "1"
 }
 
 variable "add_own_word_function_timeout" {

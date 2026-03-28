@@ -7,11 +7,8 @@ hitting any real infrastructure.
 """
 
 import base64
-import json
 from datetime import datetime
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 import fn_evaluate
 from models.firestore import AttemptStatus, ExerciseType

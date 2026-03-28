@@ -2,7 +2,7 @@
 Tests for callable_helpers.py — Firebase Callable wire protocol helpers.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -13,7 +13,6 @@ from callable_helpers import (
     verify_firebase_token,
 )
 from tests.conftest import make_flask_request
-
 
 # ---------------------------------------------------------------------------
 # parse_callable_request

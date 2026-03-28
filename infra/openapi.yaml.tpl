@@ -104,7 +104,8 @@ paths:
       summary: "CORS preflight for /evaluate"
       x-google-backend:
         address: "${evaluate_attempt_url}"
-        deadline: 20.0
+        deadline: 30.0
+        protocol: h2
       parameters:
         - in: header
           name: Origin
@@ -169,7 +170,8 @@ paths:
       summary: "CORS preflight for /complete-chapter"
       x-google-backend:
         address: "${complete_chapter_url}"
-        deadline: 20.0
+        deadline: 30.0
+        protocol: h2
       parameters:
         - in: header
           name: Origin
@@ -234,7 +236,8 @@ paths:
       summary: "CORS preflight for /add-own-word"
       x-google-backend:
         address: "${add_own_word_url}"
-        deadline: 20.0
+        deadline: 30.0
+        protocol: h2
       parameters:
         - in: header
           name: Origin

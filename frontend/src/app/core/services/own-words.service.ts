@@ -58,16 +58,23 @@ export class OwnWordsService {
    */
   async loadOwnWords(): Promise<void> {
     const uid = this.auth.currentUser?.uid;
-    if (!uid) return;
-
-    const ref = collection(this.firestore, 'users', uid, 'ownWords');
-    const snap = await getDocs(ref);
-    const map = new Map<string, OwnWord>();
-    for (const d of snap.docs) {
-      map.set(d.id, d.data() as OwnWord);
+    if (!uid) {
+      console.warn('[OwnWordsService] loadOwnWords called with no authenticated user.');
+      return;
     }
-    this._ownWords.set(map);
-    this._loaded = true;
+
+    try {
+      const ref = collection(this.firestore, 'users', uid, 'ownWords');
+      const snap = await getDocs(ref);
+      const map = new Map<string, OwnWord>();
+      for (const d of snap.docs) {
+        map.set(d.id, d.data() as OwnWord);
+      }
+      this._ownWords.set(map);
+      this._loaded = true;
+    } catch (err) {
+      this._loaded = true; // prevent retry loops; signal stays with existing data
+    }
   }
 
   /** Load own words once (no-op on subsequent calls unless force=true). */

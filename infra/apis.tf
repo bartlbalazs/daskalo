@@ -15,6 +15,7 @@ locals {
     "storage.googleapis.com",
     "aiplatform.googleapis.com",
     "speech.googleapis.com",
+    "texttospeech.googleapis.com",
     "apigateway.googleapis.com",
     "servicecontrol.googleapis.com",
     "servicemanagement.googleapis.com",

@@ -194,5 +194,7 @@ def create_own_word(
         "audioUrl": audio_url,
         "chapterId": chapter_id,
         "bookId": book_id,
+        "docId": doc_id,
+        "alreadyExisted": False,
         "createdAt": datetime.now(tz=UTC).isoformat(),
     }

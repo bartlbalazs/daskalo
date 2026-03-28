@@ -15,6 +15,13 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // Own-word audio files — readable only by the owning user.
+    // Written exclusively by the add-own-word Cloud Function via Admin SDK.
+    match /users/{userId}/own_words/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
     // Archives (raw content ZIPs) are never accessible from the client.
     match /archives/{allPaths=**} {
       allow read, write: if false;

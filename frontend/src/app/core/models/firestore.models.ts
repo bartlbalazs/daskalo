@@ -258,6 +258,20 @@ export interface FavoriteWord {
   favoritedAt: Timestamp;
 }
 
+/** A custom Greek word or phrase the student added themselves.
+ *  Stored in the `users/{userId}/ownWords` subcollection.
+ *  Document ID: `{chapterId}__{normalizedGreek}` (double underscore separator).
+ *  Written by the add-own-word Cloud Function; clients read only.
+ */
+export interface OwnWord {
+  greek: string;
+  english: string;
+  audioUrl?: string;
+  chapterId: string;
+  bookId: string;
+  createdAt: Timestamp;
+}
+
 export interface Exercise {
   type: ExerciseType;
   prompt: string;

@@ -25,6 +25,7 @@ from firebase_admin import credentials
 
 from fn_complete_chapter import complete_chapter_fn
 from fn_evaluate import evaluate_attempt_fn
+from fn_own_word import add_own_word_fn
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ def _init_firebase() -> None:
     # (Cloud Functions use fn_evaluate.py / fn_complete_chapter.py directly),
     # so hardcoding the emulator host here is safe.
     os.environ.setdefault("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
+    os.environ.setdefault("PUBLIC_ASSETS_BUCKET", "demo-daskalo-assets")
     cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     cred = credentials.Certificate(cred_path) if cred_path else credentials.ApplicationDefault()
     # Force the local Firebase emulator project ID to match the frontend emulator
@@ -130,5 +132,13 @@ async def evaluate_endpoint(request: Request) -> JSONResponse:
 async def complete_chapter_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
     result = complete_chapter_fn(shim)
+    body, status = result[0], result[1]
+    return JSONResponse(content=body, status_code=status)
+
+
+@app.post("/add-own-word", summary="Add a student's own Greek vocabulary word")
+async def add_own_word_endpoint(request: Request) -> JSONResponse:
+    shim = await _shim(request)
+    result = add_own_word_fn(shim)
     body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)

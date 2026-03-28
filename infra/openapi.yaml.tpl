@@ -22,6 +22,10 @@ x-google-management:
       displayName: "Complete Chapter Requests"
       valueType: INT64
       metricKind: DELTA
+    - name: "add-own-word-requests"
+      displayName: "Add Own Word Requests"
+      valueType: INT64
+      metricKind: DELTA
   quota:
     limits:
       - name: "evaluate-attempt-limit"
@@ -34,6 +38,11 @@ x-google-management:
         unit: "1/min/{project}"
         values:
           STANDARD: 3
+      - name: "add-own-word-limit"
+        metric: "add-own-word-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 5
 
 # ---------------------------------------------------------------------------
 # Firebase JWT security definition
@@ -160,6 +169,71 @@ paths:
       summary: "CORS preflight for /complete-chapter"
       x-google-backend:
         address: "${complete_chapter_url}"
+        deadline: 20.0
+      parameters:
+        - in: header
+          name: Origin
+          type: string
+        - in: header
+          name: Access-Control-Request-Method
+          type: string
+        - in: header
+          name: Access-Control-Request-Headers
+          type: string
+      responses:
+        "200":
+          description: "CORS preflight response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+            Access-Control-Max-Age:
+              type: string
+
+  # -------------------------------------------------------------------------
+  # /add-own-word — POST (add-own-word function)
+  # -------------------------------------------------------------------------
+  /add-own-word:
+    post:
+      operationId: "addOwnWord"
+      summary: "Add a custom vocabulary word for the current user"
+      security:
+        - firebase: []
+      x-google-quota:
+        metricCosts:
+          "add-own-word-requests": 1
+      x-google-backend:
+        address: "${add_own_word_url}"
+        jwt_audience: "${add_own_word_url}"
+        deadline: 60.0
+        protocol: h2
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Own word added or already exists"
+        "400":
+          description: "Invalid argument"
+        "401":
+          description: "Unauthenticated"
+        "403":
+          description: "Permission denied"
+        "429":
+          description: "Rate limit exceeded"
+        "500":
+          description: "Internal error"
+    options:
+      operationId: "addOwnWordCors"
+      summary: "CORS preflight for /add-own-word"
+      x-google-backend:
+        address: "${add_own_word_url}"
         deadline: 20.0
       parameters:
         - in: header

@@ -24,6 +24,13 @@ service cloud.firestore {
       match /favoriteWords/{wordId} {
         allow read, write: if request.auth.uid == userId && isActiveUser();
       }
+
+      // Own words subcollection — written by the add-own-word Cloud Function via
+      // Admin SDK (bypasses rules). Client may only read its own words.
+      match /ownWords/{wordId} {
+        allow read: if request.auth.uid == userId && isActiveUser();
+        allow write: if false;
+      }
     }
 
     match /books/{bookId} {

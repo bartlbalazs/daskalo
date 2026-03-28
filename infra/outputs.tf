@@ -18,6 +18,11 @@ output "complete_chapter_function_url" {
   value       = google_cloudfunctions2_function.complete_chapter.service_config[0].uri
 }
 
+output "add_own_word_function_url" {
+  description = "Direct Cloud Run URL of the add-own-word Cloud Function (internal — do not expose publicly)."
+  value       = google_cloudfunctions2_function.add_own_word.service_config[0].uri
+}
+
 output "hosting_default_url" {
   description = "Default Firebase Hosting URL."
   value       = "https://${google_firebase_hosting_site.daskalo.site_id}.web.app"

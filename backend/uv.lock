@@ -331,6 +331,8 @@ dependencies = [
     { name = "google-cloud-aiplatform" },
     { name = "google-cloud-firestore" },
     { name = "google-cloud-speech" },
+    { name = "google-cloud-storage" },
+    { name = "google-cloud-texttospeech" },
     { name = "pydantic" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -351,6 +353,8 @@ requires-dist = [
     { name = "google-cloud-aiplatform", specifier = ">=1.142.0" },
     { name = "google-cloud-firestore", specifier = ">=2.25.0" },
     { name = "google-cloud-speech", specifier = ">=2.0.0" },
+    { name = "google-cloud-storage", specifier = ">=2.0.0" },
+    { name = "google-cloud-texttospeech", specifier = ">=2.0.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.42.0" },
 ]
@@ -622,6 +626,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4c/47/205eb8e9a1739b5345843e5a425775cbdc472cc38e7eda082ba5b8d02450/google_cloud_storage-3.10.1.tar.gz", hash = "sha256:97db9aa4460727982040edd2bd13ff3d5e2260b5331ad22895802da1fc2a5286", size = 17309950, upload-time = "2026-03-23T09:35:23.409Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/ff/ca9ab2417fa913d75aae38bf40bf856bb2749a604b2e0f701b37cfcd23cc/google_cloud_storage-3.10.1-py3-none-any.whl", hash = "sha256:a72f656759b7b99bda700f901adcb3425a828d4a29f911bc26b3ea79c5b1217f", size = 324453, upload-time = "2026-03-23T09:35:21.368Z" },
+]
+
+[[package]]
+name = "google-cloud-texttospeech"
+version = "2.35.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/0b/05256737992272e3f15509681e172f194381ee5b457b55def49b09aabc95/google_cloud_texttospeech-2.35.0.tar.gz", hash = "sha256:b62a5eeca410bcaab0365328aefb8ba1206e42760ae408c0420a1b7daeedb5ba", size = 194754, upload-time = "2026-03-26T22:18:24.966Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/a3/36bb1a8c8ba06056a7bda38a148675d27eda99f7564780db38fcde5a7c4d/google_cloud_texttospeech-2.35.0-py3-none-any.whl", hash = "sha256:8bb323ea1941d11b964d5097673835802c4b1ae89b321073423734245048bc1c", size = 198214, upload-time = "2026-03-26T22:15:17.951Z" },
 ]
 
 [[package]]

@@ -71,3 +71,10 @@ resource "google_project_iam_member" "cf_runtime_storage_object_viewer" {
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.cf_runtime_sa.email}"
 }
+
+# Write own-word audio files to the public assets bucket (add-own-word function).
+resource "google_project_iam_member" "cf_runtime_storage_object_creator" {
+  project = var.project_id
+  role    = "roles/storage.objectCreator"
+  member  = "serviceAccount:${google_service_account.cf_runtime_sa.email}"
+}

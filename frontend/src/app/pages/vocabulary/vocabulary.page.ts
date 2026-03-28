@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FavoriteWordsService } from '../../core/services/favorite-words.service';
+import { OwnWordsService } from '../../core/services/own-words.service';
 import { VocabularyItem, Book, Chapter } from '../../core/models/firestore.models';
 import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 
@@ -16,6 +17,7 @@ interface VocabRow extends VocabularyItem {
   bookId: string;
   bookTitle: string;
   bookOrder: number;
+  isOwnWord?: boolean;
 }
 
 interface ChapterGroup {
@@ -262,7 +264,16 @@ interface BookGroup {
 
     <!-- Reusable Word Card Template -->
     <ng-template #wordCard let-word let-showSource="showSource">
-      <div class="group bg-white border border-surface-200 rounded-2xl p-5 hover:border-greek-300 hover:shadow-md transition-all duration-200 flex flex-col h-full">
+      <div class="group bg-white border border-surface-200 rounded-2xl p-5 hover:border-greek-300 hover:shadow-md transition-all duration-200 flex flex-col h-full relative">
+        <!-- Own-word pencil badge (top-left corner) -->
+        @if (word.isOwnWord) {
+          <div class="absolute top-2.5 left-2.5 w-5 h-5 rounded-full bg-greek-100 flex items-center justify-center" title="Your own word">
+            <svg class="w-3 h-3 text-greek-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            </svg>
+          </div>
+        }
         <div class="flex items-start justify-between gap-3 mb-2">
           <div class="min-w-0 flex-1">
             <p class="font-serif text-2xl font-semibold text-greek-900 leading-tight mb-1 truncate">{{ word.greek }}</p>
@@ -347,6 +358,7 @@ export class VocabularyPage implements OnInit {
   private lessonService = inject(LessonService);
   private authService = inject(AuthService);
   readonly favoriteWordsService = inject(FavoriteWordsService);
+  readonly ownWordsService = inject(OwnWordsService);
   private scroller = inject(ViewportScroller);
   private storage = inject(Storage);
 
@@ -438,9 +450,12 @@ export class VocabularyPage implements OnInit {
     const completedIds = this.authService.currentUser()?.progress?.completedChapterIds ?? [];
 
     const favoritesPromise = this.favoriteWordsService.ensureLoaded();
+    const ownWordsPromise = this.ownWordsService.ensureLoaded();
 
     if (completedIds.length === 0) {
-      await favoritesPromise;
+      await Promise.all([favoritesPromise, ownWordsPromise]);
+      // Still merge own words even if no chapters are completed
+      this._mergeOwnWords([]);
       this.loading.set(false);
       return;
     }
@@ -450,6 +465,7 @@ export class VocabularyPage implements OnInit {
         firstValueFrom(this.lessonService.getChaptersByIds(completedIds)),
         firstValueFrom(this.lessonService.getBooks()),
         favoritesPromise,
+        ownWordsPromise,
       ]);
 
       this.completedChapters.set(chapters ?? []);
@@ -479,15 +495,47 @@ export class VocabularyPage implements OnInit {
         }
       }
 
-      // Sort full list alphabetically by Greek (used for search/favorites results)
-      rows.sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
-      this.allRows.set(rows);
+      this._mergeOwnWords(rows);
       
     } catch (err) {
       console.error("Failed to load vocabulary:", err);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Merge own words into the rows array and set allRows signal. */
+  private _mergeOwnWords(chapterRows: VocabRow[]): void {
+    const seen = new Set<string>(chapterRows.map(r => r.greek.toLowerCase()));
+    const ownRows: VocabRow[] = this.ownWordsService.allOwnWords().map(w => ({
+      greek: w.greek,
+      english: w.english,
+      ...(w.audioUrl ? { audioUrl: w.audioUrl } : {}),
+      chapterId: w.chapterId,
+      chapterTitle: 'My Words',
+      chapterOrder: 9999,
+      bookId: w.bookId,
+      bookTitle: 'My Words',
+      bookOrder: 9999,
+      isOwnWord: true,
+    })).filter(r => {
+      // Include own word even if the same greek exists in chapter vocab
+      // (they may differ in form/context). Use docId-style key to avoid dedup.
+      return true;
+    });
+
+    // Deduplicate own words by greek (in case of near-duplicates across chapters)
+    const ownDeduped = ownRows.filter(r => {
+      const key = `own__${r.greek.toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const rows = [...chapterRows, ...ownDeduped];
+    // Sort full list alphabetically by Greek
+    rows.sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
+    this.allRows.set(rows);
   }
 
   // ---------------------------------------------------------------------------

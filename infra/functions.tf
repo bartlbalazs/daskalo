@@ -149,3 +149,61 @@ resource "google_cloud_run_service_iam_member" "complete_chapter_invoker" {
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
 }
+
+# ---------------------------------------------------------------------------
+# add-own-word Cloud Function
+# ---------------------------------------------------------------------------
+
+resource "google_cloudfunctions2_function" "add_own_word" {
+  project     = var.project_id
+  location    = var.region
+  name        = "add-own-word"
+  description = "Normalises a student's Greek input via Gemini, generates TTS audio, and saves the word card."
+
+  build_config {
+    runtime     = "python311"
+    entry_point = "add_own_word_fn"
+
+    environment_variables = {
+      GOOGLE_FUNCTION_SOURCE = "fn_own_word.py"
+    }
+
+    source {
+      storage_source {
+        bucket = google_storage_bucket.cf_source.name
+        object = google_storage_bucket_object.backend_zip.name
+      }
+    }
+  }
+
+  service_config {
+    available_memory               = var.add_own_word_function_memory
+    available_cpu                  = var.add_own_word_function_cpu
+    timeout_seconds                = var.add_own_word_function_timeout
+    max_instance_count             = 2
+    min_instance_count             = 0
+    all_traffic_on_latest_revision = true
+
+    service_account_email = google_service_account.cf_runtime_sa.email
+
+    environment_variables = {
+      GOOGLE_CLOUD_PROJECT = var.project_id
+      FIRESTORE_DB         = var.db_name
+      PUBLIC_ASSETS_BUCKET = var.public_assets_bucket_name
+    }
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    google_storage_bucket_object.backend_zip,
+  ]
+}
+
+# Allow API Gateway SA to invoke add-own-word.
+resource "google_cloud_run_service_iam_member" "add_own_word_invoker" {
+  project  = var.project_id
+  location = var.region
+  service  = google_cloudfunctions2_function.add_own_word.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
+}

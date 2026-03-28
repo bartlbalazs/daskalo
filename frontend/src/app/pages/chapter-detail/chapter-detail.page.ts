@@ -13,6 +13,7 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 import { ExerciseCardComponent } from './exercises/exercise-card.component';
 import { AudioPlayerComponent } from './exercises/audio-player.component';
 import { InlineAudioButtonComponent } from '../../shared/components/inline-audio-button.component';
+import { OwnWordBubbleComponent } from './own-word-bubble.component';
 import { environment } from '../../../environments/environment';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -20,7 +21,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-chapter-detail',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent],
+  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent, OwnWordBubbleComponent],
   template: `
     @if (chapter(); as chapter) {
 
@@ -418,6 +419,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           }
         </div>
       </div>
+
+      <!-- ===== OWN WORD BUBBLE ===== -->
+      <app-own-word-bubble [chapterId]="chapter.id" [bookId]="chapter.bookId" />
 
     } @else {
       <!-- Loading skeleton — banded to match real layout -->

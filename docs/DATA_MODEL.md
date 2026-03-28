@@ -131,6 +131,26 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
 }
 ```
 
+### `users/{userId}/ownWords` (subcollection)
+Documents representing Greek words or short phrases the student added themselves.
+
+**Document ID:** `{chapterId}__{normalizedGreek}` (double underscore, Greek is LLM-normalized)
+
+> Access: Read by the owning user (active status required). Written exclusively by the `add-own-word` Cloud Function via Admin SDK.
+
+```json
+{
+  "greek": "ο δάσκαλος / η δασκάλα",
+  "english": "teacher",
+  "audioUrl": "gs://public-assets-bucket/users/{userId}/own_words/b1_c01_airport__o_daskalos.mp3",
+  "chapterId": "b1_c01_airport",
+  "bookId": "b1",
+  "createdAt": "Timestamp"
+}
+```
+
+---
+
 ### `users/{userId}/favoriteWords` (subcollection)
 Documents representing vocabulary words the student has bookmarked for focused practice.
 

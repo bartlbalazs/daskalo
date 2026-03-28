@@ -149,6 +149,7 @@ export const environment = {
   // API Gateway URL — all Cloud Function calls go through here.
   evaluateAttemptUrl: '${API_GATEWAY_URL}/evaluate',
   completeChapterUrl: '${API_GATEWAY_URL}/complete-chapter',
+  addOwnWordUrl: '${API_GATEWAY_URL}/add-own-word',
   firestoreDb: '${DB_NAME}',
   firebase: {
     apiKey: '${FIREBASE_API_KEY}',

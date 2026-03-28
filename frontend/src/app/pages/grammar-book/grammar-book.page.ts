@@ -1,4 +1,4 @@
-import { Component, inject, computed, OnInit, signal } from '@angular/core';
+import { Component, inject, computed, OnInit, signal, HostListener } from '@angular/core';
 import { ViewportScroller } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -20,7 +20,7 @@ interface BookGroup {
   template: `
     <!-- Dashboard Header (Gamified Ribbon) -->
     <div class="w-full bg-gradient-to-b from-greek-700 to-greek-600 border-b border-greek-800 pb-10 pt-8 px-6">
-      <div class="max-w-6xl mx-auto">
+      <div class="max-w-5xl mx-auto">
         <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
           <div>
             <nav class="flex items-center gap-1.5 text-sm text-greek-200 mb-4">
@@ -35,7 +35,7 @@ interface BookGroup {
               Your personal language reference. This library grows automatically as you master new chapters.
             </p>
           </div>
-          
+
           <!-- Trophy Stats -->
           <div class="flex items-center gap-4 bg-white/10 rounded-2xl p-4 border border-white/20 backdrop-blur-sm shadow-inner">
             <div class="text-center px-4 border-r border-white/20">
@@ -55,20 +55,13 @@ interface BookGroup {
       </div>
     </div>
 
-    <!-- Main Content Area (Two Columns) -->
-    <div class="px-6 py-10 max-w-6xl mx-auto">
+    <!-- Main Content Area (centered reading column) -->
+    <div class="px-6 py-10 max-w-5xl mx-auto">
       @if (loading()) {
         <!-- Loading skeleton -->
-        <div class="flex flex-col lg:flex-row gap-10">
-          <div class="lg:w-1/4 hidden lg:block animate-pulse">
-             <div class="h-6 bg-surface-200 rounded w-1/2 mb-4"></div>
-             <div class="h-4 bg-surface-100 rounded w-3/4 mb-2"></div>
-             <div class="h-4 bg-surface-100 rounded w-2/3"></div>
-          </div>
-          <div class="lg:w-3/4 animate-pulse space-y-6">
-            <div class="h-40 bg-surface-200 rounded-2xl w-full"></div>
-            <div class="h-64 bg-surface-200 rounded-2xl w-full"></div>
-          </div>
+        <div class="animate-pulse space-y-6">
+          <div class="h-40 bg-surface-200 rounded-2xl w-full"></div>
+          <div class="h-64 bg-surface-200 rounded-2xl w-full"></div>
         </div>
       } @else if (bookGroups().length === 0) {
         <!-- Empty state -->
@@ -89,78 +82,105 @@ interface BookGroup {
           </a>
         </div>
       } @else {
-        <div class="flex flex-col lg:flex-row gap-10 items-start">
-          <!-- Left Sidebar (Table of Contents) -->
-          <aside class="w-full lg:w-1/4 lg:sticky lg:top-8 bg-white border border-surface-200 rounded-2xl p-5 shadow-sm">
-            <h3 class="font-serif text-lg font-semibold text-greek-900 mb-4 border-b border-surface-100 pb-3">Table of Contents</h3>
-            <div class="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-              @for (group of bookGroups(); track group.book.id) {
-                <div>
-                  <h4 class="font-bold text-surface-400 text-xs uppercase tracking-widest mb-3">{{ group.book.title }}</h4>
-                  <ul class="space-y-1 border-l-2 border-surface-100 ml-1.5 pl-3">
-                    @for (chapter of group.chapters; track chapter.id) {
-                      <li>
-                        <button (click)="scrollTo(chapter.id)"
-                           class="text-left text-sm font-medium text-surface-600 hover:text-greek-600 transition-colors w-full truncate leading-tight py-1.5 px-2 rounded-lg hover:bg-surface-50 focus:outline-none focus:bg-surface-50">
-                          {{ chapter.order }}. {{ chapter.title }}
-                        </button>
-                      </li>
+        <!-- Chapter content -->
+        <div class="space-y-12">
+          @for (group of bookGroups(); track group.book.id) {
+            <div class="space-y-8">
+              <!-- Book heading separator -->
+              <div class="flex items-center gap-4 mb-2">
+                <div class="flex-1 h-px bg-surface-200"></div>
+                <h2 class="font-serif text-xl font-bold text-surface-400 uppercase tracking-widest">{{ group.book.title }}</h2>
+                <div class="flex-1 h-px bg-surface-200"></div>
+              </div>
+
+              @for (chapter of group.chapters; track chapter.id) {
+                <!-- Chapter Card -->
+                <article [id]="chapter.id" class="bg-white border border-surface-200 rounded-2xl shadow-sm overflow-hidden scroll-mt-8 transition-shadow hover:shadow-md">
+                  <!-- Card Header -->
+                  <div class="bg-surface-50 border-b border-surface-200 px-6 md:px-8 py-5 flex items-center justify-between gap-4">
+                    <div>
+                      <span class="text-xs font-bold uppercase tracking-widest text-greek-600 mb-1.5 block">Chapter {{ chapter.order }}</span>
+                      <h3 class="font-serif text-2xl font-semibold text-greek-900 m-0">{{ chapter.title }}</h3>
+                    </div>
+                    <a [routerLink]="['/chapters', chapter.id]"
+                       class="shrink-0 w-10 h-10 rounded-full bg-white border border-surface-200 flex items-center justify-center text-surface-400 hover:text-greek-600 hover:border-greek-300 hover:bg-greek-50 transition-all shadow-sm"
+                       title="Review Lesson">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <!-- Card Body -->
+                  <div class="p-6 md:p-8">
+                    @if (chapter.grammarSummary) {
+                      <div class="prose prose-sm max-w-none grammar-book-content"
+                        [innerHTML]="renderMarkdown(chapter.grammarSummary)">
+                      </div>
+                    } @else {
+                      <div class="rounded-xl bg-surface-50 px-5 py-8 border border-surface-100 text-center text-sm text-surface-400 italic">
+                        Grammar summary not available for this chapter.
+                      </div>
                     }
-                  </ul>
-                </div>
+                  </div>
+                </article>
               }
             </div>
-          </aside>
-
-          <!-- Right Content Area -->
-          <main class="w-full lg:w-3/4 space-y-12">
-            @for (group of bookGroups(); track group.book.id) {
-              <div class="space-y-8">
-                <!-- Book heading separator -->
-                <div class="flex items-center gap-4 mb-2">
-                  <div class="flex-1 h-px bg-surface-200"></div>
-                  <h2 class="font-serif text-xl font-bold text-surface-400 uppercase tracking-widest">{{ group.book.title }}</h2>
-                  <div class="flex-1 h-px bg-surface-200"></div>
-                </div>
-
-                @for (chapter of group.chapters; track chapter.id) {
-                  <!-- Chapter Card -->
-                  <article [id]="chapter.id" class="bg-white border border-surface-200 rounded-2xl shadow-sm overflow-hidden scroll-mt-8 transition-shadow hover:shadow-md">
-                    <!-- Card Header -->
-                    <div class="bg-surface-50 border-b border-surface-200 px-6 md:px-8 py-5 flex items-center justify-between gap-4">
-                       <div>
-                         <span class="text-xs font-bold uppercase tracking-widest text-greek-600 mb-1.5 block">Chapter {{ chapter.order }}</span>
-                         <h3 class="font-serif text-2xl font-semibold text-greek-900 m-0">{{ chapter.title }}</h3>
-                       </div>
-                       <a [routerLink]="['/chapters', chapter.id]"
-                          class="shrink-0 w-10 h-10 rounded-full bg-white border border-surface-200 flex items-center justify-center text-surface-400 hover:text-greek-600 hover:border-greek-300 hover:bg-greek-50 transition-all shadow-sm"
-                          title="Review Lesson">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                         </svg>
-                       </a>
-                    </div>
-                    
-                    <!-- Card Body -->
-                    <div class="p-6 md:p-8">
-                      @if (chapter.grammarSummary) {
-                        <div class="prose prose-sm max-w-none grammar-book-content"
-                          [innerHTML]="renderMarkdown(chapter.grammarSummary)">
-                        </div>
-                      } @else {
-                        <div class="rounded-xl bg-surface-50 px-5 py-8 border border-surface-100 text-center text-sm text-surface-400 italic">
-                          Grammar summary not available for this chapter.
-                        </div>
-                      }
-                    </div>
-                  </article>
-                }
-              </div>
-            }
-          </main>
+          }
         </div>
       }
     </div>
+
+    <!-- TOC Drawer Backdrop -->
+    @if (tocOpen()) {
+      <div class="fixed inset-0 bg-black/40 z-40 transition-opacity"
+           (click)="tocOpen.set(false)">
+      </div>
+    }
+
+    <!-- TOC Drawer Panel (slides in from right) -->
+    <aside class="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 translate-x-full"
+           [class.translate-x-0]="tocOpen()">
+      <!-- Drawer Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-surface-100">
+        <h3 class="font-serif text-lg font-semibold text-greek-900">Contents</h3>
+        <button (click)="tocOpen.set(false)"
+                class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Drawer TOC Links -->
+      <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        @for (group of bookGroups(); track group.book.id) {
+          <div>
+            <h4 class="font-bold text-surface-400 text-xs uppercase tracking-widest mb-3 px-2">{{ group.book.title }}</h4>
+            <ul class="space-y-1 border-l-2 border-surface-100 ml-1.5 pl-3">
+              @for (chapter of group.chapters; track chapter.id) {
+                <li>
+                  <button (click)="scrollToAndClose(chapter.id)"
+                          class="text-left text-sm font-medium text-surface-600 hover:text-greek-600 transition-colors w-full truncate leading-tight py-1.5 px-2 rounded-lg hover:bg-surface-50 focus:outline-none focus:bg-surface-50">
+                    {{ chapter.order }}. {{ chapter.title }}
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Floating TOC Button (visible only when content is loaded) -->
+    @if (!loading() && bookGroups().length > 0) {
+      <button (click)="tocOpen.set(true)"
+              class="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-3 bg-greek-600 hover:bg-greek-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 font-semibold text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"/>
+        </svg>
+        Contents
+      </button>
+    }
   `,
   styles: [`
     :host ::ng-deep .grammar-book-content h1,
@@ -269,22 +289,6 @@ interface BookGroup {
       margin-bottom: 0.25rem;
       font-family: var(--font-sans);
     }
-    
-    /* Custom scrollbar for the TOC */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f3f7;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cdd3df;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #9aa3b5;
-    }
   `],
 })
 export class GrammarBookPage implements OnInit {
@@ -294,6 +298,7 @@ export class GrammarBookPage implements OnInit {
   private scroller = inject(ViewportScroller);
 
   loading = signal(true);
+  tocOpen = signal(false);
   currentUser = this.authService.currentUser;
 
   completedChapters = signal<Chapter[]>([]);
@@ -358,5 +363,16 @@ export class GrammarBookPage implements OnInit {
 
   scrollTo(id: string): void {
     this.scroller.scrollToAnchor(id);
+  }
+
+  scrollToAndClose(id: string): void {
+    this.tocOpen.set(false);
+    // Small delay so the drawer closes before the scroll, avoiding layout shift
+    setTimeout(() => this.scroller.scrollToAnchor(id), 50);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.tocOpen.set(false);
   }
 }

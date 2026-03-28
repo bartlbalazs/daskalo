@@ -38,7 +38,7 @@ interface BookGroup {
   template: `
     <!-- Dashboard Header (Gamified Ribbon) -->
     <div class="w-full bg-gradient-to-b from-greek-700 to-greek-600 border-b border-greek-800 pb-10 pt-8 px-6">
-      <div class="max-w-6xl mx-auto">
+      <div class="max-w-[1600px] mx-auto">
         <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
           <div>
             <nav class="flex items-center gap-1.5 text-sm text-greek-200 mb-4">
@@ -74,7 +74,7 @@ interface BookGroup {
     </div>
 
     <!-- Main Content Area -->
-    <div class="px-6 py-10 max-w-6xl mx-auto">
+    <div class="px-6 py-10 max-w-[1600px] mx-auto">
       
       <!-- Search + Filter Bar -->
       <div class="mb-8 flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
@@ -124,11 +124,13 @@ interface BookGroup {
 
       @if (loading()) {
         <!-- Loading Skeleton -->
-        <div class="max-w-4xl mx-auto animate-pulse space-y-6">
+        <div class="animate-pulse space-y-6">
           <div class="h-6 bg-surface-200 rounded w-1/4 mx-auto mb-8"></div>
-          @for (i of [1,2,3,4,5,6]; track i) {
-            <div class="bg-white border border-surface-200 rounded-xl h-20"></div>
-          }
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
+            @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+              <div class="bg-white border border-surface-200 rounded-xl h-20"></div>
+            }
+          </div>
         </div>
       } @else if (allRows().length === 0) {
         <!-- Empty State -->
@@ -182,7 +184,7 @@ interface BookGroup {
               }
             </div>
           } @else {
-            <div class="max-w-4xl mx-auto space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
               @for (word of filteredRows(); track word.greek) {
                 <ng-container *ngTemplateOutlet="wordCard; context: { $implicit: word, showSource: true }"></ng-container>
               }
@@ -190,8 +192,8 @@ interface BookGroup {
           }
         </div>
       } @else {
-        <!-- Default View (Grouped by Book/Chapter, single column) -->
-        <div class="max-w-4xl mx-auto space-y-4">
+        <!-- Default View (Grouped by Book/Chapter) -->
+        <div class="space-y-4">
           @for (bookGroup of groupedVocab(); track bookGroup.book.id) {
 
             <!-- Book separator -->
@@ -214,8 +216,8 @@ interface BookGroup {
                 <div class="flex-1 h-px bg-surface-100"></div>
               </div>
 
-              <!-- Words list (single column) -->
-              <div class="space-y-3">
+              <!-- Words grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
                 @for (word of chapterGroup.words; track word.greek) {
                   <ng-container *ngTemplateOutlet="wordCard; context: { $implicit: word, showSource: false }"></ng-container>
                 }

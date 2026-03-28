@@ -4,6 +4,8 @@
   # Daskalo
   
   **An AI-powered, interest-driven Greek language learning platform.**
+
+  ![Daskalo Main Page](docs/main_page.png)
 </div>
 
 ---
@@ -23,7 +25,7 @@ Currently, Daskalo evaluates students through four core exercise types:
 *   **🗣️ Pronunciation Practice:** Students record themselves speaking Greek phrases, receiving instant, phonetic AI feedback on their accent and clarity.
 *   **📝 Translation Challenge:** Context-driven translation exercises between Greek and the student's native language.
 *   **🎧 Dictation:** Students listen to native-sounding text-to-speech audio and must accurately transcribe what they hear.
-
+![Dialogue_exercise](docs/exercise.png)
 ---
 
 ## 🛠️ Tech Stack

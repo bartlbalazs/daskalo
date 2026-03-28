@@ -94,7 +94,7 @@ Respond ONLY as valid JSON with the following shape:
 _MAX_AUDIO_SECONDS = 15
 
 # Maximum length of a student's free-text answer
-_MAX_ANSWER_CHARS = 200
+_MAX_ANSWER_CHARS = 300
 
 
 def _get_model() -> GenerativeModel:

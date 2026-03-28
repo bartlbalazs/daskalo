@@ -5,6 +5,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
+import { FavoriteWordsService } from '../../core/services/favorite-words.service';
 import { VocabularyItem, Book, Chapter } from '../../core/models/firestore.models';
 import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 
@@ -57,9 +58,13 @@ interface BookGroup {
               <p class="text-2xl font-bold text-white">{{ allRows().length }}</p>
               <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Words</p>
             </div>
-            <div class="text-center px-4">
+            <div class="text-center px-4 border-r border-white/20">
               <p class="text-2xl font-bold text-white">{{ completedChapters().length }}</p>
               <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Mastered</p>
+            </div>
+            <div class="text-center px-4">
+              <p class="text-2xl font-bold text-white">{{ favoriteWordsService.allFavorites().length }}</p>
+              <p class="text-xs text-greek-200 uppercase tracking-wider font-semibold">Saved</p>
             </div>
           </div>
         </div>
@@ -69,27 +74,50 @@ interface BookGroup {
     <!-- Main Content Area -->
     <div class="px-6 py-10 max-w-6xl mx-auto">
       
-      <!-- Search Bar -->
-      <div class="mb-10 max-w-2xl mx-auto relative">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
-        <input
-          type="search"
-          [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
-          placeholder="Search Greek or English words..."
-          class="w-full bg-white border border-surface-200 text-surface-900 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-greek-400 focus:border-transparent shadow-sm transition-shadow hover:shadow-md text-lg"
-        />
-        @if (searchQuery()) {
-          <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-surface-400 hover:text-surface-600">
-             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      <!-- Search + Filter Bar -->
+      <div class="mb-8 flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
+        <!-- Search input -->
+        <div class="relative flex-1">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-          </button>
-        }
+          </div>
+          <input
+            type="search"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            placeholder="Search Greek or English words..."
+            class="w-full bg-white border border-surface-200 text-surface-900 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-greek-400 focus:border-transparent shadow-sm transition-shadow hover:shadow-md text-lg"
+          />
+          @if (searchQuery()) {
+            <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-surface-400 hover:text-surface-600">
+               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <!-- Favorites filter toggle pill -->
+        <button
+          (click)="showFavoritesOnly.set(!showFavoritesOnly())"
+          class="flex items-center gap-2 px-5 py-3 rounded-2xl border font-semibold text-sm transition-all shadow-sm shrink-0"
+          [class]="showFavoritesOnly()
+            ? 'bg-greek-600 border-greek-700 text-white shadow-md'
+            : 'bg-white border-surface-200 text-surface-600 hover:border-greek-300 hover:text-greek-700'"
+        >
+          <svg class="w-4 h-4" [attr.fill]="showFavoritesOnly() ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+          Favorites
+          @if (favoriteWordsService.allFavorites().length > 0) {
+            <span class="rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"
+              [class]="showFavoritesOnly() ? 'bg-white/20 text-white' : 'bg-surface-100 text-surface-500'">
+              {{ favoriteWordsService.allFavorites().length }}
+            </span>
+          }
+        </button>
       </div>
 
       @if (loading()) {
@@ -127,17 +155,38 @@ interface BookGroup {
             Go to Chapters
           </a>
         </div>
-      } @else if (searchQuery()) {
-        <!-- Search Results View (Flat Grid) -->
+      } @else if (searchQuery() || showFavoritesOnly()) {
+        <!-- Filtered Results View (Flat Grid — search results OR favorites filter active) -->
         <div class="space-y-6">
           <div class="flex items-center justify-between border-b border-surface-200 pb-4">
-            <h2 class="font-serif text-2xl font-semibold text-greek-900">Search Results</h2>
-            <p class="text-surface-500 font-medium">{{ filteredRows().length }} match{{ filteredRows().length === 1 ? '' : 'es' }}</p>
+            <h2 class="font-serif text-2xl font-semibold text-greek-900">
+              @if (showFavoritesOnly() && !searchQuery()) { Favorites }
+              @else if (searchQuery() && !showFavoritesOnly()) { Search Results }
+              @else { Filtered Results }
+            </h2>
+            <p class="text-surface-500 font-medium">{{ filteredRows().length }} word{{ filteredRows().length === 1 ? '' : 's' }}</p>
           </div>
           
           @if (filteredRows().length === 0) {
-            <div class="py-12 text-center">
-              <p class="text-surface-500 text-lg">No words found matching "<span class="font-semibold text-surface-800">{{ searchQuery() }}</span>"</p>
+            <div class="py-16 text-center">
+              @if (showFavoritesOnly() && !searchQuery()) {
+                <!-- Empty favorites state -->
+                <div class="w-16 h-16 rounded-2xl bg-surface-100 flex items-center justify-center mx-auto mb-4">
+                  <svg class="w-8 h-8 text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                  </svg>
+                </div>
+                <p class="text-surface-600 text-lg font-medium mb-2">No favorite words yet</p>
+                <p class="text-surface-400 text-sm max-w-sm mx-auto">
+                  Tap the
+                  <svg class="w-3.5 h-3.5 inline -mt-0.5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                  </svg>
+                  bookmark on any word card to save it here for focused practice.
+                </p>
+              } @else {
+                <p class="text-surface-500 text-lg">No words found matching "<span class="font-semibold text-surface-800">{{ searchQuery() }}</span>"</p>
+              }
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -219,26 +268,51 @@ interface BookGroup {
             <p class="font-serif text-2xl font-semibold text-greek-900 leading-tight mb-1 truncate">{{ word.greek }}</p>
             <p class="text-surface-600 text-sm leading-snug">{{ word.english }}</p>
           </div>
-          @if (word.audioUrl) {
+          <!-- Action buttons: bookmark + audio -->
+          <div class="flex items-center gap-1 shrink-0">
+            <!-- Bookmark (favorite) toggle -->
             <button
-              (click)="playAudio(word.audioUrl, word.greek)"
-              class="shrink-0 w-10 h-10 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
-              title="Listen to pronunciation"
-              [disabled]="playingWord() === word.greek"
-              [class.opacity-80]="playingWord() === word.greek"
+              (click)="favoriteWordsService.toggleFavorite(word, word.chapterId, word.bookId)"
+              class="w-10 h-10 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
+              [class]="favoriteWordsService.isFavorited(word.chapterId, word.greek)
+                ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
+                : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
+              [title]="favoriteWordsService.isFavorited(word.chapterId, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
             >
-              @if (playingWord() === word.greek) {
-                <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              @if (favoriteWordsService.isFavorited(word.chapterId, word.greek)) {
+                <!-- Filled bookmark -->
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 2a2 2 0 00-2 2v18l8-3 8 3V4a2 2 0 00-2-2H6z"/>
                 </svg>
               } @else {
+                <!-- Outline bookmark -->
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                 </svg>
               }
             </button>
-          }
+            <!-- Audio play button -->
+            @if (word.audioUrl) {
+              <button
+                (click)="playAudio(word.audioUrl, word.greek)"
+                class="w-10 h-10 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
+                title="Listen to pronunciation"
+                [disabled]="playingWord() === word.greek"
+                [class.opacity-80]="playingWord() === word.greek"
+              >
+                @if (playingWord() === word.greek) {
+                  <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                } @else {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                  </svg>
+                }
+              </button>
+            }
+          </div>
         </div>
         
         <div class="mt-auto pt-3">
@@ -272,27 +346,44 @@ interface BookGroup {
 export class VocabularyPage implements OnInit {
   private lessonService = inject(LessonService);
   private authService = inject(AuthService);
+  readonly favoriteWordsService = inject(FavoriteWordsService);
   private scroller = inject(ViewportScroller);
   private storage = inject(Storage);
 
   searchQuery = signal('');
+  showFavoritesOnly = signal(false);
   loading = signal(true);
   playingWord = signal<string | null>(null);
 
   allRows = signal<VocabRow[]>([]);
   completedChapters = signal<Chapter[]>([]);
 
-  // Computed flat list for search results, alphabetically sorted
-  filteredRows = computed(() => {
+  // ---------------------------------------------------------------------------
+  // Computed: filtered flat list (used for search / favorites filter views)
+  // ---------------------------------------------------------------------------
+
+  filteredRows = computed<VocabRow[]>(() => {
     const q = this.searchQuery().toLowerCase().trim();
-    const rows = this.allRows();
-    if (!q) return rows;
-    return rows.filter(
-      r => r.greek.toLowerCase().includes(q) || r.english.toLowerCase().includes(q)
-    );
+    const favoritesOnly = this.showFavoritesOnly();
+    let rows = this.allRows();
+
+    if (favoritesOnly) {
+      rows = rows.filter(r => this.favoriteWordsService.isFavorited(r.chapterId, r.greek));
+    }
+
+    if (q) {
+      rows = rows.filter(
+        r => r.greek.toLowerCase().includes(q) || r.english.toLowerCase().includes(q)
+      );
+    }
+
+    return rows;
   });
 
-  // Computed grouped list for the default view
+  // ---------------------------------------------------------------------------
+  // Computed: grouped list for the default (no filter, no search) view
+  // ---------------------------------------------------------------------------
+
   groupedVocab = computed<BookGroup[]>(() => {
     const rows = this.allRows();
     if (rows.length === 0) return [];
@@ -327,10 +418,9 @@ export class VocabularyPage implements OnInit {
     // Sort Books
     const sortedBooks = Array.from(bookMap.values()).sort((a, b) => a.book.order - b.book.order);
     
-    // Sort Chapters within Books
+    // Sort Chapters within Books, and words alphabetically within chapters
     for (const book of sortedBooks) {
       book.chapters.sort((a, b) => a.chapter.order - b.chapter.order);
-      // Sort words alphabetically within chapter
       for (const chap of book.chapters) {
         chap.words.sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
       }
@@ -339,19 +429,27 @@ export class VocabularyPage implements OnInit {
     return sortedBooks;
   });
 
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
+
   async ngOnInit(): Promise<void> {
+    // Load favorites in parallel with vocabulary data
     const completedIds = this.authService.currentUser()?.progress?.completedChapterIds ?? [];
 
+    const favoritesPromise = this.favoriteWordsService.ensureLoaded();
+
     if (completedIds.length === 0) {
+      await favoritesPromise;
       this.loading.set(false);
       return;
     }
 
     try {
-      // Fetch chapters and books in parallel
       const [chapters, books] = await Promise.all([
         firstValueFrom(this.lessonService.getChaptersByIds(completedIds)),
         firstValueFrom(this.lessonService.getBooks()),
+        favoritesPromise,
       ]);
 
       this.completedChapters.set(chapters ?? []);
@@ -381,7 +479,7 @@ export class VocabularyPage implements OnInit {
         }
       }
 
-      // Sort full list alphabetically by default (used for search results)
+      // Sort full list alphabetically by Greek (used for search/favorites results)
       rows.sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
       this.allRows.set(rows);
       
@@ -391,6 +489,10 @@ export class VocabularyPage implements OnInit {
       this.loading.set(false);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
 
   scrollTo(id: string): void {
     this.scroller.scrollToAnchor(id);
@@ -410,7 +512,6 @@ export class VocabularyPage implements OnInit {
       };
     };
 
-    // Handle GCS URLs correctly
     if (url.startsWith('gs://')) {
       getDownloadURL(ref(this.storage, url))
         .then(play)

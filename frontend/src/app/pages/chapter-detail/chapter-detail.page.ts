@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AsyncPipe, DOCUMENT } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
+import { FavoriteWordsService } from '../../core/services/favorite-words.service';
 import { Chapter, Exercise, GrammarNote, PassageSentence, VocabularyItem } from '../../core/models/firestore.models';
 import { switchMap } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
@@ -213,25 +214,49 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                       <p class="font-serif text-2xl font-semibold text-greek-800 leading-tight mb-0.5">{{ word.greek }}</p>
                       <p class="text-surface-500 text-sm">{{ word.english }}</p>
                     </div>
-                    @if (word.audioUrl) {
+                    <div class="flex items-center gap-1 shrink-0 mt-0.5">
+                      <!-- Bookmark (favorite) toggle -->
                       <button
-                        (click)="playAudio(word.audioUrl, word.greek)"
-                        class="shrink-0 w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors mt-0.5"
-                        title="Listen to pronunciation"
-                        [disabled]="playingWord() === word.greek"
+                        (click)="favoriteWordsService.toggleFavorite(word, chapter.id, chapter.bookId)"
+                        class="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+                        [class]="favoriteWordsService.isFavorited(chapter.id, word.greek)
+                          ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
+                          : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
+                        [title]="favoriteWordsService.isFavorited(chapter.id, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
                       >
-                        @if (playingWord() === word.greek) {
-                          <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        @if (favoriteWordsService.isFavorited(chapter.id, word.greek)) {
+                          <!-- Filled bookmark -->
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 2a2 2 0 00-2 2v18l8-3 8 3V4a2 2 0 00-2-2H6z"/>
                           </svg>
                         } @else {
+                          <!-- Outline bookmark -->
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                           </svg>
                         }
                       </button>
-                    }
+                      <!-- Audio play button -->
+                      @if (word.audioUrl) {
+                        <button
+                          (click)="playAudio(word.audioUrl, word.greek)"
+                          class="w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors"
+                          title="Listen to pronunciation"
+                          [disabled]="playingWord() === word.greek"
+                        >
+                          @if (playingWord() === word.greek) {
+                            <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                          } @else {
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                            </svg>
+                          }
+                        </button>
+                      }
+                    </div>
                   </div>
                 </div>
               }
@@ -463,10 +488,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     }
   `],
 })
-export class ChapterDetailPage {
+export class ChapterDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private lessonService = inject(LessonService);
   private authService = inject(AuthService);
+  readonly favoriteWordsService = inject(FavoriteWordsService);
   private storage = inject(Storage);
   private sanitizer = inject(DomSanitizer);
   private document = inject(DOCUMENT);
@@ -508,6 +534,10 @@ export class ChapterDetailPage {
   /** Return the first passage sentence, or undefined if the passage is empty. */
   firstSentence(chapter: Chapter): PassageSentence | undefined {
     return chapter.passage?.[0];
+  }
+
+  ngOnInit(): void {
+    this.favoriteWordsService.ensureLoaded();
   }
 
   /** Return vocabulary sorted alphabetically by Greek word. */

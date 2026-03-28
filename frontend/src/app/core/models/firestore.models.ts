@@ -245,6 +245,19 @@ export interface VocabularyItem {
   audioUrl?: string;
 }
 
+/** A vocabulary word bookmarked by the student for focused practice.
+ *  Stored in the `users/{userId}/favoriteWords` subcollection.
+ *  Document ID: `{chapterId}__{greek}` (double underscore separator).
+ */
+export interface FavoriteWord {
+  greek: string;
+  english: string;
+  audioUrl?: string;
+  chapterId: string;
+  bookId: string;
+  favoritedAt: Timestamp;
+}
+
 export interface Exercise {
   type: ExerciseType;
   prompt: string;

@@ -18,7 +18,7 @@ Exercise types and their grading location:
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -470,7 +470,7 @@ class TranslationCheckpoint(BaseModel):
     english_answer: str = Field(description="The correct English translation of the Greek phrase.")
 
 
-ConversationCheckpoint = Union[McqCheckpoint, TrueFalseCheckpoint, TranslationCheckpoint]
+ConversationCheckpoint = McqCheckpoint | TrueFalseCheckpoint | TranslationCheckpoint
 
 
 class ConversationData(BaseModel):

@@ -19,6 +19,11 @@ service cloud.firestore {
       allow create: if request.auth.uid == userId
         && request.resource.data.status == "pending";
       allow update, delete: if false;
+
+      // Favorite words subcollection — fully managed by the client (active users only).
+      match /favoriteWords/{wordId} {
+        allow read, write: if request.auth.uid == userId && isActiveUser();
+      }
     }
 
     match /books/{bookId} {

@@ -131,6 +131,26 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
 }
 ```
 
+### `users/{userId}/favoriteWords` (subcollection)
+Documents representing vocabulary words the student has bookmarked for focused practice.
+
+**Document ID:** `{chapterId}__{greek}` (double underscore separator, e.g. `b1_c01_airport__Καλημέρα`)
+
+> Access: Read and write by the owning user only (active status required).
+
+```json
+{
+  "greek": "Καλημέρα",
+  "english": "Good morning",
+  "audioUrl": "gs://public-assets-bucket/audio/kalimera.mp3", // Optional
+  "chapterId": "b1_c01_airport",
+  "bookId": "b1",
+  "favoritedAt": "Timestamp"
+}
+```
+
+---
+
 ### `exercise_attempts`
 Records of user submissions, primarily used to trigger the backend for grading.
 

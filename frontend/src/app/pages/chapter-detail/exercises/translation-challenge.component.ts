@@ -18,9 +18,14 @@ import { Exercise, TranslationChallengeData, EvaluationResult } from '../../../c
         (input)="onInput($event)"
         [disabled]="submitted()"
         rows="3"
+        maxlength="300"
         placeholder="Type your Greek translation here…"
         class="w-full px-4 py-3 rounded-xl border border-surface-200 text-sm text-surface-800 resize-none focus:outline-none focus:ring-2 focus:ring-greek-400 focus:border-transparent disabled:bg-surface-50 disabled:text-surface-400 transition font-serif"
       ></textarea>
+      <div class="flex justify-end text-xs"
+        [class]="charCount >= 270 ? 'text-red-500' : 'text-surface-400'">
+        {{ charCount }} / {{ maxChars }}
+      </div>
 
       <!-- Submit button -->
       @if (!submitted()) {
@@ -76,6 +81,8 @@ export class TranslationChallengeComponent {
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
   answerValue = '';
+  readonly maxChars = 300;
+  get charCount(): number { return this.answerValue.length; }
 
   data(): TranslationChallengeData {
     return this.exercise.data as unknown as TranslationChallengeData;

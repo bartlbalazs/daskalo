@@ -26,9 +26,14 @@ import { GcsUrlPipe } from '../../../shared/pipes/gcs-url.pipe';
         (input)="onInput($event)"
         [disabled]="submitted()"
         rows="4"
+        maxlength="300"
         placeholder="Describe what you see in Greek (2-3 sentences)…"
         class="w-full px-4 py-3 rounded-xl border border-surface-200 text-sm text-surface-800 resize-none focus:outline-none focus:ring-2 focus:ring-greek-400 focus:border-transparent disabled:bg-surface-50 disabled:text-surface-400 transition"
       ></textarea>
+      <div class="flex justify-end text-xs"
+        [class]="charCount >= 270 ? 'text-red-500' : 'text-surface-400'">
+        {{ charCount }} / {{ maxChars }}
+      </div>
 
       <!-- Submit button -->
       @if (!submitted()) {
@@ -85,6 +90,8 @@ export class ImageDescriptionComponent {
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
   answerValue = '';
+  readonly maxChars = 300;
+  get charCount(): number { return this.answerValue.length; }
 
   onInput(event: Event): void {
     this.answerValue = (event.target as HTMLTextAreaElement).value;

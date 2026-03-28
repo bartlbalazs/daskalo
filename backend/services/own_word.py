@@ -134,8 +134,10 @@ def create_own_word(
         raise ValueError("Could not generate a valid word card. Please try again.")
 
     # 3. Generate TTS audio
+    # Extract main form only (e.g. "καλός/ή/ό" → "καλός"), matching CLI behaviour.
+    tts_text = re.split(r"\s*/\s*|\s+-\s*", greek)[0].strip()
     tts_client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(text=greek)
+    synthesis_input = texttospeech.SynthesisInput(text=tts_text)
     voice = texttospeech.VoiceSelectionParams(
         language_code=LANGUAGE_CODE,
         name=VOICE_FEMALE,

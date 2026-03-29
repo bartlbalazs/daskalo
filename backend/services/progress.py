@@ -15,14 +15,16 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from datetime import UTC, datetime
 
-import vertexai
+from google import genai
 from google.cloud import firestore as gc_firestore
 from google.cloud.firestore import Client as FirestoreClient
-from vertexai.generative_models import GenerativeModel
 
 logger = logging.getLogger(__name__)
+
+_MODEL_ID = "gemini-2.5-flash"
 
 # ---------------------------------------------------------------------------
 # Gemini helpers
@@ -41,11 +43,11 @@ Keep it warm, specific to the content, and motivating.  Do not use generic phras
 """
 
 
-def _get_model() -> GenerativeModel:
+def _get_client() -> genai.Client:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
-    vertexai.init(project=project, location=region)
-    return GenerativeModel("gemini-2.5-flash")
+    logger.debug("_get_client: initialising google-genai client project=%r region=%r", project, region)
+    return genai.Client(vertexai=True, project=project, location=region)
 
 
 # ---------------------------------------------------------------------------
@@ -68,13 +70,16 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
         ValueError  — if the chapter or user document is not found.
         Exception   — propagated from Firestore / Gemini on unexpected errors.
     """
+    logger.info("complete_chapter: start — uid=%r chapterId=%r", uid, chapter_id)
     db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
 
     # ------------------------------------------------------------------
     # 1. Load chapter
     # ------------------------------------------------------------------
+    logger.info("complete_chapter: loading chapter document — chapterId=%r", chapter_id)
     chapter_snap = db.collection("chapters").document(chapter_id).get()
     if not chapter_snap.exists:
+        logger.warning("complete_chapter: chapter not found — chapterId=%r", chapter_id)
         raise ValueError(f"Chapter '{chapter_id}' not found in Firestore.")
     chapter_data = chapter_snap.to_dict() or {}
 
@@ -83,22 +88,41 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     chapter_length: str = chapter_data.get("length", "short")
     grammar_notes: list[dict] = chapter_data.get("grammarNotes", [])
 
+    logger.info(
+        "complete_chapter: chapter loaded — title=%r length=%s grammar_notes=%d",
+        chapter_title,
+        chapter_length,
+        len(grammar_notes),
+    )
+
     # ------------------------------------------------------------------
     # 2. Load user
     # ------------------------------------------------------------------
+    logger.info("complete_chapter: loading user document — uid=%r", uid)
     user_ref = db.collection("users").document(uid)
     user_snap = user_ref.get()
     if not user_snap.exists:
+        logger.warning("complete_chapter: user not found — uid=%r", uid)
         raise ValueError(f"User '{uid}' not found in Firestore.")
     user_data = user_snap.to_dict() or {}
 
     progress: dict = user_data.get("progress", {})
     completed_ids: list[str] = progress.get("completedChapterIds", [])
 
+    logger.info(
+        "complete_chapter: user loaded — uid=%r completed_chapters=%d",
+        uid,
+        len(completed_ids),
+    )
+
     # Guard: already completed — return existing data immediately, skip Gemini call.
     already_done = chapter_id in completed_ids
     if already_done:
-        logger.info("Chapter '%s' already completed for user '%s' — skipping.", chapter_id, uid)
+        logger.info(
+            "complete_chapter: chapter already completed — uid=%r chapterId=%r — skipping Gemini call",
+            uid,
+            chapter_id,
+        )
         return {
             "chapter_id": chapter_id,
             "xp_gained": 0,
@@ -110,25 +134,55 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
     # 3. Build concept list for the progress summary prompt
     # ------------------------------------------------------------------
     concept_list = ", ".join(n.get("heading", "") for n in grammar_notes if n.get("heading"))
+    logger.info(
+        "complete_chapter: concept list for prompt — %r",
+        concept_list or "(none)",
+    )
 
     # ------------------------------------------------------------------
     # 4. Call Gemini — progress summary
     # ------------------------------------------------------------------
-    model = _get_model()
-    logger.info("Requesting progress summary from Gemini for chapter='%s' uid='%s'", chapter_id, uid)
     summary_prompt = _PROGRESS_SUMMARY_PROMPT.format(
         chapter_title=chapter_title,
         chapter_summary=chapter_summary,
         concept_list=concept_list or "general Greek language concepts",
     )
-    summary_response = model.generate_content(summary_prompt)
+    logger.info(
+        "complete_chapter: calling Gemini for progress summary — model=%s uid=%r chapterId=%r prompt_chars=%d",
+        _MODEL_ID,
+        uid,
+        chapter_id,
+        len(summary_prompt),
+    )
+
+    client = _get_client()
+    t0 = time.perf_counter()
+    summary_response = client.models.generate_content(
+        model=_MODEL_ID,
+        contents=summary_prompt,
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000
     progress_summary: str = summary_response.text.strip()
+
+    logger.info(
+        "complete_chapter: Gemini progress summary received — elapsed=%.0fms chars=%d uid=%r",
+        elapsed_ms,
+        len(progress_summary),
+        uid,
+    )
+    logger.debug("complete_chapter: progress summary text: %s", progress_summary)
 
     # ------------------------------------------------------------------
     # 5. Calculate XP based on length
     # ------------------------------------------------------------------
     xp_map = {"short": 100, "medium": 150, "long": 200}
     xp_gained = xp_map.get(chapter_length, 100)
+    logger.info(
+        "complete_chapter: XP calculation — length=%s xp_gained=%d uid=%r",
+        chapter_length,
+        xp_gained,
+        uid,
+    )
 
     # ------------------------------------------------------------------
     # 6. Update completedChapterIds and XP
@@ -143,8 +197,21 @@ def complete_chapter(uid: str, chapter_id: str) -> dict:
         "lastActive": now,
     }
 
+    logger.info(
+        "complete_chapter: writing progress to Firestore — uid=%r chapterId=%r xp_gained=%d total_completed=%d",
+        uid,
+        chapter_id,
+        xp_gained,
+        len(completed_ids),
+    )
     user_ref.update(update_payload)
-    logger.info("User '%s' chapter '%s' completion saved (+%d XP).", uid, chapter_id, xp_gained)
+
+    logger.info(
+        "complete_chapter: done — uid=%r chapterId=%r xp_gained=%d",
+        uid,
+        chapter_id,
+        xp_gained,
+    )
 
     return {
         "chapter_id": chapter_id,

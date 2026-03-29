@@ -60,7 +60,7 @@ def test_verify_firebase_token_returns_decoded_token():
 
 def test_verify_firebase_token_raises_on_missing_header():
     req = make_flask_request(auth_header="")
-    with pytest.raises(PermissionError, match="Missing or malformed"):
+    with pytest.raises(PermissionError, match="Firebase ID token not found"):
         verify_firebase_token(req)
 
 
@@ -78,13 +78,13 @@ def test_verify_firebase_token_raises_on_invalid_token():
 
 
 def test_callable_response_wraps_result():
-    body, status = callable_response({"score": 85})
+    body, status, _headers = callable_response({"score": 85})
     assert status == 200
     assert body == {"result": {"score": 85}}
 
 
 def test_callable_error_wraps_error():
-    body, status = callable_error("NOT_FOUND", "Attempt not found.", 404)
+    body, status, _headers = callable_error("NOT_FOUND", "Attempt not found.", 404)
     assert status == 404
     assert body["error"]["status"] == "NOT_FOUND"
     assert body["error"]["message"] == "Attempt not found."

@@ -333,6 +333,7 @@ dependencies = [
     { name = "google-cloud-speech" },
     { name = "google-cloud-storage" },
     { name = "google-cloud-texttospeech" },
+    { name = "google-genai" },
     { name = "pydantic" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -355,6 +356,7 @@ requires-dist = [
     { name = "google-cloud-speech", specifier = ">=2.0.0" },
     { name = "google-cloud-storage", specifier = ">=2.0.0" },
     { name = "google-cloud-texttospeech", specifier = ">=2.0.0" },
+    { name = "google-genai", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.42.0" },
 ]

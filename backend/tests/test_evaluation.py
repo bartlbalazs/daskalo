@@ -33,6 +33,13 @@ def _mock_gemini_response(text: str = GEMINI_JSON) -> MagicMock:
     return resp
 
 
+def _make_mock_client(text: str = GEMINI_JSON) -> MagicMock:
+    """Return a mock genai.Client whose models.generate_content returns a canned response."""
+    mock_client = MagicMock()
+    mock_client.models.generate_content.return_value = _mock_gemini_response(text)
+    return mock_client
+
+
 def _make_audio_base64(num_bytes: int) -> str:
     return base64.b64encode(b"x" * num_bytes).decode()
 
@@ -44,29 +51,52 @@ def _make_audio_base64(num_bytes: int) -> str:
 
 def test_evaluate_attempt_happy_path():
     attempt = make_attempt(exercise_type=ExerciseType.translation_challenge, text="Γεια σου κόσμε")
-    mock_model = MagicMock()
-    mock_model.generate_content.return_value = _mock_gemini_response()
+    mock_client = _make_mock_client()
 
-    with patch.object(eval_module, "_get_model", return_value=mock_model):
+    with patch.object(eval_module, "_get_client", return_value=mock_client):
         result = evaluate_attempt(attempt, prompt="Translate: Hello world")
 
     assert isinstance(result, EvaluationResult)
     assert result.score == 82
     assert result.isCorrect is True
-    mock_model.generate_content.assert_called_once()
+    mock_client.models.generate_content.assert_called_once()
 
 
 def test_evaluate_attempt_dictation_type():
     attempt = make_attempt(exercise_type=ExerciseType.dictation, text="καλημέρα")
-    mock_model = MagicMock()
-    mock_model.generate_content.return_value = _mock_gemini_response(
-        json.dumps({"score": 95, "feedback": "Perfect!", "isCorrect": True})
-    )
+    mock_client = _make_mock_client(json.dumps({"score": 95, "feedback": "Perfect!", "isCorrect": True}))
 
-    with patch.object(eval_module, "_get_model", return_value=mock_model):
+    with patch.object(eval_module, "_get_client", return_value=mock_client):
         result = evaluate_attempt(attempt, prompt="Write what you hear")
 
     assert result.score == 95
+
+
+# ---------------------------------------------------------------------------
+# evaluate_attempt — isCorrect override (score threshold)
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_attempt_is_correct_overridden_by_score():
+    """isCorrect in the Gemini response is always overridden: score > 60 → True."""
+    # Gemini says isCorrect=False but score=70 → backend should override to True
+    attempt = make_attempt(exercise_type=ExerciseType.translation_challenge, text="καλός")
+    mock_client = _make_mock_client(json.dumps({"score": 70, "feedback": "Decent.", "isCorrect": False}))
+
+    with patch.object(eval_module, "_get_client", return_value=mock_client):
+        result = evaluate_attempt(attempt, prompt="Translate: good")
+
+    assert result.isCorrect is True  # 70 > 60
+
+
+def test_evaluate_attempt_is_correct_false_when_score_low():
+    attempt = make_attempt(exercise_type=ExerciseType.translation_challenge, text="blah")
+    mock_client = _make_mock_client(json.dumps({"score": 40, "feedback": "Needs work.", "isCorrect": True}))
+
+    with patch.object(eval_module, "_get_client", return_value=mock_client):
+        result = evaluate_attempt(attempt, prompt="Translate: good")
+
+    assert result.isCorrect is False  # 40 <= 60
 
 
 # ---------------------------------------------------------------------------
@@ -76,13 +106,13 @@ def test_evaluate_attempt_dictation_type():
 
 def test_evaluate_attempt_raises_for_non_graded_type():
     attempt = make_attempt(exercise_type=ExerciseType.word_scramble)
-    mock_model = MagicMock()
+    mock_client = _make_mock_client()
 
-    with patch.object(eval_module, "_get_model", return_value=mock_model):
+    with patch.object(eval_module, "_get_client", return_value=mock_client):
         with pytest.raises(ValueError, match="not evaluated by AI"):
             evaluate_attempt(attempt, prompt="")
 
-    mock_model.generate_content.assert_not_called()
+    mock_client.models.generate_content.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -94,24 +124,17 @@ def test_evaluate_pronunciation_happy_path():
     attempt = make_attempt(exercise_type=ExerciseType.pronunciation_practice)
     audio_b64 = _make_audio_base64(1000)  # well within limit
 
-    mock_model = MagicMock()
-    mock_model.generate_content.return_value = _mock_gemini_response(
-        json.dumps({"score": 75, "feedback": "Good pronunciation!", "isCorrect": True})
-    )
-    mock_stt_response = MagicMock()
-    mock_result = MagicMock()
-    mock_result.alternatives = [MagicMock(transcript="γεια σου")]
-    mock_stt_response.results = [mock_result]
+    mock_client = _make_mock_client(json.dumps({"score": 75, "feedback": "Good pronunciation!", "isCorrect": True}))
 
     with (
-        patch.object(eval_module, "_get_model", return_value=mock_model),
+        patch.object(eval_module, "_get_client", return_value=mock_client),
         patch.object(eval_module, "_transcribe_audio", return_value="γεια σου"),
     ):
         result = evaluate_pronunciation(attempt, target_text="γεια σου", audio_base64=audio_b64)
 
     assert result.score == 75
     assert result.isCorrect is True
-    mock_model.generate_content.assert_called_once()
+    mock_client.models.generate_content.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -146,10 +169,10 @@ def test_evaluate_pronunciation_no_speech_returns_zero_score():
     attempt = make_attempt(exercise_type=ExerciseType.pronunciation_practice)
     audio_b64 = _make_audio_base64(1000)
 
-    mock_model = MagicMock()
+    mock_client = _make_mock_client()
 
     with (
-        patch.object(eval_module, "_get_model", return_value=mock_model),
+        patch.object(eval_module, "_get_client", return_value=mock_client),
         patch.object(eval_module, "_transcribe_audio", return_value=""),
     ):
         result = evaluate_pronunciation(attempt, target_text="γεια σου", audio_base64=audio_b64)
@@ -157,7 +180,7 @@ def test_evaluate_pronunciation_no_speech_returns_zero_score():
     assert result.score == 0
     assert result.isCorrect is False
     # Gemini must NOT be called when there is nothing to evaluate
-    mock_model.generate_content.assert_not_called()
+    mock_client.models.generate_content.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

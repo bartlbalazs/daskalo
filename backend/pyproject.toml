@@ -8,6 +8,7 @@ dependencies = [
     "firebase-admin>=7.3.0",
     "functions-framework>=3.8.2",
     "google-cloud-aiplatform>=1.142.0",
+    "google-genai>=1.0.0",
     "google-cloud-firestore>=2.25.0",
     "google-cloud-speech>=2.0.0",
     "google-cloud-storage>=2.0.0",

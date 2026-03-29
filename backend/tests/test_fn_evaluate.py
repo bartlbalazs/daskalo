@@ -86,11 +86,11 @@ def test_evaluate_attempt_fn_happy_path():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate.evaluate_attempt", return_value=EVAL_RESULT),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 200
     assert body["result"]["score"] == 80
@@ -115,11 +115,11 @@ def test_evaluate_attempt_fn_pronunciation_happy_path():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate.evaluate_pronunciation", return_value=pronunciation_result),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 200
     assert body["result"]["score"] == 70
@@ -137,7 +137,7 @@ def test_evaluate_attempt_fn_unauthenticated():
         patch("fn_evaluate.verify_firebase_token", side_effect=PermissionError("No token")),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 401
     assert body["error"]["status"] == "UNAUTHENTICATED"
@@ -152,10 +152,10 @@ def test_evaluate_attempt_fn_wrong_owner():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 403
     assert body["error"]["status"] == "PERMISSION_DENIED"
@@ -175,10 +175,10 @@ def test_evaluate_attempt_fn_attempt_not_pending():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 409
     assert body["error"]["status"] == "FAILED_PRECONDITION"
@@ -198,10 +198,10 @@ def test_evaluate_attempt_fn_non_ai_type_rejected():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 400
     assert body["error"]["status"] == "INVALID_ARGUMENT"
@@ -223,10 +223,10 @@ def test_evaluate_attempt_fn_pronunciation_missing_audio():
 
     with (
         patch("fn_evaluate.verify_firebase_token", return_value={"uid": CALLER_UID}),
-        patch("fn_evaluate.firestore.client", return_value=db),
+        patch("fn_evaluate.FirestoreClient", return_value=db),
         patch("fn_evaluate._init_firebase"),
     ):
-        body, status = fn_evaluate.evaluate_attempt_fn(req)
+        body, status, _headers = fn_evaluate.evaluate_attempt_fn(req)
 
     assert status == 400
     assert body["error"]["status"] == "INVALID_ARGUMENT"

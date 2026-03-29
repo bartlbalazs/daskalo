@@ -18,13 +18,14 @@ import logging
 import os
 import re
 import tempfile
+import time
 from datetime import UTC, datetime
 
-import vertexai
+from google import genai
 from google.cloud import storage, texttospeech
 from google.cloud.firestore import SERVER_TIMESTAMP
 from google.cloud.firestore import Client as FirestoreClient
-from vertexai.generative_models import GenerativeModel
+from google.genai import types
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +34,17 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _MAX_INPUT_CHARS = 50
+_MODEL_ID = "gemini-2.5-flash"
 
 VOICE_FEMALE = "el-GR-Chirp3-HD-Achernar"
 LANGUAGE_CODE = "el-GR"
 _TTS_SPEAKING_RATE = 0.80  # Mid-range: clear but not too slow
+
+# response_mime_type guarantees valid JSON from the model without a strict schema,
+# which lets the model produce either {"greek":..,"english":..} or {"error":..}.
+_NORMALISE_CONFIG = types.GenerateContentConfig(
+    response_mime_type="application/json",
+)
 
 _NORMALISE_PROMPT = """\
 You are a Greek language expert. A language student has entered the following Greek text:
@@ -58,8 +66,8 @@ or is gibberish, respond with {{"error": "not_greek"}}.
    - For proper nouns, interjections, or other invariable words: leave as-is with correct accents.
 3. Provide a concise English translation (1–5 words).
 
-Respond ONLY with a valid JSON object in this exact format (no markdown fences):
-{{"greek": "<normalised Greek>", "english": "<English translation>"}}
+Return a JSON object: {{"greek": "<normalised Greek>", "english": "<English translation>"}}
+Or, if the input is not Greek: {{"error": "not_greek"}}
 """
 
 
@@ -81,11 +89,11 @@ def _sanitize_greek(text: str) -> str:
     return sanitized[:80] or "word"
 
 
-def _get_gemini_model() -> GenerativeModel:
+def _get_client() -> genai.Client:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
-    vertexai.init(project=project, location=region)
-    return GenerativeModel("gemini-2.5-flash")
+    logger.debug("_get_client: initialising google-genai client project=%r region=%r", project, region)
+    return genai.Client(vertexai=True, project=project, location=region)
 
 
 # ---------------------------------------------------------------------------
@@ -106,37 +114,99 @@ def create_own_word(
     Returns a dict with keys: greek, english, audioUrl, chapterId, bookId, createdAt.
     Raises ValueError for invalid input or non-Greek text.
     """
+    logger.info(
+        "create_own_word: start — userId=%r chapterId=%r bookId=%r input=%r",
+        user_id,
+        chapter_id,
+        book_id,
+        raw_input,
+    )
+
     # 1. Validate input length
     text = raw_input.strip()
     if not text:
         raise ValueError("Input must not be empty.")
     if len(text) > _MAX_INPUT_CHARS:
+        logger.warning(
+            "create_own_word: input too long — chars=%d max=%d userId=%r",
+            len(text),
+            _MAX_INPUT_CHARS,
+            user_id,
+        )
         raise ValueError(f"Input exceeds maximum allowed length of {_MAX_INPUT_CHARS} characters.")
 
     # 2. Normalise via Gemini
-    model = _get_gemini_model()
+    logger.info(
+        "create_own_word: calling Gemini for normalisation — model=%s input=%r userId=%r",
+        _MODEL_ID,
+        text,
+        user_id,
+    )
+    client = _get_client()
     prompt = _NORMALISE_PROMPT.format(input_text=text)
-    response = model.generate_content(prompt)
-    raw_json = response.text.strip().removeprefix("```json").removesuffix("```").strip()
+    t0 = time.perf_counter()
+    response = client.models.generate_content(
+        model=_MODEL_ID,
+        contents=prompt,
+        config=_NORMALISE_CONFIG,
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    logger.info(
+        "create_own_word: Gemini normalisation responded — elapsed=%.0fms response_chars=%d",
+        elapsed_ms,
+        len(response.text),
+    )
+    logger.debug("create_own_word: raw Gemini normalisation response: %s", response.text)
 
     try:
-        parsed = json.loads(raw_json)
+        parsed = json.loads(response.text)
     except json.JSONDecodeError as exc:
-        logger.warning("Gemini returned non-JSON response: %r", response.text)
+        logger.error(
+            "create_own_word: failed to parse Gemini JSON — userId=%r input=%r response=%r error=%s",
+            user_id,
+            text,
+            response.text,
+            exc,
+        )
         raise ValueError("Could not process the input. Please try again.") from exc
 
     if "error" in parsed:
+        logger.info(
+            "create_own_word: Gemini flagged input as non-Greek — userId=%r input=%r error=%r",
+            user_id,
+            text,
+            parsed.get("error"),
+        )
         raise ValueError("The input does not appear to be a Greek word or phrase.")
 
     greek: str = parsed.get("greek", "").strip()
     english: str = parsed.get("english", "").strip()
 
     if not greek or not english:
+        logger.error(
+            "create_own_word: Gemini returned incomplete fields — userId=%r parsed=%r",
+            user_id,
+            parsed,
+        )
         raise ValueError("Could not generate a valid word card. Please try again.")
+
+    logger.info(
+        "create_own_word: normalisation complete — greek=%r english=%r userId=%r",
+        greek,
+        english,
+        user_id,
+    )
 
     # 3. Generate TTS audio
     # Extract main form only (e.g. "καλός/ή/ό" → "καλός"), matching CLI behaviour.
     tts_text = re.split(r"\s*/\s*|\s+-\s*", greek)[0].strip()
+    logger.info(
+        "create_own_word: generating TTS audio — tts_text=%r voice=%s userId=%r",
+        tts_text,
+        VOICE_FEMALE,
+        user_id,
+    )
     tts_client = texttospeech.TextToSpeechClient()
     synthesis_input = texttospeech.SynthesisInput(text=tts_text)
     voice = texttospeech.VoiceSelectionParams(
@@ -147,10 +217,18 @@ def create_own_word(
         audio_encoding=texttospeech.AudioEncoding.MP3,
         speaking_rate=_TTS_SPEAKING_RATE,
     )
+    t0 = time.perf_counter()
     tts_response = tts_client.synthesize_speech(
         input=synthesis_input,
         voice=voice,
         audio_config=audio_config,
+    )
+    tts_elapsed_ms = (time.perf_counter() - t0) * 1000
+    logger.info(
+        "create_own_word: TTS complete — elapsed=%.0fms audio_bytes=%d userId=%r",
+        tts_elapsed_ms,
+        len(tts_response.audio_content),
+        user_id,
     )
 
     # 4. Upload to GCS
@@ -158,6 +236,12 @@ def create_own_word(
     filename = f"{chapter_id}__{sanitized}.mp3"
     gcs_path = f"users/{user_id}/own_words/{filename}"
 
+    logger.info(
+        "create_own_word: uploading audio to GCS — bucket=%r path=%s userId=%r",
+        assets_bucket,
+        gcs_path,
+        user_id,
+    )
     gcs_client = storage.Client()
     bucket = gcs_client.bucket(assets_bucket)
     blob = bucket.blob(gcs_path)
@@ -169,12 +253,19 @@ def create_own_word(
         tmp_path = tmp.name
 
     try:
+        t0 = time.perf_counter()
         blob.upload_from_filename(tmp_path)
+        gcs_elapsed_ms = (time.perf_counter() - t0) * 1000
     finally:
         os.unlink(tmp_path)
 
     audio_url = f"gs://{assets_bucket}/{gcs_path}"
-    logger.info("Uploaded own-word audio to %s", audio_url)
+    logger.info(
+        "create_own_word: GCS upload complete — elapsed=%.0fms url=%s userId=%r",
+        gcs_elapsed_ms,
+        audio_url,
+        user_id,
+    )
 
     # 5. Write to Firestore
     # NOTE: sanitized Greek (slashes/spaces → underscores) is used for the doc ID to
@@ -190,8 +281,21 @@ def create_own_word(
         "bookId": book_id,
         "createdAt": SERVER_TIMESTAMP,
     }
+    logger.info(
+        "create_own_word: writing to Firestore — collection=users/%s/ownWords docId=%s",
+        user_id,
+        doc_id,
+    )
     db.collection("users").document(user_id).collection("ownWords").document(doc_id).set(word_doc)
-    logger.info("Saved own word '%s' for user '%s'", greek, user_id)
+
+    logger.info(
+        "create_own_word: done — greek=%r english=%r docId=%s userId=%r audioUrl=%s",
+        greek,
+        english,
+        doc_id,
+        user_id,
+        audio_url,
+    )
 
     # Return serialisable version (SERVER_TIMESTAMP isn't JSON-serialisable)
     return {

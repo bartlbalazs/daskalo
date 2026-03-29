@@ -1,7 +1,5 @@
 """Tests for services/own_word.py — focusing on _sanitize_greek and the doc ID logic."""
 
-import pytest
-
 from services.own_word import _sanitize_greek
 
 

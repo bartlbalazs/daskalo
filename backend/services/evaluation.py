@@ -1,16 +1,21 @@
 """
 Evaluation service — uses Gemini to grade complex free-text exercises,
 and Google Cloud STT + Gemini for pronunciation practice.
+
+Uses the google-genai SDK with structured output (response_schema) so that
+Gemini is constrained at the API level to return valid JSON matching
+EvaluationResult's shape — eliminating fragile markdown-fence stripping.
 """
 
 import base64
 import json
 import logging
 import os
+import time
 
-import vertexai
+from google import genai
 from google.cloud import speech_v1 as speech
-from vertexai.generative_models import GenerativeModel, Part
+from google.genai import types
 
 from models.firestore import EvaluationResult, ExerciseAttempt, ExerciseType
 
@@ -22,6 +27,26 @@ _GRADED_TYPES = {
     ExerciseType.dictation,
     ExerciseType.pronunciation_practice,
 }
+
+_MODEL_ID = "gemini-2.5-flash"
+
+# Response schema mirrors EvaluationResult; used for all graded exercise types.
+# Constraining the model at the API level removes the need for fragile
+# markdown-fence stripping and guarantees json.loads() never sees extra data.
+_EVAL_RESPONSE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "score": {"type": "INTEGER"},
+        "feedback": {"type": "STRING"},
+        "isCorrect": {"type": "BOOLEAN"},
+    },
+    "required": ["score", "feedback", "isCorrect"],
+}
+
+_EVAL_CONFIG = types.GenerateContentConfig(
+    response_mime_type="application/json",
+    response_schema=_EVAL_RESPONSE_SCHEMA,
+)
 
 _EVAL_PROMPT = """
 You are an expert, encouraging Greek language teacher grading a student's exercise.
@@ -40,8 +65,7 @@ CRITICAL LANGUAGE RULE: Even if the student's answer is entirely in Greek, do no
 
 IMPORTANT: Never use the word "prompt" in your feedback. Refer to the task naturally (e.g. "the exercise", "the task", or simply address their answer directly).
 
-Respond ONLY as valid JSON with the following shape:
-{{"score": <int>, "feedback": "<string>", "isCorrect": <bool>}}
+Return a JSON object with keys: score (int 0-100), feedback (string), isCorrect (bool).
 """
 
 _EVAL_PROMPT_WITH_IMAGE = """
@@ -66,8 +90,7 @@ CRITICAL LANGUAGE RULE: Even if the student's answer is entirely in Greek, do no
 
 IMPORTANT: Never use the word "prompt" in your feedback. Refer to the task naturally (e.g. "the image", "the picture", or simply address their answer directly).
 
-Respond ONLY as valid JSON with the following shape:
-{{"score": <int>, "feedback": "<string>", "isCorrect": <bool>}}
+Return a JSON object with keys: score (int 0-100), feedback (string), isCorrect (bool).
 """
 
 _PRONUNCIATION_PROMPT = """
@@ -90,8 +113,7 @@ Provide feedback in English:
 
 IMPORTANT: Never use the word "prompt" in your feedback. Refer to the task naturally (e.g. "the text", "the sentence", or simply address their pronunciation directly).
 
-Respond ONLY as valid JSON with the following shape:
-{{"score": <int>, "feedback": "<string>", "isCorrect": <bool>}}
+Return a JSON object with keys: score (int 0-100), feedback (string), isCorrect (bool).
 """
 
 # Maximum audio duration in seconds before we reject the request
@@ -101,11 +123,11 @@ _MAX_AUDIO_SECONDS = 15
 _MAX_ANSWER_CHARS = 300
 
 
-def _get_model() -> GenerativeModel:
+def _get_client() -> genai.Client:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
-    vertexai.init(project=project, location=region)
-    return GenerativeModel("gemini-2.5-flash")
+    logger.debug("_get_client: initialising google-genai client project=%r region=%r", project, region)
+    return genai.Client(vertexai=True, project=project, location=region)
 
 
 def evaluate_attempt(attempt: ExerciseAttempt, prompt: str, *, image_url: str = "") -> EvaluationResult:
@@ -116,60 +138,95 @@ def evaluate_attempt(attempt: ExerciseAttempt, prompt: str, *, image_url: str = 
     to enable multimodal evaluation — Gemini receives both the image and the
     student's Greek text and can verify whether the description matches the image.
 
+    Uses structured output (response_schema) to guarantee valid JSON from the model,
+    removing the need for fragile markdown-fence stripping.
+
     Raises ValueError if the attempt type is not graded by AI.
     """
+    logger.info(
+        "evaluate_attempt: start — exerciseId=%r chapterId=%r userId=%r type=%s answer_len=%d image=%r",
+        attempt.exerciseId,
+        attempt.chapterId,
+        attempt.userId,
+        attempt.type.value,
+        len(attempt.payload.text or ""),
+        image_url or "(none)",
+    )
+
     if attempt.type not in _GRADED_TYPES:
+        logger.warning("evaluate_attempt: type=%s is not AI-graded — raising ValueError", attempt.type.value)
         raise ValueError(f"Exercise type {attempt.type} is not evaluated by AI.")
 
     answer_text = attempt.payload.text or ""
     if len(answer_text) > _MAX_ANSWER_CHARS:
+        logger.warning(
+            "evaluate_attempt: answer too long — chars=%d max=%d userId=%r",
+            len(answer_text),
+            _MAX_ANSWER_CHARS,
+            attempt.userId,
+        )
         raise ValueError(
             f"Answer exceeds maximum allowed length of {_MAX_ANSWER_CHARS} characters (got {len(answer_text)})."
         )
-
-    logger.info(
-        "evaluate_attempt: attemptId=%s type=%s answer=%r prompt=%r image_url=%r",
-        attempt.exerciseId,
-        attempt.type.value,
-        (attempt.payload.text or ""),
-        prompt,
-        image_url,
-    )
-
-    model = _get_model()
 
     use_image = attempt.type == ExerciseType.image_description and image_url.startswith("gs://")
 
     if use_image:
         text_prompt = _EVAL_PROMPT_WITH_IMAGE.format(
             prompt=prompt,
-            student_answer=attempt.payload.text or "",
+            student_answer=answer_text,
         )
-        image_part = Part.from_uri(image_url, mime_type="image/jpeg")
+        image_part = types.Part.from_uri(file_uri=image_url, mime_type="image/jpeg")
         contents: list = [image_part, text_prompt]
-        logger.info("evaluate_attempt: multimodal request — image_url=%r", image_url)
+        logger.info(
+            "evaluate_attempt: multimodal request — model=%s image_url=%r prompt_chars=%d",
+            _MODEL_ID,
+            image_url,
+            len(text_prompt),
+        )
     else:
         text_prompt = _EVAL_PROMPT.format(
             exercise_type=attempt.type.value,
             prompt=prompt,
-            student_answer=attempt.payload.text or "",
+            student_answer=answer_text,
         )
         contents = [text_prompt]
+        logger.info(
+            "evaluate_attempt: text-only request — model=%s type=%s prompt_chars=%d",
+            _MODEL_ID,
+            attempt.type.value,
+            len(text_prompt),
+        )
 
-    logger.info("evaluate_attempt: sending request to Gemini (model=gemini-2.5-flash)")
-    response = model.generate_content(contents)
+    client = _get_client()
+    t0 = time.perf_counter()
+    response = client.models.generate_content(
+        model=_MODEL_ID,
+        contents=contents,
+        config=_EVAL_CONFIG,
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    logger.info(
+        "evaluate_attempt: Gemini responded — elapsed=%.0fms response_chars=%d",
+        elapsed_ms,
+        len(response.text),
+    )
     logger.debug("evaluate_attempt: raw Gemini response: %s", response.text)
 
-    raw = response.text.strip().removeprefix("```json").removesuffix("```").strip()
-    data = json.loads(raw)
+    data = json.loads(response.text)
+    raw_score = data.get("score", 0)
     # Override AI's boolean judgment: anything above 60 is considered correct.
-    data["isCorrect"] = data.get("score", 0) > 60
+    data["isCorrect"] = raw_score > 60
     result = EvaluationResult(**data)
+
     logger.info(
-        "evaluate_attempt: done — attemptId=%s score=%d isCorrect=%s",
+        "evaluate_attempt: done — exerciseId=%r userId=%r score=%d isCorrect=%s elapsed=%.0fms",
         attempt.exerciseId,
+        attempt.userId,
         result.score,
         result.isCorrect,
+        elapsed_ms,
     )
     return result
 
@@ -180,7 +237,10 @@ def _transcribe_audio(audio_bytes: bytes) -> str:
     Assumes WebM/Opus audio in Greek (el-GR). Sample rate is auto-detected
     from the WEBM container header (browsers typically record at 48 kHz).
     """
-    logger.info("_transcribe_audio: calling STT (encoding=WEBM_OPUS lang=el-GR payload=%d bytes)", len(audio_bytes))
+    logger.info(
+        "_transcribe_audio: calling Cloud STT — encoding=WEBM_OPUS lang=el-GR payload_bytes=%d",
+        len(audio_bytes),
+    )
     client = speech.SpeechClient()
     audio = speech.RecognitionAudio(content=audio_bytes)
     config = speech.RecognitionConfig(
@@ -188,8 +248,15 @@ def _transcribe_audio(audio_bytes: bytes) -> str:
         language_code="el-GR",
         enable_automatic_punctuation=True,
     )
+    t0 = time.perf_counter()
     response = client.recognize(config=config, audio=audio)
-    logger.info("_transcribe_audio: STT returned %d result(s)", len(response.results))
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    logger.info(
+        "_transcribe_audio: STT responded — elapsed=%.0fms results=%d",
+        elapsed_ms,
+        len(response.results),
+    )
     transcript_parts = [result.alternatives[0].transcript for result in response.results if result.alternatives]
     transcript = " ".join(transcript_parts).strip()
     logger.info("_transcribe_audio: transcript=%r", transcript)
@@ -201,12 +268,14 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     Evaluate a pronunciation attempt:
       1. Decode + validate audio duration (< 15 s).
       2. Transcribe via Google Cloud STT.
-      3. Grade via Gemini 2.5 Flash.
+      3. Grade via Gemini 2.5 Flash with structured output.
     Raises ValueError for invalid/oversized audio.
     """
     logger.info(
-        "evaluate_pronunciation: attemptId=%s target_text=%r audio_base64_len=%d",
+        "evaluate_pronunciation: start — exerciseId=%r chapterId=%r userId=%r target_text=%r audio_base64_len=%d",
         attempt.exerciseId,
+        attempt.chapterId,
+        attempt.userId,
         target_text,
         len(audio_base64),
     )
@@ -215,9 +284,10 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     try:
         audio_bytes = base64.b64decode(audio_base64)
     except Exception as exc:
+        logger.warning("evaluate_pronunciation: base64 decode failed — %s", exc)
         raise ValueError(f"Invalid base64 audio data: {exc}") from exc
 
-    logger.info("evaluate_pronunciation: decoded audio payload=%d bytes", len(audio_bytes))
+    logger.info("evaluate_pronunciation: decoded audio — payload_bytes=%d", len(audio_bytes))
 
     # 2. Rough duration guard: WebM/Opus at ~16 kbps → ~2000 bytes/s.
     # We perform a conservative upper-bound check: if the payload is larger
@@ -225,9 +295,10 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     max_bytes = _MAX_AUDIO_SECONDS * 8000  # generous ceiling
     if len(audio_bytes) > max_bytes:
         logger.warning(
-            "evaluate_pronunciation: audio payload too large (%d bytes, max=%d) — rejecting",
+            "evaluate_pronunciation: audio payload too large — bytes=%d max=%d userId=%r — rejecting",
             len(audio_bytes),
             max_bytes,
+            attempt.userId,
         )
         raise ValueError(
             f"Audio payload too large ({len(audio_bytes)} bytes). "
@@ -238,37 +309,62 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     transcription = _transcribe_audio(audio_bytes)
 
     if not transcription:
-        logger.warning("evaluate_pronunciation: STT returned empty transcription — returning score=0")
-        # No speech detected — give zero score with helpful feedback
+        logger.warning(
+            "evaluate_pronunciation: STT returned empty transcription — returning score=0 userId=%r",
+            attempt.userId,
+        )
         return EvaluationResult(
             score=0,
             feedback="No speech was detected in the recording. Please make sure your microphone is working and try again.",
             isCorrect=False,
         )
 
-    # 4. Gemini evaluation
     logger.info(
-        "evaluate_pronunciation: sending transcription to Gemini for grading — target=%r transcription=%r",
-        target_text,
+        "evaluate_pronunciation: STT succeeded — transcription=%r target=%r userId=%r",
         transcription,
+        target_text,
+        attempt.userId,
     )
-    model = _get_model()
+
+    # 4. Gemini evaluation
     full_prompt = _PRONUNCIATION_PROMPT.format(
         target_text=target_text,
         transcription=transcription,
     )
-    response = model.generate_content(full_prompt)
+    logger.info(
+        "evaluate_pronunciation: sending to Gemini — model=%s prompt_chars=%d",
+        _MODEL_ID,
+        len(full_prompt),
+    )
+
+    client = _get_client()
+    t0 = time.perf_counter()
+    response = client.models.generate_content(
+        model=_MODEL_ID,
+        contents=full_prompt,
+        config=_EVAL_CONFIG,
+    )
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    logger.info(
+        "evaluate_pronunciation: Gemini responded — elapsed=%.0fms response_chars=%d",
+        elapsed_ms,
+        len(response.text),
+    )
     logger.debug("evaluate_pronunciation: raw Gemini response: %s", response.text)
 
-    raw = response.text.strip().removeprefix("```json").removesuffix("```").strip()
-    data = json.loads(raw)
+    data = json.loads(response.text)
+    raw_score = data.get("score", 0)
     # Override AI's boolean judgment: anything above 60 is considered correct.
-    data["isCorrect"] = data.get("score", 0) > 60
+    data["isCorrect"] = raw_score > 60
     result = EvaluationResult(**data)
+
     logger.info(
-        "evaluate_pronunciation: done — attemptId=%s score=%d isCorrect=%s",
+        "evaluate_pronunciation: done — exerciseId=%r userId=%r score=%d isCorrect=%s elapsed=%.0fms",
         attempt.exerciseId,
+        attempt.userId,
         result.score,
         result.isCorrect,
+        elapsed_ms,
     )
     return result

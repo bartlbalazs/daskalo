@@ -39,7 +39,7 @@ Daskalo is built as a modern, cloud-native monorepo:
 
 **Backend & Infrastructure**
 *   **Python 3.11+** via FastAPI & Google Cloud Functions (2nd Gen)
-*   **Firestore** (using a named database: `daskalo-db`) & Firebase Storage
+*   **Firestore** & Firebase Storage
 *   **Terraform** for Infrastructure as Code
 
 **Content Pipeline (CLI Engine)**

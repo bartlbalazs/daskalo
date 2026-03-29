@@ -25,7 +25,7 @@ The application consists of three main components:
 - **Deployment**: Google Cloud Functions (2nd gen), one function per entry point file.
 - **Auth model (layered)**:
   1. **API Gateway** validates the Firebase JWT at the edge (`issuer: https://securetoken.google.com/{project_id}`, `audience: {project_id}`). Requests without a valid token are rejected with `401` before reaching the function.
-  2. **Cloud Functions** are deployed `--no-allow-unauthenticated` (enforced by org policy). Only the `api-gateway-sa` service account (with `roles/run.invoker`) can invoke them.
+  2. **Cloud Functions** are deployed `--no-allow-unauthenticated`. Only the `api-gateway-sa` service account (with `roles/run.invoker`) can invoke them.
   3. **Function code** re-verifies the Firebase ID token and checks Firestore document ownership + `status=pending` (defence-in-depth).
 - **Wire Protocol**: Firebase Callable convention — request body `{"data": {...}}`, success response `{"result": {...}}`, error response `{"error": {"status": "...", "message": "..."}}`.
 - **Functions**:

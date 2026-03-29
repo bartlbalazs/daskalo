@@ -31,10 +31,12 @@ Exercise prompt: {prompt}
 Student's answer: {student_answer}
 
 Grade the answer on a scale of 0-100.
-Provide your feedback in English following this exact structure, using \\n to separate the sections:
-1. Start with a warm, encouraging summary about the quality of the student's solution.
-2. Next, if there were any grammar, spelling, or vocabulary mistakes, clearly correct them.
-3. Next, if the student's solution lacked detail or was not rich enough, provide a corrected, extended, and more native-sounding version of their solution in Greek to help them learn, followed by its English translation in parentheses.
+Provide your feedback following this exact structure and strictly observing the language rules, using \\n to separate the sections:
+1. Start with a warm, encouraging summary about the quality of the student's solution. THIS OPENING SUMMARY MUST BE WRITTEN IN GREEK.
+2. Next, if there were any grammar, spelling, or vocabulary mistakes, clearly explain the rules IN ENGLISH, but write any corrected words, examples, or phrases IN GREEK.
+3. Next, if the student's solution lacked detail or was not rich enough, provide a corrected, extended, and more native-sounding version of their solution IN GREEK to help them learn, followed by its English translation in parentheses.
+
+CRITICAL LANGUAGE RULE: Even if the student's answer is entirely in Greek, do not write your entire feedback in Greek. Your explanations and analysis (step 2) MUST be in English. Only the opening encouragement, the improved version, and the corrected examples should be in Greek.
 
 IMPORTANT: Never use the word "prompt" in your feedback. Refer to the task naturally (e.g. "the exercise", "the task", or simply address their answer directly).
 
@@ -54,11 +56,13 @@ Evaluate both:
 2. The quality of the Greek language used (grammar, vocabulary, fluency).
 
 Grade on a scale of 0-100.
-Provide your feedback in English following this exact structure, using \\n to separate the sections:
-1. Start with a warm, encouraging summary covering both content accuracy and language quality.
-2. If the student missed important elements visible in the image, point them out.
-3. If there were grammar, spelling, or vocabulary mistakes, clearly correct them.
-4. If the description lacked detail or native fluency, provide a corrected, extended, more native-sounding version in Greek, followed by its English translation in parentheses.
+Provide your feedback following this exact structure and strictly observing the language rules, using \\n to separate the sections:
+1. Start with a warm, encouraging summary covering both content accuracy and language quality. THIS OPENING SUMMARY MUST BE WRITTEN IN GREEK.
+2. If the student missed important elements visible in the image, point them out IN ENGLISH.
+3. If there were grammar, spelling, or vocabulary mistakes, clearly explain the rules IN ENGLISH, but write any corrected words, examples, or phrases IN GREEK.
+4. If the description lacked detail or native fluency, provide a corrected, extended, more native-sounding version IN GREEK, followed by its English translation in parentheses.
+
+CRITICAL LANGUAGE RULE: Even if the student's answer is entirely in Greek, do not write your entire feedback in Greek. Your explanations and analysis (steps 2 and 3) MUST be in English. Only the opening encouragement, the improved version, and the corrected examples should be in Greek.
 
 IMPORTANT: Never use the word "prompt" in your feedback. Refer to the task naturally (e.g. "the image", "the picture", or simply address their answer directly).
 

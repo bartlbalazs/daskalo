@@ -68,16 +68,17 @@ Respond ONLY with a valid JSON object in this exact format (no markdown fences):
 # ---------------------------------------------------------------------------
 
 
-def _safe_filename(text: str) -> str:
-    """Convert Greek text to a safe ASCII filename slug."""
-    # Strip Greek accents (NFD decomposition + strip combining chars)
-    import unicodedata
+def _sanitize_greek(text: str) -> str:
+    """Sanitize a Greek word/phrase for use in Firestore doc IDs and GCS paths.
 
-    nfd = unicodedata.normalize("NFD", text)
-    ascii_text = nfd.encode("ascii", "ignore").decode("ascii")
-    # Lowercase and replace non-alphanum with underscores
-    slug = re.sub(r"[^a-z0-9]+", "_", ascii_text.lower()).strip("_")
-    return slug[:40] or "word"
+    Replaces characters that are illegal or problematic in Firestore document IDs
+    (forward slash) and GCS object names (forward slash interpreted as directory
+    separator) with underscores.  All other Unicode characters, including Greek
+    letters and accents, are preserved so that each distinct word produces a
+    unique identifier.
+    """
+    sanitized = re.sub(r"[\s/]+", "_", text).strip("_")
+    return sanitized[:80] or "word"
 
 
 def _get_gemini_model() -> GenerativeModel:
@@ -153,8 +154,8 @@ def create_own_word(
     )
 
     # 4. Upload to GCS
-    safe_name = _safe_filename(greek)
-    filename = f"{chapter_id}__{safe_name}.mp3"
+    sanitized = _sanitize_greek(greek)
+    filename = f"{chapter_id}__{sanitized}.mp3"
     gcs_path = f"users/{user_id}/own_words/{filename}"
 
     gcs_client = storage.Client()
@@ -176,10 +177,11 @@ def create_own_word(
     logger.info("Uploaded own-word audio to %s", audio_url)
 
     # 5. Write to Firestore
-    # NOTE: safe_name (ASCII slug) is used for the doc ID to avoid Firestore treating
-    # slashes in Greek text (e.g. "ήσυχος / ήσυχη / ήσυχο") as subcollection separators.
+    # NOTE: sanitized Greek (slashes/spaces → underscores) is used for the doc ID to
+    # avoid Firestore treating slashes in Greek text (e.g. "ήσυχος / ήσυχη / ήσυχο")
+    # as subcollection separators, while still preserving uniqueness per word.
     db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
-    doc_id = f"{chapter_id}__{safe_name}"
+    doc_id = f"{chapter_id}__{sanitized}"
     word_doc = {
         "greek": greek,
         "english": english,

@@ -375,14 +375,15 @@ pronounce; LLM picks the appropriate scope
   conversation        — a scripted dialogue between a male and a female speaker about the chapter topic. \
     Structure: write 8-16 lines of natural Greek dialogue, alternating male/female speakers. \
     At 2-4 natural break points, insert a checkpoint using one of three types (vary the types; \
-    do NOT use the same type for two consecutive checkpoints): \
+    do NOT use the same type for two consecutive checkpoints). \
+    CRITICAL CHECKPOINT RULE: A checkpoint placed at `after_line_index`: N MUST ONLY test comprehension of the dialogue lines up to and including line N. NEVER reference, ask about, or test information that is revealed in line N+1 or later. \
        - "mcq": present 3 Greek multiple-choice options where exactly one is the best continuation; \
         set "type": "mcq", "after_line_index", "question" (short English question), and "options" \
         as a list of {{"text": "<Greek>", "isCorrect": <bool>}}. \
       - "true_false": state an English sentence about the conversation so far that is either true \
         or false; set "type": "true_false", "after_line_index", "statement" (English), and "is_true" \
         (bool). \
-      - "translation": give a short Greek phrase from the conversation that the student must \
+      - "translation": give a short Greek phrase from the conversation THAT HAS ALREADY BEEN SPOKEN (index <= after_line_index) that the student must \
         translate into English; set "type": "translation", "after_line_index", "greek_phrase", \
         and "english_answer". \
     For each line, set speaker to "male" or "female".

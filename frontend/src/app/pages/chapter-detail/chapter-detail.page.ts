@@ -14,6 +14,7 @@ import { ExerciseCardComponent } from './exercises/exercise-card.component';
 import { AudioPlayerComponent } from './exercises/audio-player.component';
 import { InlineAudioButtonComponent } from '../../shared/components/inline-audio-button.component';
 import { OwnWordBubbleComponent } from './own-word-bubble.component';
+import { LightboxComponent } from '../../shared/components/lightbox.component';
 import { environment } from '../../../environments/environment';
 import { marked } from 'marked';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -21,7 +22,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-chapter-detail',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent, OwnWordBubbleComponent],
+  imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent, OwnWordBubbleComponent, LightboxComponent],
   template: `
     @if (chapter(); as chapter) {
 
@@ -43,7 +44,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             <img
               [src]="(chapter.coverImageUrl | gcsUrl | async) ?? ''"
               alt=""
-              class="w-full h-64 md:h-96 object-cover rounded-2xl mb-7 border border-greek-500 shadow-xl"
+              class="w-full h-64 md:h-96 object-cover rounded-2xl mb-7 border border-greek-500 shadow-xl cursor-pointer"
+              (click)="openLightboxFromEvent($event)"
             />
           }
 
@@ -134,7 +136,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
               @for (note of chapter.grammarNotes; track note.heading) {
                 <div class="bg-white border border-greek-100 rounded-2xl overflow-hidden shadow-md">
                   @if (note.imageUrl) {
-                    <img [src]="(note.imageUrl | gcsUrl | async) ?? ''" alt="" class="w-full h-48 md:h-64 object-cover border-b border-surface-100" />
+                    <img [src]="(note.imageUrl | gcsUrl | async) ?? ''" alt=""
+                      class="w-full h-48 md:h-64 object-cover border-b border-surface-100 cursor-pointer"
+                      (click)="openLightboxFromEvent($event)" />
                   }
                   <div class="p-6 md:p-10">
                     <h3 class="font-serif text-xl font-semibold text-greek-900 mb-2">{{ note.heading }}</h3>
@@ -424,6 +428,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
       <!-- ===== OWN WORD BUBBLE ===== -->
       <app-own-word-bubble [chapterId]="chapter.id" [bookId]="chapter.bookId" />
 
+      <!-- ===== IMAGE LIGHTBOX ===== -->
+      <app-lightbox [imageUrl]="lightboxUrl()" (closed)="closeLightbox()" />
+
     } @else {
       <!-- Loading skeleton — banded to match real layout -->
       <div class="w-full bg-white border-b border-surface-200 animate-pulse">
@@ -503,6 +510,7 @@ export class ChapterDetailPage implements OnInit {
   private document = inject(DOCUMENT);
 
   playingWord = signal<string | null>(null);
+  lightboxUrl = signal<string | null>(null);
 
   /** Tracks which exercise indices have been answered and their result (index -> correct). */
   private answeredMap = signal<Map<number, boolean>>(new Map());
@@ -614,6 +622,15 @@ export class ChapterDetailPage implements OnInit {
   renderMarkdownInline(md: string): SafeHtml {
     const html = marked.parseInline(md, { async: false }) as string;
     return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  openLightboxFromEvent(event: Event): void {
+    const src = (event.target as HTMLImageElement).src;
+    if (src) this.lightboxUrl.set(src);
+  }
+
+  closeLightbox(): void {
+    this.lightboxUrl.set(null);
   }
 
   playAudio(url: string, word?: string): void {

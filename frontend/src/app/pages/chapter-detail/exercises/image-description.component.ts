@@ -4,11 +4,12 @@ import {
 import { AsyncPipe } from '@angular/common';
 import { Exercise, EvaluationResult } from '../../../core/models/firestore.models';
 import { GcsUrlPipe } from '../../../shared/pipes/gcs-url.pipe';
+import { LightboxComponent } from '../../../shared/components/lightbox.component';
 
 @Component({
   selector: 'app-image-description',
   standalone: true,
-  imports: [AsyncPipe, GcsUrlPipe],
+  imports: [AsyncPipe, GcsUrlPipe, LightboxComponent],
   template: `
     <div class="space-y-4">
       <!-- Image -->
@@ -16,9 +17,13 @@ import { GcsUrlPipe } from '../../../shared/pipes/gcs-url.pipe';
         <img
           [src]="(exercise.imageUrl | gcsUrl | async) ?? ''"
           alt="Exercise image"
-          class="w-full rounded-xl object-cover max-h-72 border border-surface-200"
+          class="w-full rounded-xl object-cover max-h-72 border border-surface-200 cursor-pointer"
+          (click)="openLightboxFromEvent($event)"
         />
       }
+
+      <!-- Image lightbox -->
+      <app-lightbox [imageUrl]="lightboxUrl()" (closed)="closeLightbox()" />
 
       <!-- Textarea -->
       <textarea
@@ -89,9 +94,19 @@ export class ImageDescriptionComponent {
 
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
+  lightboxUrl = signal<string | null>(null);
   answerValue = '';
   readonly maxChars = 300;
   get charCount(): number { return this.answerValue.length; }
+
+  openLightboxFromEvent(event: Event): void {
+    const src = (event.target as HTMLImageElement).src;
+    if (src) this.lightboxUrl.set(src);
+  }
+
+  closeLightbox(): void {
+    this.lightboxUrl.set(null);
+  }
 
   onInput(event: Event): void {
     this.answerValue = (event.target as HTMLTextAreaElement).value;

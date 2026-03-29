@@ -158,7 +158,7 @@ type ConversationStep = LineStep | CheckpointStep;
               <p class="text-sm font-medium text-surface-700 mb-1">Translate this phrase into English:</p>
               <p class="font-serif text-base font-semibold text-greek-800 mb-3">{{ asTranslation(step.checkpoint).greek_phrase }}</p>
               @if (!checkpointAnswers().has(step.checkpointIndex)) {
-                <div class="flex gap-2">
+                <div class="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     #translationInput

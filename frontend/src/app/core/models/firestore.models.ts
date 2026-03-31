@@ -322,6 +322,8 @@ export interface PracticeSet {
   id: string;
   chapterId: string;
   title: string;
+  introduction?: string;
+  skills?: string[];
   coverImageUrl?: string;
   exercises: Exercise[];
 }

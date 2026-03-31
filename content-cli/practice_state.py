@@ -26,6 +26,8 @@ class PracticeState(TypedDict):
     existing_audio: dict[str, str]
 
     # --- Generated content ---
+    introduction: str
+    skills: list[str]
     exercises: list[Exercise]
     image_prompts: list[ImagePrompt]
     chapter_image_prompt: str  # Cover image prompt (homework aesthetic)

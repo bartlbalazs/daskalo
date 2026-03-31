@@ -726,3 +726,9 @@ class PracticeSetResult(BaseModel):
     image_prompts: list[ImagePrompt] = Field(
         description="One entry per 'image_description' exercise generated in the list above."
     )
+    introduction: str = Field(
+        description="A short, enthusiastic introduction to hype up the practice, setting the context and motivating the student. Keep it under 3 sentences."
+    )
+    skills: list[str] = Field(
+        description="A list of 2-4 key language topics or skills practiced in this set (e.g., 'Food vocabulary', 'Listening comprehension'). Keep each skill under 4 words."
+    )

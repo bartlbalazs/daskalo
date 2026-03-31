@@ -56,6 +56,21 @@ import { environment } from '../../../environments/environment';
           </div>
 
           <h1 class="font-serif text-4xl md:text-5xl font-semibold text-white mb-2 leading-tight">{{ ps.title }}</h1>
+          
+          @if (ps.introduction) {
+            <p class="text-practice-100 text-lg mb-4">{{ ps.introduction }}</p>
+          }
+
+          @if (ps.skills && ps.skills.length > 0) {
+            <div class="flex flex-wrap gap-2 mb-4">
+              @for (skill of ps.skills; track skill) {
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                  {{ skill }}
+                </span>
+              }
+            </div>
+          }
+
           <p class="text-practice-200 text-sm">{{ ps.exercises.length }} exercises</p>
         </div>
       </div>

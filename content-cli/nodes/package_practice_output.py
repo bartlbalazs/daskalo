@@ -31,6 +31,8 @@ def package_practice_output(state: dict) -> dict:
             "id": practice_set_id,
             "chapterId": state["chapter_id"],
             "title": f"Practice: {state.get('chapter_title', '')}",
+            "introduction": state.get("introduction"),
+            "skills": state.get("skills", []),
             "coverImagePath": (
                 f"assets/images/{Path(state['chapter_image_path']).name}" if state.get("chapter_image_path") else None
             ),

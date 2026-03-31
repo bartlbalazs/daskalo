@@ -116,6 +116,8 @@ def generate_practice(state: dict) -> dict:
     )
 
     return {
+        "introduction": result.introduction,
+        "skills": result.skills,
         "exercises": result.exercises,
         "image_prompts": result.image_prompts,
         "chapter_image_prompt": result.cover_image_prompt,

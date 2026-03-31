@@ -57,7 +57,8 @@ Student's answer: {student_answer}
 
 Grade the answer on a scale of 0-100.
 Provide your feedback following this exact structure and strictly observing the language rules, using \\n to separate the sections:
-1. Start with a warm, encouraging summary about the quality of the student's solution. THIS OPENING SUMMARY MUST BE WRITTEN IN GREEK.
+1. Short and encouraging opening evaluation about the student's answer quality. THIS OPENING SUMMARY MUST BE WRITTEN IN GREEK.
+1. Next a warm, encouraging summary about the quality of the student's solution. THIS MUST BE WRITTEN IN ENGLISH.
 2. Next, if there were any grammar, spelling, or vocabulary mistakes, clearly explain the rules IN ENGLISH, but write any corrected words, examples, or phrases IN GREEK.
 3. Next, if the student's solution lacked detail or was not rich enough, provide a corrected, extended, and more native-sounding version of their solution IN GREEK to help them learn, followed by its English translation in parentheses.
 

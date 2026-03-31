@@ -12,7 +12,9 @@ import os
 from pathlib import Path
 
 import vertexai
+from google.api_core import exceptions as google_exceptions
 from google.cloud import texttospeech
+from tenacity import before_sleep_log, retry, retry_if_exception, stop_after_attempt, wait_exponential
 from vertexai.generative_models import GenerationConfig, GenerativeModel
 
 from prompts.content_prompts import IMAGE_GENERATION_PROMPT_TEMPLATE
@@ -65,16 +67,36 @@ def synthesize_speech(
         return False
 
 
+def _is_retryable_image_error(exc: BaseException) -> bool:
+    """Return True for transient Google API errors that warrant a retry (429, 503)."""
+    if isinstance(exc, (google_exceptions.ResourceExhausted, google_exceptions.ServiceUnavailable)):
+        return True
+    # Fallback: check string representation for cases where the SDK wraps the error differently.
+    msg = str(exc)
+    return "429" in msg or "503" in msg or "Resource has been exhausted" in msg
+
+
 def generate_image(scene_description: str, output_path: str) -> bool:
     """Call Gemini image generation (gemini-3-pro-image-preview).
 
     The model is loaded from the ``global`` region as required.
     Image bytes are written directly to *output_path* as JPEG.
 
+    Retries up to 3 times (4 attempts total) on transient quota/availability
+    errors (HTTP 429 / 503) using exponential backoff (15 s → 30 s → 60 s).
+
     Returns ``True`` on success, ``False`` on any failure.
     """
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
-    try:
+
+    @retry(
+        retry=retry_if_exception(_is_retryable_image_error),
+        stop=stop_after_attempt(4),
+        wait=wait_exponential(multiplier=1, min=15, max=90),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    def _call_api() -> bytes | None:
         vertexai.init(project=project, location=IMAGE_REGION)
         model = GenerativeModel(IMAGE_MODEL)
         prompt = IMAGE_GENERATION_PROMPT_TEMPLATE.format(scene_description=scene_description)
@@ -82,20 +104,21 @@ def generate_image(scene_description: str, output_path: str) -> bool:
             prompt,
             generation_config=GenerationConfig(response_modalities=["IMAGE"]),
         )
-        # Extract image bytes from the first image part in the response.
-        image_data: bytes | None = None
         for part in response.candidates[0].content.parts:
             if part.inline_data and part.inline_data.data:
-                image_data = part.inline_data.data
-                break
+                return part.inline_data.data
+        return None
 
-        if not image_data:
-            logger.error("Gemini returned no image data for prompt: %s", scene_description[:60])
-            return False
-
-        Path(output_path).write_bytes(image_data)
-        logger.debug("Generated image: %s", output_path)
-        return True
+    try:
+        image_data = _call_api()
     except Exception as exc:  # noqa: BLE001
         logger.error("Image generation failed: %s", exc)
         return False
+
+    if not image_data:
+        logger.error("Gemini returned no image data for prompt: %s", scene_description[:60])
+        return False
+
+    Path(output_path).write_bytes(image_data)
+    logger.debug("Generated image: %s", output_path)
+    return True

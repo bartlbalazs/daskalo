@@ -38,6 +38,7 @@ export type ExerciseType =
 export interface MatchingPair {
   greek: string;
   english: string;
+  audioUrl?: string;
 }
 
 export interface MatchingData {

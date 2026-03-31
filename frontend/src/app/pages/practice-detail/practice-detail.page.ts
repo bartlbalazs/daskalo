@@ -8,12 +8,13 @@ import { switchMap } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
 import { AsyncPipe } from '@angular/common';
 import { ExerciseCardComponent } from '../chapter-detail/exercises/exercise-card.component';
+import { LightboxComponent } from '../../shared/components/lightbox.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-practice-detail',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, GcsUrlPipe, ExerciseCardComponent],
+  imports: [AsyncPipe, RouterLink, GcsUrlPipe, ExerciseCardComponent, LightboxComponent],
   template: `
     @if (practiceSet(); as ps) {
 
@@ -35,7 +36,8 @@ import { environment } from '../../../environments/environment';
             <img
               [src]="(ps.coverImageUrl | gcsUrl | async) ?? ''"
               alt=""
-              class="w-full h-48 md:h-72 object-cover rounded-2xl mb-7 border border-practice-500 shadow-xl"
+              class="w-full h-48 md:h-72 object-cover rounded-2xl mb-7 border border-practice-500 shadow-xl cursor-pointer"
+              (click)="openLightboxFromEvent($event)"
             />
           }
 
@@ -144,6 +146,9 @@ import { environment } from '../../../environments/environment';
         }
       </div>
     }
+
+    <!-- Image lightbox -->
+    <app-lightbox [imageUrl]="lightboxUrl()" (closed)="closeLightbox()" />
   `,
 })
 export class PracticeDetailPage implements OnInit {
@@ -157,6 +162,7 @@ export class PracticeDetailPage implements OnInit {
   practiceCompleted = signal(false);
   earnedXp = signal(175);
   alreadyCompleted = signal(false);
+  lightboxUrl = signal<string | null>(null);
 
   practiceSet = toSignal(
     this.route.paramMap.pipe(
@@ -170,6 +176,15 @@ export class PracticeDetailPage implements OnInit {
   );
 
   ngOnInit(): void {}
+
+  openLightboxFromEvent(event: Event): void {
+    const src = (event.target as HTMLImageElement).src;
+    if (src) this.lightboxUrl.set(src);
+  }
+
+  closeLightbox(): void {
+    this.lightboxUrl.set(null);
+  }
 
   isCompleted(): boolean {
     const ps = this.practiceSet();

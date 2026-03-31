@@ -1,11 +1,6 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
-import { Exercise, MatchingData } from '../../../core/models/firestore.models';
-
-interface MatchingPairWithAudio {
-  greek: string;
-  english: string;
-  audioUrl?: string;
-}
+import { Component, Input, Output, EventEmitter, signal, OnInit, inject } from '@angular/core';
+import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { Exercise, MatchingData, MatchingPair } from '../../../core/models/firestore.models';
 
 type PairState = 'idle' | 'selected' | 'correct' | 'error';
 
@@ -76,6 +71,8 @@ export class MatchingComponent implements OnInit {
   @Input({ required: true }) exercise!: Exercise;
   @Output() answered = new EventEmitter<boolean>();
 
+  private readonly storage = inject(Storage);
+
   shuffledGreek = signal<Array<{ idx: number; greek: string; audioUrl?: string }>>([]);
   shuffledEnglish = signal<Array<{ idx: number; english: string }>>([]);
 
@@ -89,14 +86,16 @@ export class MatchingComponent implements OnInit {
   matchedCount = signal(0);
   allMatched = signal(false);
 
-  private _pairs: MatchingPairWithAudio[] = [];
+  private _pairs: MatchingPair[] = [];
+  // Resolved HTTPS download URLs per pair index (populated asynchronously in ngOnInit)
+  private _resolvedAudioUrls: Map<number, string> = new Map();
   private _audioCache: Map<string, HTMLAudioElement> = new Map();
 
   ngOnInit(): void {
     const data = this.exercise.data as unknown as MatchingData;
-    this._pairs = (data?.pairs ?? []) as MatchingPairWithAudio[];
+    this._pairs = data?.pairs ?? [];
 
-    const greekItems = this._pairs.map((p, i) => ({ idx: i, greek: p.greek, audioUrl: (p as any).audioUrl }));
+    const greekItems = this._pairs.map((p, i) => ({ idx: i, greek: p.greek, audioUrl: p.audioUrl }));
     const englishItems = this._pairs.map((p, i) => ({ idx: i, english: p.english }));
 
     this.shuffledGreek.set(this._shuffle(greekItems));
@@ -108,6 +107,20 @@ export class MatchingComponent implements OnInit {
     this.englishState.set({ ...initialState });
     this.greekError.set({});
     this.englishError.set({});
+
+    // Resolve gs:// URIs to HTTPS download URLs up-front so playback is instant on click.
+    this._pairs.forEach((pair, i) => {
+      const raw = pair.audioUrl;
+      if (!raw) return;
+      if (raw.startsWith('gs://')) {
+        getDownloadURL(ref(this.storage, raw))
+          .then(url => this._resolvedAudioUrls.set(i, url))
+          .catch(() => { /* audio unavailable — silent fail */ });
+      } else {
+        // Already an HTTPS URL (e.g. local emulator or pre-resolved)
+        this._resolvedAudioUrls.set(i, raw);
+      }
+    });
   }
 
   pairsRange(): number[] {
@@ -188,8 +201,7 @@ export class MatchingComponent implements OnInit {
   }
 
   private _playAudio(idx: number): void {
-    const pair = this._pairs[idx] as MatchingPairWithAudio;
-    const url = pair?.audioUrl;
+    const url = this._resolvedAudioUrls.get(idx);
     if (!url) return;
     try {
       let audio = this._audioCache.get(url);

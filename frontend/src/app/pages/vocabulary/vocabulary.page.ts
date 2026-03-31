@@ -232,7 +232,7 @@ interface BookGroup {
     <!-- Reusable Word Card Template -->
     <ng-template #wordCard let-word let-showSource="showSource">
       <div
-        class="group bg-white rounded-2xl px-5 py-4 hover:shadow-md transition-all duration-200 flex items-center gap-4 relative border"
+        class="group bg-white rounded-2xl px-5 py-4 hover:shadow-md transition-all duration-200 flex items-start gap-4 relative border"
         [class]="word.isOwnWord
           ? 'border-surface-200 border-l-4 border-l-greek-500 hover:border-greek-300 hover:border-l-greek-500'
           : 'border-surface-200 hover:border-greek-300'"
@@ -243,52 +243,54 @@ interface BookGroup {
           <p class="text-surface-600 text-sm leading-snug truncate" [title]="word.english">{{ word.english }}</p>
         </div>
 
-        <!-- Right side: source tag + action buttons -->
-        <div class="flex items-center gap-2 shrink-0">
-          @if (showSource) {
-            <div class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-100 text-surface-500">
-              Ch. {{ word.chapterOrder }}
-            </div>
-          }
-          <!-- Bookmark (favorite) toggle -->
-          <button
-            (click)="favoriteWordsService.toggleFavorite(word, word.chapterId, word.bookId)"
-            class="w-9 h-9 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
-            [class]="favoriteWordsService.isFavorited(word.chapterId, word.greek)
-              ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
-              : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
-            [title]="favoriteWordsService.isFavorited(word.chapterId, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
-          >
-            @if (favoriteWordsService.isFavorited(word.chapterId, word.greek)) {
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 2a2 2 0 00-2 2v18l8-3 8 3V4a2 2 0 00-2-2H6z"/>
-              </svg>
-            } @else {
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-              </svg>
-            }
-          </button>
-          <!-- Audio play button -->
-          @if (word.audioUrl) {
+        <!-- Right side: action buttons + source tag below -->
+        <div class="flex flex-col items-end shrink-0">
+          <div class="flex items-center gap-2">
+            <!-- Bookmark (favorite) toggle -->
             <button
-              (click)="playAudio(word.audioUrl, word.greek)"
-              class="w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
-              title="Listen to pronunciation"
-              [disabled]="playingWord() === word.greek"
-              [class.opacity-80]="playingWord() === word.greek"
+              (click)="favoriteWordsService.toggleFavorite(word, word.chapterId, word.bookId)"
+              class="w-9 h-9 rounded-full flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
+              [class]="favoriteWordsService.isFavorited(word.chapterId, word.greek)
+                ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
+                : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
+              [title]="favoriteWordsService.isFavorited(word.chapterId, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
             >
-              @if (playingWord() === word.greek) {
-                <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              @if (favoriteWordsService.isFavorited(word.chapterId, word.greek)) {
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 2a2 2 0 00-2 2v18l8-3 8 3V4a2 2 0 00-2-2H6z"/>
                 </svg>
               } @else {
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                 </svg>
               }
             </button>
+            <!-- Audio play button -->
+            @if (word.audioUrl) {
+              <button
+                (click)="playAudio(word.audioUrl, word.greek)"
+                class="w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
+                title="Listen to pronunciation"
+                [disabled]="playingWord() === word.greek"
+                [class.opacity-80]="playingWord() === word.greek"
+              >
+                @if (playingWord() === word.greek) {
+                  <svg class="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                } @else {
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0-12L8.464 9.536M12 6l3.536 3.536M8.464 14.464A5 5 0 018.464 9.536M5.05 18.364A9 9 0 015.05 5.636"/>
+                  </svg>
+                }
+              </button>
+            }
+          </div>
+          @if (showSource) {
+            <div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-100 text-surface-500 mt-1">
+              Ch. {{ word.chapterOrder }}
+            </div>
           }
         </div>
       </div>

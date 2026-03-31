@@ -34,6 +34,7 @@ import functions_framework
 from firebase_admin import credentials
 from google.cloud.firestore import Client as FirestoreClient
 
+import log_setup  # noqa: F401 — configures root logger for Cloud Logging
 from callable_helpers import (
     callable_error,
     callable_response,
@@ -45,7 +46,6 @@ from models.firestore import AttemptStatus, ExerciseAttempt, ExerciseType
 from services.evaluation import evaluate_attempt, evaluate_pronunciation
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 # ---------------------------------------------------------------------------
 # Firebase Admin SDK — initialised once per cold start.

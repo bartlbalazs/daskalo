@@ -33,6 +33,7 @@ import functions_framework
 from firebase_admin import credentials
 from google.cloud.firestore import Client as FirestoreClient
 
+import log_setup  # noqa: F401 — configures root logger for Cloud Logging
 from callable_helpers import (
     callable_error,
     callable_response,
@@ -43,7 +44,6 @@ from callable_helpers import (
 from services.own_word import _MAX_INPUT_CHARS, create_own_word
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 # ---------------------------------------------------------------------------

@@ -43,6 +43,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /practice_sets/{practiceSetId} {
+      allow read: if isActiveUser();
+      allow write: if false;
+    }
+
     match /exercise_attempts/{attemptId} {
       allow read: if isActiveUser() && resource.data.userId == request.auth.uid;
       allow create: if isActiveUser()

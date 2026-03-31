@@ -204,6 +204,24 @@ interface SidebarBook extends Book {
                           }
                           <span class="truncate">{{ chapter.order }}. {{ chapter.title }}</span>
                         </a>
+                        <!-- Practice sets under this chapter -->
+                        @if (chapter.practiceSetIds && chapter.practiceSetIds.length > 0) {
+                          @for (psId of chapter.practiceSetIds; track psId; let i = $index) {
+                            <a
+                              [routerLink]="['/practice', psId]"
+                              routerLinkActive="bg-practice-50 text-practice-700 font-semibold"
+                              [routerLinkActiveOptions]="{ exact: true }"
+                              class="flex items-center gap-2.5 pl-7 pr-3 py-1.5 rounded-lg text-xs text-surface-500 hover:bg-practice-50 hover:text-practice-700 transition-colors"
+                              (click)="closeSidebarOnMobile()"
+                            >
+                              <!-- Dumbbell icon -->
+                              <svg class="w-3.5 h-3.5 shrink-0" [class]="isPracticeCompleted(psId) ? 'text-practice-500' : 'text-surface-400'" viewBox="0 0 24 24" [attr.fill]="isPracticeCompleted(psId) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.4 14.4 9.6 9.6"/><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path d="m21.5 21.5-1.4-1.4"/><path d="M3.9 3.9 2.5 2.5"/><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/>
+                              </svg>
+                              <span class="truncate">Practice{{ chapter.practiceSetIds!.length > 1 ? ' ' + (i + 1) : '' }}</span>
+                            </a>
+                          }
+                        }
                       </li>
                     }
                   </ul>
@@ -328,6 +346,11 @@ export class LayoutComponent implements OnInit {
   isCompleted(chapterId: string): boolean {
     const completedIds = this.authService.currentUser()?.progress?.completedChapterIds ?? [];
     return completedIds.includes(chapterId);
+  }
+
+  isPracticeCompleted(practiceSetId: string): boolean {
+    const completedIds = this.authService.currentUser()?.progress?.completedPracticeSetIds ?? [];
+    return completedIds.includes(practiceSetId);
   }
 
   async signOut(): Promise<void> {

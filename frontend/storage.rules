@@ -15,6 +15,12 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // Practice set assets (audio, images) — same access as chapters.
+    match /practice_sets/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     // Own-word audio files — readable only by the owning user.
     // Written exclusively by the add-own-word Cloud Function via Admin SDK.
     match /users/{userId}/own_words/{allPaths=**} {

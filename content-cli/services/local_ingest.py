@@ -122,6 +122,10 @@ def ingest_direct(zip_path: str) -> str:
     """
     _configure_emulator_env()
 
+    # Always use the demo project ID for emulator clients — the real GCP project
+    # (GOOGLE_CLOUD_PROJECT) is only needed for Vertex AI / TTS calls and must NOT
+    # be used here, otherwise data lands in a different emulator namespace than the
+    # one the frontend and the Firebase Emulator UI expect (demo-daskalo).
     storage_client = storage.Client(project=LOCAL_PROJECT_ID)
     assets_bucket = _ensure_bucket(storage_client, LOCAL_ASSETS_BUCKET)
 

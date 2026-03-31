@@ -13,30 +13,24 @@ Identical asset naming and output contract as generate_media, but:
 """
 
 import logging
-import os
 import re
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-
-import vertexai
-from google.cloud import texttospeech
-from vertexai.generative_models import GenerationConfig, GenerativeModel
 
 from models.content_models import (
     ConversationExercise,
     ImageDescriptionExercise,
     MatchingExercise,
 )
-from prompts.content_prompts import IMAGE_GENERATION_PROMPT_TEMPLATE
+from utils.media_utils import (
+    VOICE_FEMALE,
+    VOICE_MALE,
+    generate_image,
+    synthesize_speech,
+)
 
 logger = logging.getLogger(__name__)
-
-VOICE_FEMALE = "el-GR-Chirp3-HD-Achernar"
-VOICE_MALE = "el-GR-Chirp3-HD-Charon"
-LANGUAGE_CODE = "el-GR"
-IMAGE_MODEL = "gemini-3-pro-image-preview"
-IMAGE_REGION = "global"
 
 _BOOK_SPEAKING_RATE: dict[str, float] = {"b1": 0.70, "b2": 0.80, "b3": 0.88}
 _DEFAULT_SPEAKING_RATE = 1.00
@@ -110,7 +104,7 @@ def generate_practice_media(state: dict) -> dict:
 
     def _run_tts(task):
         text, voice, path, rate, category = task
-        success = _synthesize_speech(text, voice, path, speaking_rate=rate)
+        success = synthesize_speech(text, voice, path, speaking_rate=rate)
         return category, path if success else None
 
     with ThreadPoolExecutor(max_workers=_TTS_MAX_WORKERS) as executor:
@@ -169,7 +163,7 @@ def generate_practice_media(state: dict) -> dict:
 
     def _run_image(task):
         scene, path, category = task
-        success = _generate_image(scene, path)
+        success = generate_image(scene, path)
         return category, path if success else None
 
     with ThreadPoolExecutor(max_workers=_IMAGE_MAX_WORKERS) as executor:
@@ -200,45 +194,3 @@ def generate_practice_media(state: dict) -> dict:
         "chapter_image_path": chapter_image_path,
         "exercises": exercises,
     }
-
-
-def _synthesize_speech(text: str, voice_name: str, output_path: str, speaking_rate: float = 1.0) -> bool:
-    try:
-        client = texttospeech.TextToSpeechClient()
-        synthesis_input = texttospeech.SynthesisInput(text=text)
-        voice = texttospeech.VoiceSelectionParams(language_code=LANGUAGE_CODE, name=voice_name)
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3,
-            speaking_rate=speaking_rate,
-        )
-        response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
-        Path(output_path).write_bytes(response.audio_content)
-        return True
-    except Exception as exc:  # noqa: BLE001
-        logger.error("TTS failed for '%s': %s", text[:40], exc)
-        return False
-
-
-def _generate_image(scene_description: str, output_path: str) -> bool:
-    project = os.environ["GOOGLE_CLOUD_PROJECT"]
-    try:
-        vertexai.init(project=project, location=IMAGE_REGION)
-        model = GenerativeModel(IMAGE_MODEL)
-        prompt = IMAGE_GENERATION_PROMPT_TEMPLATE.format(scene_description=scene_description)
-        response = model.generate_content(
-            prompt,
-            generation_config=GenerationConfig(response_modalities=["IMAGE"]),
-        )
-        image_data: bytes | None = None
-        for part in response.candidates[0].content.parts:
-            if part.inline_data and part.inline_data.data:
-                image_data = part.inline_data.data
-                break
-        if not image_data:
-            logger.error("Gemini returned no image for prompt: %s", scene_description[:60])
-            return False
-        Path(output_path).write_bytes(image_data)
-        return True
-    except Exception as exc:  # noqa: BLE001
-        logger.error("Image generation failed: %s", exc)
-        return False

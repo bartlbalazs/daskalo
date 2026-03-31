@@ -38,15 +38,10 @@ Image output:
 """
 
 import logging
-import os
 import re
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-
-import vertexai
-from google.cloud import texttospeech
-from vertexai.generative_models import GenerationConfig, GenerativeModel
 
 from models.content_models import (
     ConversationExercise,
@@ -56,21 +51,18 @@ from models.content_models import (
     PassageSentence,
     PronunciationPracticeExercise,
 )
-from prompts.content_prompts import IMAGE_GENERATION_PROMPT_TEMPLATE
 from state import ContentState
+from utils.media_utils import (
+    VOICE_FEMALE,
+    VOICE_MALE,
+    generate_image,
+    synthesize_speech,
+)
 
 logger = logging.getLogger(__name__)
 
-# --- Voice constants ---------------------------------------------------------
-# Vocabulary: Chirp3-HD for highest quality pronunciation (alternating M/F)
-VOICE_FEMALE = "el-GR-Chirp3-HD-Achernar"
-VOICE_MALE = "el-GR-Chirp3-HD-Charon"
-# Narration: Chirp3-HD for highest quality passage/sentence/pronunciation/grammar audio
-VOICE_NARRATOR = "el-GR-Chirp3-HD-Achernar"
-LANGUAGE_CODE = "el-GR"
-
-IMAGE_MODEL = "gemini-3-pro-image-preview"
-IMAGE_REGION = "global"
+# --- Narration voice (same as VOICE_FEMALE, kept for clarity) ---------------
+VOICE_NARRATOR = VOICE_FEMALE
 
 # --- Passage speaking rate by book ------------------------------------------
 # Slower rates help beginners; normalises to 1.0 at Book 4+.
@@ -234,7 +226,7 @@ def generate_media(state: ContentState) -> dict:
 
     def _run_tts(task):
         text, voice, path, rate, category = task
-        success = _synthesize_speech(text, voice, path, speaking_rate=rate)
+        success = synthesize_speech(text, voice, path, speaking_rate=rate)
         return category, path if success else None
 
     with ThreadPoolExecutor(max_workers=_TTS_MAX_WORKERS) as executor:
@@ -340,7 +332,7 @@ def generate_media(state: ContentState) -> dict:
 
     def _run_image(task):
         scene, path, category = task
-        success = _generate_image(scene, path, state)
+        success = generate_image(scene, path)
         return category, path if success else None
 
     with ThreadPoolExecutor(max_workers=_IMAGE_MAX_WORKERS) as executor:
@@ -396,80 +388,3 @@ def generate_media(state: ContentState) -> dict:
         "grammar_notes": grammar_notes,
         "passage": passage,
     }
-
-
-# ---------------------------------------------------------------------------
-# Private helpers
-# ---------------------------------------------------------------------------
-
-
-def _synthesize_speech(
-    text: str,
-    voice_name: str,
-    output_path: str,
-    speaking_rate: float = 1.0,
-) -> bool:
-    """Synthesize Greek speech via Google Cloud TTS and write MP3 to output_path.
-
-    Uses Chirp3-HD voices for the highest quality.
-    speaking_rate < 1.0 slows down delivery (useful for early-phase passage audio).
-
-    Returns True on success, False on any failure.
-    """
-    try:
-        client = texttospeech.TextToSpeechClient()
-        synthesis_input = texttospeech.SynthesisInput(text=text)
-        voice = texttospeech.VoiceSelectionParams(
-            language_code=LANGUAGE_CODE,
-            name=voice_name,
-        )
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3,
-            speaking_rate=speaking_rate,
-        )
-        response = client.synthesize_speech(
-            input=synthesis_input,
-            voice=voice,
-            audio_config=audio_config,
-        )
-        Path(output_path).write_bytes(response.audio_content)
-        logger.debug("Generated audio: %s (rate=%.2f)", output_path, speaking_rate)
-        return True
-    except Exception as exc:  # noqa: BLE001
-        logger.error("Cloud TTS synthesis failed for '%s' (voice=%s): %s", text[:40], voice_name, exc)
-        return False
-
-
-def _generate_image(scene_description: str, output_path: str, state: ContentState) -> bool:
-    """Call Gemini image generation (gemini-3-pro-image-preview). Returns True on success.
-
-    The model is loaded from the 'global' region as required for this model.
-    Image bytes are written directly to output_path as JPEG.
-    No resizing is applied — the image is saved at whatever resolution Gemini returns.
-    """
-    project = os.environ["GOOGLE_CLOUD_PROJECT"]
-    try:
-        vertexai.init(project=project, location=IMAGE_REGION)
-        model = GenerativeModel(IMAGE_MODEL)
-        prompt = IMAGE_GENERATION_PROMPT_TEMPLATE.format(scene_description=scene_description)
-        response = model.generate_content(
-            prompt,
-            generation_config=GenerationConfig(response_modalities=["IMAGE"]),
-        )
-        # Extract image bytes from the first image part in the response.
-        image_data: bytes | None = None
-        for part in response.candidates[0].content.parts:
-            if part.inline_data and part.inline_data.data:
-                image_data = part.inline_data.data
-                break
-
-        if not image_data:
-            logger.error("Gemini returned no image data for prompt: %s", scene_description[:60])
-            return False
-
-        Path(output_path).write_bytes(image_data)
-        logger.debug("Generated image: %s", output_path)
-        return True
-    except Exception as exc:  # noqa: BLE001
-        logger.error("Image generation failed: %s", exc)
-        return False

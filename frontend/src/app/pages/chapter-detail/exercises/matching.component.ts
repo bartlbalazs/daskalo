@@ -154,6 +154,9 @@ export class MatchingComponent implements OnInit {
     const eIdx = this.selectedEnglishIdx();
     if (gIdx === null || eIdx === null) return;
 
+    // Correctness check: each pair's original array index (`idx`) is preserved
+    // through the independent shuffles of the Greek and English columns.
+    // Two selections match iff they originated from the same index in _pairs.
     if (gIdx === eIdx) {
       // Correct match
       this.greekState.set({ ...this.greekState(), [gIdx]: 'correct' });

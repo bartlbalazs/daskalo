@@ -6,6 +6,7 @@ Topology:
 """
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from nodes.generate_practice import generate_practice
 from nodes.generate_practice_media import generate_practice_media
@@ -13,7 +14,7 @@ from nodes.package_practice_output import package_practice_output
 from practice_state import PracticeState
 
 
-def build_practice_graph() -> StateGraph:
+def build_practice_graph() -> CompiledStateGraph:
     """Construct and compile the practice-set generation state machine."""
     builder = StateGraph(PracticeState)
 

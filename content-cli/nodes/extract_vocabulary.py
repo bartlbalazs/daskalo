@@ -60,4 +60,5 @@ def extract_vocabulary(state: ContentState) -> dict:
         sleep_sec=_RETRY_SLEEP,
         log_prefix="extract_vocabulary",
     )
+    logger.info("Vocabulary extracted — %d items", len(result.vocabulary))
     return {"vocabulary": result.vocabulary}

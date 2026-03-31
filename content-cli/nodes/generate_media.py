@@ -323,6 +323,17 @@ def generate_media(state: ContentState) -> dict:
             image_files.append(path)
             exercise.imagePath = path
 
+    tts_failures = sum(1 for v in tts_results.values() if v is None)
+    logger.info(
+        "TTS complete — %d audio files generated%s",
+        len(audio_files) + len([p for p in sentence_audio_files if p]),
+        f" ({tts_failures} failed)" if tts_failures else "",
+    )
+
+    image_names = [Path(p).name for p in image_results.values() if p]
+    if image_names:
+        logger.info("Images complete — %s", ", ".join(image_names))
+
     logger.info(
         "Media generation complete: %d audio, %d sentence clips, %d image files, cover=%s.",
         len(audio_files),
@@ -378,7 +389,7 @@ def _synthesize_speech(
             audio_config=audio_config,
         )
         Path(output_path).write_bytes(response.audio_content)
-        logger.info("Generated audio: %s (rate=%.2f)", output_path, speaking_rate)
+        logger.debug("Generated audio: %s (rate=%.2f)", output_path, speaking_rate)
         return True
     except Exception as exc:  # noqa: BLE001
         logger.error("Cloud TTS synthesis failed for '%s' (voice=%s): %s", text[:40], voice_name, exc)
@@ -413,7 +424,7 @@ def _generate_image(scene_description: str, output_path: str, state: ContentStat
             return False
 
         Path(output_path).write_bytes(image_data)
-        logger.info("Generated image: %s", output_path)
+        logger.debug("Generated image: %s", output_path)
         return True
     except Exception as exc:  # noqa: BLE001
         logger.error("Image generation failed: %s", exc)

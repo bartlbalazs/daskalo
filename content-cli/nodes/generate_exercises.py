@@ -74,6 +74,17 @@ def generate_exercises(state: ContentState) -> dict:
         log_prefix="generate_exercises",
     )
 
+    type_counts: dict[str, int] = {}
+    for ex in result.exercises:
+        ex_type = getattr(ex, "type", "unknown")
+        type_counts[ex_type] = type_counts.get(ex_type, 0) + 1
+    type_summary = ", ".join(f"{t}={n}" for t, n in sorted(type_counts.items()))
+    logger.info(
+        "Exercises generated — %d exercises: %s",
+        len(result.exercises),
+        type_summary,
+    )
+
     return {
         "exercises": result.exercises,
         "image_prompts": result.image_prompts,

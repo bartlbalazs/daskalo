@@ -59,4 +59,10 @@ def generate_grammar_notes(state: ContentState) -> dict:
         sleep_sec=_RETRY_SLEEP,
         log_prefix="generate_grammar_notes",
     )
+    total_examples = sum(len(n.examples) for n in result.grammar_notes)
+    logger.info(
+        "Grammar notes generated — %d notes, %d examples total",
+        len(result.grammar_notes),
+        total_examples,
+    )
     return {"grammar_notes": result.grammar_notes}

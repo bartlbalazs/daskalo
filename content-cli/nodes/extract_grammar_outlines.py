@@ -57,4 +57,10 @@ def extract_grammar_outlines(state: ContentState) -> dict:
         sleep_sec=_RETRY_SLEEP,
         log_prefix="extract_grammar_outlines",
     )
+    concepts = [o.concept for o in result.grammar_concept_outlines]
+    logger.info(
+        "Grammar outlines extracted — %d concepts: %s",
+        len(concepts),
+        concepts,
+    )
     return {"grammar_concept_outlines": result.grammar_concept_outlines}

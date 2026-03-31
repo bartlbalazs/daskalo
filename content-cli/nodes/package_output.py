@@ -100,7 +100,9 @@ def package_output(state: ContentState) -> dict:
         for image_path in state.get("image_files", []):
             _pack_file(zf, image_path, "assets/images")
 
-    logger.info("Output ZIP created: %s", output_zip)
+        file_count = len(zf.namelist())
+
+    logger.info("Output ZIP created: %s (%d files)", output_zip, file_count)
     return {"output_zip_path": str(output_zip)}
 
 
@@ -171,6 +173,6 @@ def _pack_file(zf: zipfile.ZipFile, file_path: str, arc_dir: str) -> None:
     p = Path(file_path)
     if p.exists():
         zf.write(p, arcname=f"{arc_dir}/{p.name}")
-        logger.info("Packed: %s/%s", arc_dir, p.name)
+        logger.debug("Packed: %s/%s", arc_dir, p.name)
     else:
         logger.warning("Asset file not found, skipping: %s", file_path)

@@ -72,6 +72,12 @@ def draft_lesson_core(state: ContentState) -> dict:
     title_slug = _slugify(draft.chapter_title)
     variant_id = f"{chapter_id}_{title_slug}"
     logger.info("Derived variant_id from generated title: %s", variant_id)
+    logger.info(
+        "draft_lesson_core complete — title=%r, passage=%d sentences, narrator=%s",
+        draft.chapter_title,
+        len(draft.passage),
+        draft.narrator_gender,
+    )
 
     return {
         "generation_attempts": attempts,

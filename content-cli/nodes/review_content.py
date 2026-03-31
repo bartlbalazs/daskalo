@@ -62,12 +62,29 @@ def review_content(state: ContentState) -> dict:
     )
 
     if result.approved:
-        logger.info("Content APPROVED by reviewer.")
+        logger.info(
+            "Content APPROVED by reviewer — tone=%s, accuracy=%s, level=%s, slang=%s, exercises=%s, culture=%s",
+            "OK" if result.tone_ok else "FAIL",
+            "OK" if result.accuracy_ok else "FAIL",
+            "OK" if result.level_ok else "FAIL",
+            "OK" if result.slang_ok else "FAIL",
+            "OK" if result.exercises_ok else "FAIL",
+            "OK" if result.culture_ok else "FAIL",
+        )
         return {"review_feedback": ""}
 
     feedback_lines = result.issues or _build_feedback_from_flags(result)
     feedback = "\n".join(f"- {line}" for line in feedback_lines)
-    logger.warning("Content needs revision:\n%s", feedback)
+    logger.warning(
+        "Content needs revision — tone=%s, accuracy=%s, level=%s, slang=%s, exercises=%s, culture=%s\n%s",
+        "OK" if result.tone_ok else "FAIL",
+        "OK" if result.accuracy_ok else "FAIL",
+        "OK" if result.level_ok else "FAIL",
+        "OK" if result.slang_ok else "FAIL",
+        "OK" if result.exercises_ok else "FAIL",
+        "OK" if result.culture_ok else "FAIL",
+        feedback,
+    )
     return {"review_feedback": feedback}
 
 

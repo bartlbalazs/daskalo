@@ -79,3 +79,21 @@ variable "add_own_word_function_timeout" {
   type        = number
   default     = 60
 }
+
+variable "complete_practice_function_memory" {
+  description = "Memory for the complete-practice Cloud Function."
+  type        = string
+  default     = "256M"
+}
+
+variable "complete_practice_function_cpu" {
+  description = "vCPU allocation for the complete-practice Cloud Function."
+  type        = string
+  default     = "0.333"
+}
+
+variable "complete_practice_function_timeout" {
+  description = "Timeout (seconds) for the complete-practice Cloud Function."
+  type        = number
+  default     = 30
+}

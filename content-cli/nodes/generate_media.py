@@ -52,6 +52,7 @@ from models.content_models import (
     ConversationExercise,
     GrammarNote,
     ImageDescriptionExercise,
+    MatchingExercise,
     PassageSentence,
     PronunciationPracticeExercise,
 )
@@ -123,6 +124,10 @@ def generate_media(state: ContentState) -> dict:
     grammar_notes: list[GrammarNote] = state.get("grammar_notes", [])
     passage: list[PassageSentence] = state.get("passage", [])
 
+    # Pre-existing audio map: greek_text -> local_path (populated for practice-set re-generation
+    # when the source chapter ZIP has already been extracted). Keys are the original Greek strings.
+    existing_audio: dict[str, str] = state.get("existing_audio", {})  # type: ignore[assignment]
+
     # -----------------------------------------------------------------------
     # Build TTS task list — each entry is (text, voice, output_path, rate, callback)
     # callback is called with output_path on success to mutate the model + track the file.
@@ -140,6 +145,15 @@ def generate_media(state: ContentState) -> dict:
         if not greek_text:
             continue
         tts_text = re.split(r"\s*/\s*|\s+-\s*", greek_text)[0].strip()
+
+        # Reuse existing audio from a source ZIP if available (practice-set re-use)
+        if tts_text in existing_audio:
+            existing_path = existing_audio[tts_text]
+            vocab_item.audioPath = existing_path
+            audio_files.append(existing_path)
+            logger.debug("Reusing existing vocab audio for '%s': %s", tts_text, existing_path)
+            continue
+
         voice = VOICE_FEMALE if idx % 2 == 0 else VOICE_MALE
         safe_name = re.sub(r"[^\w]", "_", tts_text)[:30]
         out_path = str(Path(work_dir) / f"{prefix}vocab_{idx:02d}_{safe_name}.mp3")
@@ -192,6 +206,26 @@ def generate_media(state: ContentState) -> dict:
                 Path(work_dir) / f"{prefix}conv_{ex_idx:02d}_line_{line_idx:02d}_{line.speaker}_{safe_text}.mp3"
             )
             tts_tasks.append((line.text, voice, out_path, 1.0, f"conv:{ex_idx}:{line_idx}"))
+
+    # --- 7. Matching exercise — audio for each Greek word (click-to-listen) ---
+    for ex_idx, exercise in enumerate(exercises):
+        if not isinstance(exercise, MatchingExercise):
+            continue
+        for pair_idx, pair in enumerate(exercise.data.pairs):
+            if not pair.greek:
+                continue
+            tts_text = re.split(r"\s*/\s*|\s+-\s*", pair.greek)[0].strip()
+
+            # Reuse existing audio if available
+            if tts_text in existing_audio:
+                pair.audioPath = existing_audio[tts_text]  # type: ignore[attr-defined]
+                audio_files.append(existing_audio[tts_text])
+                logger.debug("Reusing existing matching audio for '%s'", tts_text)
+                continue
+
+            safe_name = re.sub(r"[^\w]", "_", tts_text)[:30]
+            out_path = str(Path(work_dir) / f"{prefix}matching_{ex_idx:02d}_pair_{pair_idx:02d}_{safe_name}.mp3")
+            tts_tasks.append((tts_text, VOICE_FEMALE, out_path, narration_rate, f"matching:{ex_idx}:{pair_idx}"))
 
     # -----------------------------------------------------------------------
     # Execute all TTS tasks in parallel
@@ -258,6 +292,16 @@ def generate_media(state: ContentState) -> dict:
                 line.audioPath = path
             else:
                 line.audioPath = None
+
+    # Matching pair audio
+    for ex_idx, exercise in enumerate(exercises):
+        if not isinstance(exercise, MatchingExercise):
+            continue
+        for pair_idx, pair in enumerate(exercise.data.pairs):
+            path = tts_results.get(f"matching:{ex_idx}:{pair_idx}")
+            if path:
+                audio_files.append(path)
+                pair.audioPath = path  # type: ignore[attr-defined]
 
     # -----------------------------------------------------------------------
     # Image generation tasks — also parallelised

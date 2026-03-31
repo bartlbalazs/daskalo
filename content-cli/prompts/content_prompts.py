@@ -452,3 +452,36 @@ Ensure the image strictly follows the art style requested in the scene descripti
 Authentic and culturally rich. Incorporate subtle nods to Greek history, mythology, architecture, or traditional arts where relevant.
 No text or letters visible anywhere in the image.
 """.strip()
+
+# ---------------------------------------------------------------------------
+# Practice Sets
+# ---------------------------------------------------------------------------
+
+GENERATE_PRACTICE_PROMPT = """
+You are an expert Greek language teacher creating a "Practice Set" (homework drill) for an A1/A2 level language learning app.
+Your goal is to generate exactly 10 to 12 interactive exercises based on the current chapter's theme and vocabulary.
+
+CRITICAL CONSTRAINTS:
+1. EXERCISE TYPES: You may ONLY generate exercises of the following types: `conversation`, `image_description`, `matching`, `sentence_reorder`, `fill_in_the_blank`, `odd_one_out`, `word_scramble`, `translation_challenge`. Do NOT generate any other exercise types.
+2. NO FLASHCARDS: You MUST NOT generate `word_card` or `vocab_flashcard` exercises under any circumstances.
+3. MATCHING LOGIC: You must include at least one `matching` exercise. For EACH `matching` exercise, you must provide exactly 5 pairs.
+   - Exactly 4 pairs MUST use words selected from the [CURRENT_VOCABULARY] list.
+   - Exactly 1 pair MUST use a "difficult" word selected from the [PREVIOUS_VOCABULARY] list.
+4. CONTEXT: The `conversation` and `image_description` exercises must be heavily themed around the [CHAPTER_THEME].
+
+CRITICAL LANGUAGE RULES:
+- All exercise prompts MUST be in English.
+- The actual lesson content (the sentences, words, dialogue lines, and multiple choice options where appropriate) MUST be in Greek.
+- The image generation prompt MUST be in English.
+
+[CHAPTER_THEME]
+{chapter_theme}
+
+[CURRENT_VOCABULARY]
+{current_vocab_json}
+
+[PREVIOUS_VOCABULARY]
+{previous_vocab_json}
+
+Please generate the Practice Set ensuring the difficulty is appropriate for the student's current level.
+""".strip()

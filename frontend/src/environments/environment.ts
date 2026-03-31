@@ -8,6 +8,7 @@ export const environment = {
   useEmulators: true,
   evaluateAttemptUrl: 'http://localhost:8000/evaluate',
   completeChapterUrl: 'http://localhost:8000/complete-chapter',
+  completePracticeUrl: 'http://localhost:8000/complete-practice',
   addOwnWordUrl: 'http://localhost:8000/add-own-word',
   firestoreDb: undefined as string | undefined,
   firebase: {

@@ -26,6 +26,10 @@ x-google-management:
       displayName: "Add Own Word Requests"
       valueType: INT64
       metricKind: DELTA
+    - name: "complete-practice-requests"
+      displayName: "Complete Practice Requests"
+      valueType: INT64
+      metricKind: DELTA
   quota:
     limits:
       - name: "evaluate-attempt-limit"
@@ -43,6 +47,11 @@ x-google-management:
         unit: "1/min/{project}"
         values:
           STANDARD: 5
+      - name: "complete-practice-limit"
+        metric: "complete-practice-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 3
 
 # ---------------------------------------------------------------------------
 # Firebase JWT security definition
@@ -236,6 +245,72 @@ paths:
       summary: "CORS preflight for /add-own-word"
       x-google-backend:
         address: "${add_own_word_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: header
+          name: Origin
+          type: string
+        - in: header
+          name: Access-Control-Request-Method
+          type: string
+        - in: header
+          name: Access-Control-Request-Headers
+          type: string
+      responses:
+        "200":
+          description: "CORS preflight response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+            Access-Control-Max-Age:
+              type: string
+
+  # -------------------------------------------------------------------------
+  # /complete-practice — POST (complete-practice function)
+  # -------------------------------------------------------------------------
+  /complete-practice:
+    post:
+      operationId: "completePractice"
+      summary: "Mark a practice set as completed and award XP"
+      security:
+        - firebase: []
+      x-google-quota:
+        metricCosts:
+          "complete-practice-requests": 1
+      x-google-backend:
+        address: "${complete_practice_url}"
+        jwt_audience: "${complete_practice_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Practice set completed"
+        "400":
+          description: "Invalid argument"
+        "401":
+          description: "Unauthenticated"
+        "403":
+          description: "Permission denied"
+        "404":
+          description: "Practice set not found"
+        "500":
+          description: "Internal error"
+    options:
+      operationId: "completePracticeCors"
+      summary: "CORS preflight for /complete-practice"
+      x-google-backend:
+        address: "${complete_practice_url}"
         deadline: 30.0
         protocol: h2
       parameters:

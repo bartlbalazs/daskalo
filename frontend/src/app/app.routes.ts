@@ -40,6 +40,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/vocabulary/vocabulary.page').then((m) => m.VocabularyPage),
       },
+      {
+        path: 'practice/:id',
+        loadComponent: () =>
+          import('./pages/practice-detail/practice-detail.page').then((m) => m.PracticeDetailPage),
+      },
     ],
   },
   {

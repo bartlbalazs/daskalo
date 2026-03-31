@@ -47,6 +47,7 @@ resource "google_api_gateway_api_config" "daskalo" {
     google_cloudfunctions2_function.evaluate_attempt,
     google_cloudfunctions2_function.complete_chapter,
     google_cloudfunctions2_function.add_own_word,
+    google_cloudfunctions2_function.complete_practice,
   ]
 }
 
@@ -67,9 +68,10 @@ resource "google_api_gateway_gateway" "daskalo" {
 
 locals {
   openapi_spec = templatefile("${path.module}/openapi.yaml.tpl", {
-    project_id           = var.project_id
-    evaluate_attempt_url = google_cloudfunctions2_function.evaluate_attempt.service_config[0].uri
-    complete_chapter_url = google_cloudfunctions2_function.complete_chapter.service_config[0].uri
-    add_own_word_url     = google_cloudfunctions2_function.add_own_word.service_config[0].uri
+    project_id            = var.project_id
+    evaluate_attempt_url  = google_cloudfunctions2_function.evaluate_attempt.service_config[0].uri
+    complete_chapter_url  = google_cloudfunctions2_function.complete_chapter.service_config[0].uri
+    add_own_word_url      = google_cloudfunctions2_function.add_own_word.service_config[0].uri
+    complete_practice_url = google_cloudfunctions2_function.complete_practice.service_config[0].uri
   })
 }

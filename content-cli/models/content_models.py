@@ -504,6 +504,31 @@ class ConversationExercise(BaseModel):
     data: ConversationData
 
 
+# 17. matching (Practice Sets) ---------------------------------------------
+
+
+class MatchingPair(BaseModel):
+    model_config = ConfigDict(frozen=False)
+
+    greek: str = Field(description="The Greek word or short phrase.")
+    english: str = Field(description="The English translation.")
+    audioPath: str | None = None  # Set by generate_media; backend replaces with GCS URL
+
+
+class MatchingData(BaseModel):
+    pairs: list[MatchingPair] = Field(
+        description="Exactly 5 pairs. 4 MUST come from the CURRENT vocabulary, and 1 MUST come from the PREVIOUS vocabulary."
+    )
+
+
+class MatchingExercise(BaseModel):
+    type: Annotated[str, Field(pattern="^matching$")]
+    prompt: str = Field(
+        description="Instructions for the user, e.g., 'Match the Greek words to their English translations.'"
+    )
+    data: MatchingData
+
+
 # ---------------------------------------------------------------------------
 # Discriminated union of all exercise types
 # ---------------------------------------------------------------------------
@@ -525,6 +550,7 @@ Exercise = (
     | DialogueCompletionExercise
     | CulturalContextExercise
     | ConversationExercise
+    | MatchingExercise
 )
 
 # ---------------------------------------------------------------------------
@@ -677,3 +703,26 @@ class ExercisesResult(BaseModel):
 
     exercises: list[Exercise]
     image_prompts: list[ImagePrompt]  # One entry per image_description exercise
+
+
+class PracticeSetResult(BaseModel):
+    """Output schema for the generate_practice node."""
+
+    cover_image_prompt: str = Field(
+        description=(
+            "An English prompt for AI image generation. It MUST capture the chapter's "
+            "theme, but it MUST also incorporate a clear 'homework, studying, or practice' "
+            "aesthetic (e.g., books on a desk, a chalkboard, a cozy study nook). "
+            "Keep it under 50 words. No text or letters in the image."
+        )
+    )
+    exercises: list[Exercise] = Field(
+        description=(
+            "Exactly 10 to 12 exercises. You MUST include at least one 'conversation', "
+            "one 'image_description', and one 'matching' exercise. "
+            "You MUST NOT include 'word_card' or 'vocab_flashcard' exercises."
+        )
+    )
+    image_prompts: list[ImagePrompt] = Field(
+        description="One entry per 'image_description' exercise generated in the list above."
+    )

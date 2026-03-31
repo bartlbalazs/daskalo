@@ -19,6 +19,7 @@ Documents representing the students.
   "progress": {
     "currentPhaseId": "phase_1_the_tourist",
     "completedChapterIds": ["chapter_1_airport", "chapter_2_taverna"],
+    "completedPracticeSetIds": ["ps_p1_c1_airport_01"],
     "lastProgressSummary": "You've mastered the accusative case and can now confidently order food at a taverna.", // Plain-text Gemini-generated summary of the last completed chapter.
     "xp": 450 // Basic gamification
   },
@@ -57,6 +58,7 @@ The individual units within a phase (e.g., Chapter 1: At the Airport).
   "order": 1,
   "languageSkill": "Speaking", // Optional label e.g. "Speaking", "Reading", "Listening", "Writing", "Grammar".
   "length": "medium", // Optional: "short", "medium", or "long"
+  "practiceSetIds": ["ps_p1_c1_airport_01"], // Array of IDs for associated practice sets
   "introduction": "A 2-3 paragraph English introduction designed to spark interest before the lesson begins.",
   "summary": "You're wandering through the flea market and need to ask for directions.",
   "passage_text": "Ο Γιώργος είναι στο Μοναστηράκι...",
@@ -197,6 +199,32 @@ Records of user submissions, primarily used to trigger the backend for grading.
       "isCorrect": true // Overall pass/fail
     }
   */
+}
+```
+
+### `practice_sets`
+Generated homework drills tied to specific chapters.
+
+**Document ID:** `{practiceSetId}` (e.g., `ps_p1_c1_airport_01`)
+
+```json
+{
+  "chapterId": "p1_c1_airport",
+  "title": "Practice Set 1",
+  "coverImageUrl": "gs://public-assets-bucket/images/practice_cover.jpg",
+  "exercises": [
+    // Array of Exercise objects (similar to chapters), including the new "matching" type:
+    {
+      "type": "matching",
+      "prompt": "Match the Greek words to their English translations.",
+      "data": {
+        "pairs": [
+          { "greek": "Καλημέρα", "english": "Good morning" },
+          // 4 from current vocab, 1 from previous 5 chapters
+        ]
+      }
+    }
+  ]
 }
 ```
 

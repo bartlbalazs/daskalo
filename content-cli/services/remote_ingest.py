@@ -41,7 +41,7 @@ if str(_repo_root) not in sys.path:
 
 from shared.data.curriculum_loader import load_curriculum  # noqa: E402
 
-from services.ingest_helpers import process_chapter_assets  # noqa: E402
+from services.ingest_helpers import process_chapter_assets, process_practice_set_assets  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -125,16 +125,17 @@ def upsert_book(fs_client: firestore.Client, book_id: str) -> str:
 
 def ingest_remote(zip_path: str) -> str:
     """
-    Ingest a chapter ZIP directly into production GCP (Firestore + GCS).
+    Ingest a chapter or practice-set ZIP directly into production GCP (Firestore + GCS).
 
     Steps:
       1. Parse project config from infra/terraform.tfvars.
-      2. Upload all chapter media assets to the production assets bucket.
-      3. Archive the ZIP itself to  archives/{chapter_id}.zip  in the assets bucket.
-      4. Upsert the parent book document in production Firestore.
-      5. Write (merge) the chapter document in production Firestore.
+      2. Upload all media assets to the production assets bucket.
+      3. Archive the ZIP itself.
+      4. Upsert the parent book document.
+      5. Write (merge) the chapter or practice-set document in production Firestore.
+         For practice sets, also ArrayUnion the ID onto the parent chapter.
 
-    Returns the chapter ID that was written.
+    Returns the chapter or practice-set ID that was written.
     """
     config = parse_tfvars()
     project_id = config["project_id"]
@@ -161,31 +162,64 @@ def ingest_remote(zip_path: str) -> str:
         except KeyError as exc:
             raise ValueError("ZIP is missing descriptor.json") from exc
 
-        chapter = descriptor["chapter"]
-        chapter_id: str = chapter["id"]
-        book_id: str = descriptor["bookId"]
-        logger.info("Remote-ingesting chapter '%s' (id=%s)", chapter.get("title"), chapter_id)
+        action = descriptor.get("action", "create_or_update_chapter")
 
-        # Upsert the parent book document before writing the chapter
-        upsert_book(fs_client, book_id)
+        if action == "create_practice_set":
+            entity_id = _ingest_practice_set_remote(zf, descriptor, fs_client, assets_bucket, assets_bucket_name)
+        else:
+            chapter = descriptor["chapter"]
+            chapter_id: str = chapter["id"]
+            book_id: str = descriptor["bookId"]
+            logger.info("Remote-ingesting chapter '%s' (id=%s)", chapter.get("title"), chapter_id)
 
-        # Upload all media assets and replace *Path fields with gs:// *Url fields
-        process_chapter_assets(zf, chapter, chapter_id, assets_bucket)
+            upsert_book(fs_client, book_id)
+            process_chapter_assets(zf, chapter, chapter_id, assets_bucket)
 
-    # Archive the original ZIP to  archives/{chapter_id}.zip  (overwrite)
-    archive_blob_name = f"archives/{chapter_id}.zip"
+            chapter["bookId"] = book_id
+            doc_ref = fs_client.collection("chapters").document(chapter_id)
+            doc_ref.set(chapter, merge=True)
+            logger.info("Chapter '%s' written to production Firestore (db=%s).", chapter_id, db_name)
+            entity_id = chapter_id
+
+    # Archive the original ZIP
+    archive_blob_name = f"archives/{entity_id}.zip"
     archive_blob = assets_bucket.blob(archive_blob_name)
     archive_blob.upload_from_string(zip_bytes, content_type="application/zip")
-    archive_uri = f"gs://{assets_bucket_name}/{archive_blob_name}"
-    logger.info("ZIP archived to: %s", archive_uri)
+    logger.info("ZIP archived to: gs://%s/%s", assets_bucket_name, archive_blob_name)
 
-    # Write chapter document to production Firestore
-    chapter["bookId"] = book_id
-    doc_ref = fs_client.collection("chapters").document(chapter_id)
-    doc_ref.set(chapter, merge=True)
-    logger.info("Chapter '%s' written to production Firestore (db=%s).", chapter_id, db_name)
+    return entity_id
 
-    return chapter_id
+
+def _ingest_practice_set_remote(
+    zf,
+    descriptor: dict,
+    fs_client: firestore.Client,
+    assets_bucket,
+    assets_bucket_name: str,
+) -> str:
+    """Write a practice set to production Firestore and ArrayUnion onto its chapter."""
+    practice_set = descriptor["practiceSet"]
+    practice_set_id: str = practice_set["id"]
+    chapter_id: str = descriptor["chapterId"]
+    book_id: str = descriptor.get("bookId", "")
+
+    logger.info("Remote-ingesting practice set '%s' for chapter '%s'", practice_set_id, chapter_id)
+
+    upsert_book(fs_client, book_id)
+    process_practice_set_assets(zf, practice_set, practice_set_id, assets_bucket)
+
+    ps_ref = fs_client.collection("practice_sets").document(practice_set_id)
+    ps_ref.set(practice_set, merge=True)
+    logger.info("Practice set '%s' written to production Firestore.", practice_set_id)
+
+    chapter_ref = fs_client.collection("chapters").document(chapter_id)
+    chapter_ref.set(
+        {"practiceSetIds": firestore.ArrayUnion([practice_set_id])},
+        merge=True,
+    )
+    logger.info("ArrayUnion'd '%s' onto chapter '%s'.practiceSetIds.", practice_set_id, chapter_id)
+
+    return practice_set_id
 
 
 # ---------------------------------------------------------------------------

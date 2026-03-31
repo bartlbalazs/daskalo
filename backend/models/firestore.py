@@ -44,6 +44,7 @@ class ExerciseType(StrEnum):
     cultural_context = "cultural_context"
     lyrics_fill = "lyrics_fill"
     conversation = "conversation"
+    matching = "matching"
 
 
 # ---------------------------------------------------------------------------

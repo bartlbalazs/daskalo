@@ -77,3 +77,45 @@ def find_chapter(
             if ch["id"] == chapter_id:
                 return book, ch
     return None, None
+
+
+def get_previous_chapters_vocabulary(
+    repo_root: Path | str, chapter_id: str, lookback: int = 5
+) -> list[str]:
+    """Return mandatory vocabulary from the previous ``lookback`` chapters.
+
+    Flattens all chapters across all books in canonical order (book order,
+    then chapter order within each book), finds the current chapter, and
+    returns the mandatory_vocabulary items from the preceding chapters.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+        chapter_id: The curriculum chapter ID of the *current* chapter (e.g. "b1_c3").
+        lookback: How many preceding chapters to include (default 5).
+
+    Returns:
+        A flat list of vocabulary strings (e.g. ["είμαι (I am)", "εσύ (you)", ...]).
+        Returns an empty list if the chapter is the very first one.
+    """
+    data = load_curriculum(repo_root)
+
+    # Flatten all chapters in canonical order
+    all_chapters: list[dict] = []
+    for book in sorted(data["books"], key=lambda b: b.get("order", 0)):
+        for ch in book.get("chapters", []):
+            all_chapters.append(ch)
+
+    # Find the index of the current chapter
+    current_idx = next(
+        (i for i, ch in enumerate(all_chapters) if ch["id"] == chapter_id), None
+    )
+    if current_idx is None:
+        return []
+
+    # Collect mandatory_vocabulary from the previous `lookback` chapters
+    start_idx = max(0, current_idx - lookback)
+    previous_vocab: list[str] = []
+    for ch in all_chapters[start_idx:current_idx]:
+        previous_vocab.extend(ch.get("mandatory_vocabulary", []))
+
+    return previous_vocab

@@ -28,11 +28,21 @@ export type ExerciseType =
   | 'dialogue_completion'
   | 'cultural_context'
   | 'lyrics_fill'
-  | 'conversation';
+  | 'conversation'
+  | 'matching';
 
 // ---------------------------------------------------------------------------
 // Exercise data shapes (one per type)
 // ---------------------------------------------------------------------------
+
+export interface MatchingPair {
+  greek: string;
+  english: string;
+}
+
+export interface MatchingData {
+  pairs: MatchingPair[];
+}
 
 export interface SlangMatcherPair {
   formal: string;
@@ -192,6 +202,7 @@ export interface ConversationData {
 export interface UserProgress {
   currentBookId: string;
   completedChapterIds: string[];
+  completedPracticeSetIds?: string[];
   xp: number;
 }
 
@@ -289,6 +300,7 @@ export interface Chapter {
   order: number;
   summary: string;
   length?: 'short' | 'medium' | 'long';
+  practiceSetIds?: string[];
   introduction?: string;
   /** Reading passage as an array of {greek, english} sentence objects. */
   passage?: PassageSentence[];
@@ -303,6 +315,14 @@ export interface Chapter {
    *  Shared across all students. Only shown after the chapter is completed. */
   grammarSummary?: string;
   vocabulary: VocabularyItem[];
+  exercises: Exercise[];
+}
+
+export interface PracticeSet {
+  id: string;
+  chapterId: string;
+  title: string;
+  coverImageUrl?: string;
   exercises: Exercise[];
 }
 

@@ -40,7 +40,7 @@ if str(_repo_root) not in sys.path:
 
 from shared.data.curriculum_loader import load_curriculum  # noqa: E402
 
-from services.ingest_helpers import process_chapter_assets  # noqa: E402
+from services.ingest_helpers import process_chapter_assets, process_practice_set_assets  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -115,18 +115,13 @@ def ingest_direct(zip_path: str) -> str:
     """
     Directly ingest the ZIP into the local Firebase emulators.
 
-    Reads the ZIP, uploads media assets to the Storage emulator, and writes
-    the chapter document to the Firestore emulator. Mirrors what the backend's
-    ingest_zip() service does, but runs entirely inside the CLI process.
+    Handles both chapter ZIPs (action: create_or_update_chapter) and
+    practice-set ZIPs (action: create_practice_set).
 
-    Returns the chapter ID that was written.
+    Returns the chapter/practice-set ID that was written.
     """
     _configure_emulator_env()
 
-    # Always use the demo project ID for emulator clients — the real GCP project
-    # (GOOGLE_CLOUD_PROJECT) is only needed for Vertex AI / TTS calls and must NOT
-    # be used here, otherwise data lands in a different emulator namespace than the
-    # one the frontend and the Firebase Emulator UI expect (demo-daskalo).
     storage_client = storage.Client(project=LOCAL_PROJECT_ID)
     assets_bucket = _ensure_bucket(storage_client, LOCAL_ASSETS_BUCKET)
 
@@ -140,24 +135,59 @@ def ingest_direct(zip_path: str) -> str:
         except KeyError as exc:
             raise ValueError("ZIP is missing descriptor.json") from exc
 
+        action = descriptor.get("action", "create_or_update_chapter")
+
+        if action == "create_practice_set":
+            return _ingest_practice_set(zf, descriptor, fs_client, assets_bucket)
+
+        # Default: chapter ingestion
         chapter = descriptor["chapter"]
         chapter_id: str = chapter["id"]
         book_id: str = descriptor["bookId"]
         logger.info("Direct-ingesting chapter '%s' (id=%s)", chapter.get("title"), chapter_id)
 
-        # Upsert the parent book document before writing the chapter
         upsert_book(fs_client, book_id)
-
-        # Upload all media assets and replace *Path fields with gs:// *Url fields
         process_chapter_assets(zf, chapter, chapter_id, assets_bucket)
 
-    # Write chapter document to Firestore emulator
     chapter["bookId"] = book_id
     doc_ref = fs_client.collection("chapters").document(chapter_id)
     doc_ref.set(chapter, merge=True)
     logger.info("Chapter '%s' written to Firestore emulator.", chapter_id)
 
     return chapter_id
+
+
+def _ingest_practice_set(
+    zf,
+    descriptor: dict,
+    fs_client: firestore.Client,
+    assets_bucket,
+) -> str:
+    """Write a practice set document to Firestore and ArrayUnion its ID onto the chapter."""
+    practice_set = descriptor["practiceSet"]
+    practice_set_id: str = practice_set["id"]
+    chapter_id: str = descriptor["chapterId"]
+    book_id: str = descriptor.get("bookId", "")
+
+    logger.info("Direct-ingesting practice set '%s' for chapter '%s'", practice_set_id, chapter_id)
+
+    upsert_book(fs_client, book_id)
+    process_practice_set_assets(zf, practice_set, practice_set_id, assets_bucket)
+
+    # Write practice set document
+    ps_ref = fs_client.collection("practice_sets").document(practice_set_id)
+    ps_ref.set(practice_set, merge=True)
+    logger.info("Practice set '%s' written to Firestore emulator.", practice_set_id)
+
+    # ArrayUnion the practice set ID onto the parent chapter
+    chapter_ref = fs_client.collection("chapters").document(chapter_id)
+    chapter_ref.set(
+        {"practiceSetIds": firestore.ArrayUnion([practice_set_id])},
+        merge=True,
+    )
+    logger.info("ArrayUnion'd '%s' onto chapter '%s'.practiceSetIds.", practice_set_id, chapter_id)
+
+    return practice_set_id
 
 
 # ---------------------------------------------------------------------------

@@ -15,6 +15,7 @@ import { TranslationChallengeComponent } from './translation-challenge.component
 import { DictationComponent } from './dictation.component';
 import { ConversationComponent } from './conversation.component';
 import { PronunciationPracticeComponent } from './pronunciation-practice.component';
+import { MatchingComponent } from './matching.component';
 
 export type ExerciseState = 'unanswered' | 'correct' | 'incorrect' | 'evaluating' | 'evaluated';
 
@@ -36,6 +37,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
   cultural_context: 'Cultural Context',
   lyrics_fill: 'Lyrics Fill',
   conversation: 'Conversation',
+  matching: 'Word Matching',
 };
 
 @Component({
@@ -54,6 +56,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
     DictationComponent,
     ConversationComponent,
     PronunciationPracticeComponent,
+    MatchingComponent,
   ],
   template: `
     <div class="rounded-2xl border shadow-sm transition-all duration-200"
@@ -230,10 +233,18 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             (answered)="onFrontendAnswer($event)"
           />
         }
+
+        @if (exercise.type === 'matching') {
+          <app-matching
+            #matchingComp
+            [exercise]="exercise"
+            (answered)="onFrontendAnswer($event)"
+          />
+        }
       </div>
 
       <!-- Card footer: per-exercise Check button -->
-      @if (!isPronunciation() && exercise.type !== 'conversation' && !isAiGraded() && state() === 'unanswered') {
+      @if (!isPronunciation() && exercise.type !== 'conversation' && exercise.type !== 'matching' && !isAiGraded() && state() === 'unanswered') {
         <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end rounded-b-2xl">
           <button
             (click)="submit()"
@@ -277,6 +288,7 @@ export class ExerciseCardComponent {
   @ViewChild('dictation') dictationRef?: DictationComponent;
   @ViewChild('conversationComp') conversationCompRef?: ConversationComponent;
   @ViewChild('pronunciationPractice') pronunciationPracticeRef?: PronunciationPracticeComponent;
+  @ViewChild('matchingComp') matchingCompRef?: MatchingComponent;
 
   typeLabel(): string {
     return TYPE_LABELS[this.exercise.type] ?? this.exercise.type;

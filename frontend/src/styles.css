@@ -41,6 +41,18 @@
   --color-gold-400: #f5c842;
   --color-gold-500: #e2b020;
   --color-gold-600: #c49518;
+
+  /* Practice purple — used for Practice Set buttons and accents */
+  --color-practice-50:  #f3f0fb;
+  --color-practice-100: #e4def6;
+  --color-practice-200: #c9bcee;
+  --color-practice-300: #a892e3;
+  --color-practice-400: #8a6cd6;
+  --color-practice-500: #7050c8;
+  --color-practice-600: #5d3db5;
+  --color-practice-700: #4d3296;
+  --color-practice-800: #3d2878;
+  --color-practice-900: #2e1e5c;
 }
 
 /* -----------------------------------------------------------------------

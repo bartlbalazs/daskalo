@@ -16,7 +16,7 @@ import {
 import { Auth } from '@angular/fire/auth';
 import { Observable, from, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Chapter, Book, ExerciseAttempt, AttemptPayload, ExerciseType, EvaluationResult } from '../models/firestore.models';
+import { Chapter, Book, ExerciseAttempt, AttemptPayload, ExerciseType, EvaluationResult, PracticeSet } from '../models/firestore.models';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 
@@ -173,6 +173,42 @@ export class LessonService {
 
     // Refresh the local user profile so completedChapterIds is up-to-date
     // everywhere (sidebar, chapters list, vocabulary page) without a page reload.
+    await this.authService.loadCurrentUser();
+
+    return { xpGained: body.result.xpGained };
+  }
+
+  /** Stream a single practice set document in real-time. */
+  getPracticeSet(practiceSetId: string): Observable<PracticeSet> {
+    const ref = doc(this.firestore, 'practice_sets', practiceSetId);
+    return docData(ref, { idField: 'id' }) as Observable<PracticeSet>;
+  }
+
+  /**
+   * Mark a practice set as complete by calling the complete-practice Cloud Function.
+   * Awards 175 XP (idempotent — safe to call multiple times).
+   */
+  async completePractice(practiceSetId: string): Promise<{ xpGained: number }> {
+    const userId = this.authService.firebaseUser()?.uid;
+    if (!userId) throw new Error('User not authenticated.');
+
+    const idToken = await this.auth.currentUser?.getIdToken();
+
+    const response = await fetch(environment.completePracticeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
+      body: JSON.stringify({ data: { practiceSetId, ...(idToken ? { idToken } : {}) } }),
+    });
+
+    const body = await response.json();
+
+    if (body.error) {
+      throw new Error(body.error.message ?? 'Failed to complete practice set.');
+    }
+
     await this.authService.loadCurrentUser();
 
     return { xpGained: body.result.xpGained };

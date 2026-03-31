@@ -13,6 +13,10 @@ Provides:
       Iterates over all asset path fields in the chapter descriptor dict,
       uploads each file from the ZIP to GCS, and replaces *Path fields with
       *Url fields containing the resulting gs:// URIs. Mutates chapter in-place.
+
+  process_practice_set_assets(zf, practice_set, practice_set_id, assets_bucket) -> None
+      Same as process_chapter_assets but for practice-set descriptors.
+      Handles matching pair audioPath and image_description imagePath fields.
 """
 
 from __future__ import annotations
@@ -39,12 +43,13 @@ def _guess_content_type(filename: str) -> str:
 def _upload_asset(
     zf: zipfile.ZipFile,
     asset_path: str,
-    chapter_id: str,
+    entity_id: str,
     bucket: storage.Bucket,
+    gcs_prefix: str = "chapters",
 ) -> str:
     """Upload a single asset from the ZIP to the GCS bucket. Returns the gs:// URI."""
     filename = PurePosixPath(asset_path).name
-    gcs_path = f"chapters/{chapter_id}/{filename}"
+    gcs_path = f"{gcs_prefix}/{entity_id}/{filename}"
     try:
         asset_bytes = zf.read(asset_path)
     except KeyError as exc:
@@ -132,3 +137,55 @@ def process_chapter_assets(
                         ap: str = line["audioPath"]
                         if not ap.startswith("gs://") and not ap.startswith("http"):
                             line["audioPath"] = _upload_asset(zf, ap, chapter_id, assets_bucket)
+
+
+def process_practice_set_assets(
+    zf: zipfile.ZipFile,
+    practice_set: dict,
+    practice_set_id: str,
+    assets_bucket: storage.Bucket,
+) -> None:
+    """
+    Upload all media assets referenced in the practice set descriptor and replace
+    *Path fields with *Url fields. Mutates `practice_set` in-place.
+
+    Handles: coverImagePath, matching pair audioPath, image_description imagePath,
+    conversation line audioPath.
+    """
+    gcs_prefix = "practice_sets"
+
+    # Cover image
+    if practice_set.get("coverImagePath"):
+        practice_set["coverImageUrl"] = _upload_asset(
+            zf, practice_set["coverImagePath"], practice_set_id, assets_bucket, gcs_prefix
+        )
+        del practice_set["coverImagePath"]
+
+    # Exercises
+    for exercise in practice_set.get("exercises", []):
+        ex_type = exercise.get("type", "")
+
+        # image_description cover image
+        if exercise.get("imagePath"):
+            exercise["imageUrl"] = _upload_asset(zf, exercise["imagePath"], practice_set_id, assets_bucket, gcs_prefix)
+            del exercise["imagePath"]
+
+        # matching pair audio
+        if ex_type == "matching":
+            data = exercise.get("data", {})
+            for pair in data.get("pairs", []):
+                if isinstance(pair, dict) and pair.get("audioPath"):
+                    ap = pair["audioPath"]
+                    if not ap.startswith("gs://") and not ap.startswith("http"):
+                        pair["audioUrl"] = _upload_asset(zf, ap, practice_set_id, assets_bucket, gcs_prefix)
+                        del pair["audioPath"]
+
+        # conversation line audio
+        if ex_type == "conversation":
+            data = exercise.get("data", {})
+            if isinstance(data, dict):
+                for line in data.get("lines", []):
+                    if isinstance(line, dict) and line.get("audioPath"):
+                        ap = line["audioPath"]
+                        if not ap.startswith("gs://") and not ap.startswith("http"):
+                            line["audioPath"] = _upload_asset(zf, ap, practice_set_id, assets_bucket, gcs_prefix)

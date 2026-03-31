@@ -3,6 +3,7 @@ Daskalo Content Generation CLI — operator entrypoint.
 
 Usage:
     uv run daskalo generate [OPTIONS]
+    uv run daskalo generate-practice [OPTIONS]
 
 All options are optional — missing values are prompted for interactively.
 
@@ -26,15 +27,24 @@ Examples:
 
     # Upload an existing ZIP directly to production GCP (Firestore + GCS):
     uv run daskalo upload --remote output/b1_c2_boxing.zip
+
+    # Generate a Practice Set from an existing chapter ZIP:
+    uv run daskalo generate-practice output/b1_c2_boxing.zip
+
+    # Generate a Practice Set and write directly to production:
+    uv run daskalo generate-practice --no-local output/b1_c2_boxing.zip
 """
 
 from __future__ import annotations
 
+import io
+import json
 import logging
 import os
 import re
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 import click
@@ -260,6 +270,161 @@ def generate(
     except Exception as exc:  # noqa: BLE001
         console.print(f"\n[bold red]Direct ingest failed:[/bold red] {exc}")
         console.print("Make sure the Firebase Emulator Suite is running (dev.sh).")
+        raise SystemExit(1) from exc
+
+
+# ---------------------------------------------------------------------------
+# generate-practice command
+# ---------------------------------------------------------------------------
+
+
+@cli.command("generate-practice")
+@click.argument("chapter_zip", type=click.Path(exists=True, dir_okay=False, readable=True))
+@click.option(
+    "--practice-id",
+    default=None,
+    help=("Override the generated practice set document ID. Defaults to {chapter_id}_ps_01 (incrementing if needed)."),
+)
+@click.option(
+    "--local/--no-local",
+    default=True,
+    show_default=True,
+    help=("Target the local Firebase Emulator Suite (default). Use --no-local to produce the ZIP only."),
+)
+def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) -> None:
+    """Generate a Practice Set for an existing chapter ZIP.
+
+    Reads the chapter ZIP to extract context (topic, vocabulary, existing audio),
+    runs the LLM to generate 10-12 exercises, generates new media assets,
+    and delivers the resulting practice-set ZIP to the configured environment.
+
+    CHAPTER_ZIP is the path to a previously generated chapter ZIP file.
+    """
+    _check_env()
+
+    console.print(Panel(Text("Daskalo Practice Set Generator", justify="center"), style="bold blue"))
+    console.print()
+
+    zip_path_obj = Path(chapter_zip)
+    console.print(f"  Source ZIP  : [cyan]{chapter_zip}[/cyan]")
+
+    # --- Read chapter context from ZIP ---
+    zip_bytes = zip_path_obj.read_bytes()
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        try:
+            descriptor = json.loads(zf.read("descriptor.json"))
+        except KeyError as exc:
+            raise click.BadParameter("ZIP is missing descriptor.json", param_hint="CHAPTER_ZIP") from exc
+
+        chapter = descriptor.get("chapter", {})
+        chapter_id: str = chapter.get("id", "")
+        book_id: str = descriptor.get("bookId", "")
+        curriculum_chapter_id: str = chapter.get("curriculumChapterId", "")
+        chapter_order: int = chapter.get("order", 0)
+        chapter_topic: str = chapter.get("topic", "")
+        chapter_title: str = chapter.get("title", "")
+        chapter_summary: str = chapter.get("summary", "")
+
+        if not chapter_id:
+            raise click.UsageError("Could not determine chapter ID from descriptor.json")
+
+        # Build vocabulary list from descriptor
+        from models.content_models import VocabularyItem
+
+        raw_vocab = chapter.get("vocabulary", [])
+        vocabulary = [VocabularyItem(greek=v["greek"], english=v["english"]) for v in raw_vocab if v.get("greek")]
+
+        # Extract existing audio into work_dir so we can reuse it
+        output_dir = Path("output")
+        output_dir.mkdir(exist_ok=True)
+        work_dir = tempfile.mkdtemp(prefix="daskalo_practice_", dir=output_dir)
+
+        existing_audio: dict[str, str] = {}
+        for zip_name in zf.namelist():
+            if zip_name.startswith("assets/audio/") and zip_name.endswith(".mp3"):
+                # Skip conversation and grammar audio — not needed for practice sets
+                if "/conversation/" in zip_name or "/grammar/" in zip_name or "/sentences/" in zip_name:
+                    continue
+                audio_bytes = zf.read(zip_name)
+                local_path = str(Path(work_dir) / Path(zip_name).name)
+                Path(local_path).write_bytes(audio_bytes)
+                # Map the audio by the greek text extracted from the filename heuristic
+                # (best-effort; generate_practice_media will fall back to fresh TTS if not found)
+
+        # For vocab-to-path mapping, use vocab audioPath if present
+        for v in raw_vocab:
+            audio_path = v.get("audioPath")
+            if audio_path:
+                local_path = str(Path(work_dir) / Path(audio_path).name)
+                if Path(local_path).exists():
+                    tts_text = re.split(r"\s*/\s*|\s+-\s*", v["greek"])[0].strip()
+                    existing_audio[tts_text] = local_path
+
+    # Determine practice set ID
+    final_practice_id = practice_id or f"{chapter_id}_ps_01"
+
+    env_label = "[cyan]local emulators[/cyan]" if local else "[yellow]production[/yellow]"
+    console.print(f"  Target env  : {env_label}")
+    console.print(f"  Chapter ID  : [dim]{chapter_id}[/dim]")
+    console.print(f"  Practice ID : [bold green]{final_practice_id}[/bold green]")
+    console.print(f"  Vocab words : {len(vocabulary)}")
+    console.print(f"  Reused audio: {len(existing_audio)} files")
+    console.print()
+
+    # --- Run practice pipeline ---
+    initial_state: dict = {
+        "book_id": book_id,
+        "curriculum_chapter_id": curriculum_chapter_id,
+        "chapter_id": chapter_id,
+        "practice_set_id": final_practice_id,
+        "chapter_order": chapter_order,
+        "chapter_topic": chapter_topic,
+        "chapter_title": chapter_title,
+        "chapter_summary": chapter_summary,
+        "vocabulary": vocabulary,
+        "existing_audio": existing_audio,
+        "exercises": [],
+        "image_prompts": [],
+        "chapter_image_prompt": "",
+        "work_dir": work_dir,
+        "audio_files": [],
+        "image_files": [],
+        "chapter_image_path": "",
+        "output_zip_path": "",
+    }
+
+    console.print("[bold yellow]Running practice set generation pipeline…[/bold yellow]\n")
+
+    from practice_graph import build_practice_graph
+
+    graph = build_practice_graph()
+    final_state = graph.invoke(initial_state)
+
+    practice_zip_path = final_state.get("output_zip_path", "")
+    if not practice_zip_path or not Path(practice_zip_path).exists():
+        console.print("\n[bold red]Pipeline completed but no ZIP file was produced.[/bold red]")
+        raise SystemExit(1)
+
+    console.print(f"\n[bold green]Practice ZIP created:[/bold green] [cyan]{practice_zip_path}[/cyan]")
+
+    if not local:
+        console.print(
+            "\n[bold yellow]Production mode:[/bold yellow] ZIP not uploaded automatically."
+            f"\n  Next step: upload manually — [cyan]uv run daskalo upload --remote {practice_zip_path}[/cyan]"
+        )
+        return
+
+    from services.local_ingest import ingest_direct
+
+    console.print("\n[bold yellow]Writing practice set to Firestore emulator…[/bold yellow]")
+    try:
+        practice_id_written = ingest_direct(practice_zip_path)
+        console.print(
+            f"\n[bold green]Done![/bold green] Practice set [cyan]{practice_id_written}[/cyan] "
+            "written to Firestore emulator."
+        )
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"\n[bold red]Direct ingest failed:[/bold red] {exc}")
         raise SystemExit(1) from exc
 
 

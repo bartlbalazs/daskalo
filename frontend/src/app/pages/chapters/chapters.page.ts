@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Book, Chapter } from '../../core/models/firestore.models';
@@ -13,8 +13,7 @@ interface BookWithChapters extends Book {
 @Component({
   selector: 'app-chapters',
   standalone: true,
-  imports: [AsyncPipe, RouterLink],
-  template: `
+  imports: [AsyncPipe, RouterLink],  template: `
     <div class="px-6 py-8 max-w-4xl mx-auto">
 
       <!-- Page heading -->
@@ -63,40 +62,67 @@ interface BookWithChapters extends Book {
                   } @else {
                     <div class="space-y-2.5">
                       @for (chapter of chapters; track chapter.id) {
-                        <a
-                          [routerLink]="['/chapters', chapter.id]"
-                          class="group flex items-center gap-4 bg-white border border-greek-200 rounded-xl px-5 py-4 hover:border-greek-400 hover:shadow-md hover:bg-greek-50 transition-all duration-150"
+                        <!-- Chapter card: outer div (not <a>) so we can nest buttons inside -->
+                        <div
+                          class="group bg-white border border-greek-200 rounded-xl hover:border-greek-400 hover:shadow-md hover:bg-greek-50 transition-all duration-150 overflow-hidden"
                         >
-                          <!-- Chapter number badge -->
-                          <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
-                            [class]="getChapterBadgeClass(chapter.id)">
-                            @if (isCompleted(chapter.id)) {
-                              <!-- Checkmark -->
-                              <svg class="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                              </svg>
-                            } @else {
-                              {{ chapter.order }}
-                            }
-                          </div>
+                          <!-- Clickable chapter row -->
+                          <a
+                            [routerLink]="['/chapters', chapter.id]"
+                            class="flex items-center gap-4 px-5 py-4"
+                          >
+                            <!-- Chapter number badge -->
+                            <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+                              [class]="getChapterBadgeClass(chapter.id)">
+                              @if (isCompleted(chapter.id)) {
+                                <svg class="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                              } @else {
+                                {{ chapter.order }}
+                              }
+                            </div>
 
-                          <!-- Text -->
-                          <div class="flex-1 min-w-0">
-                            <p class="font-semibold text-surface-800 group-hover:text-greek-700 transition-colors truncate">
-                              {{ chapter.title }}
-                            </p>
-                            @if (chapter.length) {
-                              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-surface-100 text-surface-500 capitalize ml-2 align-middle">
-                                ⏱️ {{ chapter.length }}
-                              </span>
-                            }
-                            <p class="text-surface-400 text-sm mt-0.5 truncate">{{ chapter.summary }}</p>                          </div>
+                            <!-- Text -->
+                            <div class="flex-1 min-w-0">
+                              <p class="font-semibold text-surface-800 group-hover:text-greek-700 transition-colors truncate">
+                                {{ chapter.title }}
+                              </p>
+                              @if (chapter.length) {
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-surface-100 text-surface-500 capitalize ml-2 align-middle">
+                                  ⏱️ {{ chapter.length }}
+                                </span>
+                              }
+                              <p class="text-surface-400 text-sm mt-0.5 truncate">{{ chapter.summary }}</p>
+                            </div>
 
-                          <!-- Arrow -->
-                          <svg class="w-4 h-4 text-surface-300 group-hover:text-greek-500 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                          </svg>
-                        </a>
+                            <!-- Arrow -->
+                            <svg class="w-4 h-4 text-surface-300 group-hover:text-greek-500 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                          </a>
+
+                          <!-- Practice Set buttons (shown only if practice sets exist) -->
+                          @if (chapter.practiceSetIds && chapter.practiceSetIds.length > 0) {
+                            <div class="border-t border-greek-100 px-5 py-2.5 flex items-center gap-2 flex-wrap bg-white/60">
+                              <span class="text-[10px] font-semibold uppercase tracking-wider text-surface-400 mr-1">Practice</span>
+                              @for (psId of chapter.practiceSetIds; track psId; let i = $index) {
+                                <button
+                                  (click)="navigateToPractice(psId)"
+                                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-semibold transition-all duration-150"
+                                  [class]="getPracticeButtonClass(psId)"
+                                  [title]="isPracticeCompleted(psId) ? 'Practice set completed' : 'Start practice set'"
+                                >
+                                  <!-- Dumbbell icon -->
+                                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" [attr.fill]="isPracticeCompleted(psId) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6.5 6.5h11M6.5 6.5a2 2 0 01-4 0 2 2 0 014 0zM17.5 6.5a2 2 0 004 0 2 2 0 00-4 0zM6.5 17.5h11M6.5 17.5a2 2 0 01-4 0 2 2 0 014 0zM17.5 17.5a2 2 0 004 0 2 2 0 00-4 0zM6.5 6.5v11M17.5 6.5v11"/>
+                                  </svg>
+                                  Set {{ i + 1 }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
                       }
                     </div>
                   }
@@ -151,6 +177,7 @@ interface BookWithChapters extends Book {
 export class ChaptersPage implements OnInit {
   readonly lessonService = inject(LessonService);
   readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   booksWithChapters$!: Observable<BookWithChapters[]>;
 
@@ -168,10 +195,26 @@ export class ChaptersPage implements OnInit {
     return completed.includes(chapterId);
   }
 
+  isPracticeCompleted(practiceSetId: string): boolean {
+    const completed = this.authService.currentUser()?.progress?.completedPracticeSetIds ?? [];
+    return completed.includes(practiceSetId);
+  }
+
+  navigateToPractice(practiceSetId: string): void {
+    this.router.navigate(['/practice', practiceSetId]);
+  }
+
   getChapterBadgeClass(chapterId: string): string {
     if (this.isCompleted(chapterId)) {
       return 'bg-greek-600 text-white';
     }
     return 'bg-greek-50 text-greek-700 group-hover:bg-greek-100';
+  }
+
+  getPracticeButtonClass(practiceSetId: string): string {
+    if (this.isPracticeCompleted(practiceSetId)) {
+      return 'border-practice-300 bg-practice-600 text-white hover:bg-practice-700';
+    }
+    return 'border-practice-300 text-practice-600 hover:bg-practice-50';
   }
 }

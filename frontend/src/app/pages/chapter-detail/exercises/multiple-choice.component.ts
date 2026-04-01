@@ -171,7 +171,9 @@ export class MultipleChoiceComponent implements OnInit {
   }
 
   sentenceParts(sentence: string): string[] {
-    return sentence.split('___').reduce((acc: string[], part, i, arr) => {
+    // Collapse runs of 3+ underscores into exactly "___" so the UI always shows one blank.
+    const normalized = sentence.replace(/_{3,}/g, '___');
+    return normalized.split('___').reduce((acc: string[], part, i, arr) => {
       acc.push(part);
       if (i < arr.length - 1) acc.push('___');
       return acc;

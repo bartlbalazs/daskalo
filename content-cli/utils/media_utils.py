@@ -14,7 +14,7 @@ from pathlib import Path
 import vertexai
 from google.api_core import exceptions as google_exceptions
 from google.cloud import texttospeech
-from tenacity import before_sleep_log, retry, retry_if_exception, stop_after_attempt, wait_exponential
+from tenacity import before_sleep_log, retry, retry_if_exception, stop_after_attempt, wait_exponential, wait_random
 from vertexai.generative_models import GenerationConfig, GenerativeModel
 
 from prompts.content_prompts import IMAGE_GENERATION_PROMPT_TEMPLATE
@@ -82,8 +82,10 @@ def generate_image(scene_description: str, output_path: str) -> bool:
     The model is loaded from the ``global`` region as required.
     Image bytes are written directly to *output_path* as JPEG.
 
-    Retries up to 3 times (4 attempts total) on transient quota/availability
-    errors (HTTP 429 / 503) using exponential backoff (15 s → 30 s → 60 s).
+    Retries up to 7 times (8 attempts total) on transient quota/availability
+    errors (HTTP 429 / 503) using exponential backoff (15 s → 30 s → 60 s →
+    120 s → 180 s, capped) plus 0–30 s of random jitter to desync parallel
+    workers.
 
     Returns ``True`` on success, ``False`` on any failure.
     """
@@ -91,8 +93,8 @@ def generate_image(scene_description: str, output_path: str) -> bool:
 
     @retry(
         retry=retry_if_exception(_is_retryable_image_error),
-        stop=stop_after_attempt(4),
-        wait=wait_exponential(multiplier=1, min=15, max=90),
+        stop=stop_after_attempt(8),
+        wait=wait_exponential(multiplier=2, min=15, max=180) + wait_random(0, 30),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
     )

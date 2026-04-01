@@ -4,17 +4,18 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PracticeSet } from '../../core/models/firestore.models';
-import { switchMap } from 'rxjs';
+import { switchMap, map } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
 import { AsyncPipe } from '@angular/common';
 import { ExerciseCardComponent } from '../chapter-detail/exercises/exercise-card.component';
 import { LightboxComponent } from '../../shared/components/lightbox.component';
+import { OwnWordBubbleComponent } from '../chapter-detail/own-word-bubble.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-practice-detail',
   standalone: true,
-  imports: [AsyncPipe, RouterLink, GcsUrlPipe, ExerciseCardComponent, LightboxComponent],
+  imports: [AsyncPipe, RouterLink, GcsUrlPipe, ExerciseCardComponent, LightboxComponent, OwnWordBubbleComponent],
   template: `
     @if (practiceSet(); as ps) {
 
@@ -136,6 +137,11 @@ import { environment } from '../../../environments/environment';
         </div>
       </div>
 
+      <!-- Own-word pencil FAB (adds words to the parent chapter) -->
+      @if (bookId(); as bid) {
+        <app-own-word-bubble [chapterId]="ps.chapterId" [bookId]="bid" />
+      }
+
     } @else {
       <!-- Loading skeleton -->
       <div class="px-6 py-10 max-w-5xl mx-auto space-y-4 animate-pulse">
@@ -172,6 +178,15 @@ export class PracticeDetailPage implements OnInit {
         this.alreadyCompleted.set(completedIds.includes(id));
         return this.lessonService.getPracticeSet(id);
       })
+    )
+  );
+
+  /** Resolve the bookId from the parent chapter so the own-word bubble can use it. */
+  bookId = toSignal(
+    this.route.paramMap.pipe(
+      switchMap(params => this.lessonService.getPracticeSet(params.get('id') ?? '')),
+      switchMap(ps => this.lessonService.getChapter(ps.chapterId)),
+      map(chapter => chapter.bookId),
     )
   );
 

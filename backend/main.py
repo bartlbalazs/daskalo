@@ -24,6 +24,7 @@ from fastapi.responses import JSONResponse
 from firebase_admin import credentials
 
 from fn_complete_chapter import complete_chapter_fn
+from fn_complete_practice import complete_practice_fn
 from fn_evaluate import evaluate_attempt_fn
 from fn_own_word import add_own_word_fn
 
@@ -74,7 +75,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # BE-16: allow_origins=["*"] combined with allow_credentials=True is an
+    # invalid combination per the Fetch spec. This backend never uses cookies —
+    # the Firebase ID token travels in the request body (data.idToken) or the
+    # Authorization header, per docs/ARCHITECTURE.md — so credentials aren't needed.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -95,9 +100,14 @@ async def startup_event() -> None:
 class _FlaskRequestShim:
     """Minimal Flask-Request-compatible shim wrapping a FastAPI Request body/headers."""
 
-    def __init__(self, body: bytes, headers: dict) -> None:
+    def __init__(self, body: bytes, headers: dict, method: str = "POST") -> None:
         self._body = body
         self.headers = headers
+        # Every fn_*.py handler's first line is `if request.method == "OPTIONS": ...` —
+        # without this, that line raised AttributeError for every single request
+        # (masked in unit tests, which pass a MagicMock that auto-fabricates any
+        # attribute access instead of raising).
+        self.method = method
 
     def get_json(self, silent: bool = False):  # noqa: ANN201
         import json
@@ -115,7 +125,7 @@ async def _shim(request: Request) -> _FlaskRequestShim:
     # Pass the Starlette Headers object directly (case-insensitive .get()),
     # NOT dict(request.headers) which lowercases all keys and breaks
     # callable_helpers.py's lookup of "Authorization".
-    return _FlaskRequestShim(body, request.headers)
+    return _FlaskRequestShim(body, request.headers, method=request.method)
 
 
 @app.post("/evaluate", summary="Evaluate an AI-graded exercise attempt")
@@ -140,5 +150,13 @@ async def complete_chapter_endpoint(request: Request) -> JSONResponse:
 async def add_own_word_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
     result = add_own_word_fn(shim)
+    body, status = result[0], result[1]
+    return JSONResponse(content=body, status_code=status)
+
+
+@app.post("/complete-practice", summary="Complete a practice set and award XP")
+async def complete_practice_endpoint(request: Request) -> JSONResponse:
+    shim = await _shim(request)
+    result = complete_practice_fn(shim)
     body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)

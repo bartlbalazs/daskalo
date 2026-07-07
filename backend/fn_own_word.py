@@ -17,8 +17,11 @@ Firebase Callable wire protocol:
 The function:
   1. Verifies the caller's Firebase ID token.
   2. Validates input (non-empty, ≤ 50 chars, chapterId and bookId present).
-  3. Checks for an existing own-word document (skip silently if duplicate).
+  3. Verifies the caller's account is "active" and within their rate limit.
   4. Calls the own_word service to normalise, generate TTS, upload to GCS, and save to Firestore.
+     Real deduplication happens there via the deterministic Firestore document ID + set()
+     (see BE-13 note in services/own_word.py) — this function no longer runs its own
+     (ineffective) pre-check.
   5. Returns the word card data to the caller.
 """
 
@@ -26,6 +29,7 @@ from __future__ import annotations
 
 import logging
 import os
+from functools import lru_cache
 
 import firebase_admin
 import flask
@@ -35,12 +39,16 @@ from google.cloud.firestore import Client as FirestoreClient
 
 import log_setup  # noqa: F401 — configures root logger for Cloud Logging
 from callable_helpers import (
+    RateLimitExceeded,
     callable_error,
     callable_response,
+    check_rate_limit,
     cors_preflight,
+    ensure_active_user,
     parse_callable_request,
     verify_firebase_token,
 )
+from constants import RATE_LIMIT_ADD_OWN_WORD, RATE_LIMIT_WINDOW_SECONDS
 from services.own_word import _MAX_INPUT_CHARS, create_own_word
 
 logger = logging.getLogger(__name__)
@@ -60,6 +68,13 @@ def _init_firebase() -> None:
         cred,
         {"projectId": os.getenv("GOOGLE_CLOUD_PROJECT")},
     )
+
+
+# IMP-BE-03: construct the Firestore client once and reuse it across
+# invocations within the same process, instead of on every single request.
+@lru_cache(maxsize=1)
+def _get_db() -> FirestoreClient:
+    return FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
 
 
 # ---------------------------------------------------------------------------
@@ -101,38 +116,33 @@ def add_own_word_fn(request: flask.Request) -> tuple:
     except (ValueError, KeyError) as exc:
         return callable_error("INVALID_ARGUMENT", str(exc), 400)
 
-    # 3. Check for duplicate — skip silently if already exists
-    try:
-        db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
-        # We use the raw text as a preliminary check key; the service will use the
-        # normalised Greek for the actual document ID. We do a best-effort check here.
-        own_words_ref = db.collection("users").document(caller_uid).collection("ownWords")
-        existing_snap = own_words_ref.where("chapterId", "==", chapter_id).stream()
-        existing_words = [doc.to_dict().get("greek", "").lower() for doc in existing_snap]
-        if text.lower() in existing_words:
-            logger.info("Duplicate own-word '%s' skipped for user '%s'", text, caller_uid)
-            # Find and return the existing document
-            for doc in own_words_ref.where("chapterId", "==", chapter_id).stream():
-                d = doc.to_dict()
-                if d.get("greek", "").lower() == text.lower():
-                    return callable_response(
-                        {
-                            "greek": d.get("greek", ""),
-                            "english": d.get("english", ""),
-                            "audioUrl": d.get("audioUrl", ""),
-                            "chapterId": d.get("chapterId", ""),
-                            "bookId": d.get("bookId", ""),
-                            "docId": doc.id,
-                            "alreadyExisted": True,
-                            "createdAt": d.get("createdAt", ""),
-                        }
-                    )
-    except Exception as exc:
-        logger.warning("Duplicate check failed, proceeding: %s", exc)
+    db = _get_db()
 
-    # 4. Create the word card
-    assets_bucket = os.environ["PUBLIC_ASSETS_BUCKET"]
+    # 3. Active-user gate (BE-05) — must run before any billable work.
     try:
+        ensure_active_user(db, caller_uid)
+    except PermissionError as exc:
+        return callable_error("PERMISSION_DENIED", str(exc), 403)
+
+    # 4. Per-user rate limit (IMP-BE-07)
+    try:
+        check_rate_limit(
+            db,
+            caller_uid,
+            "add_own_word",
+            limit=RATE_LIMIT_ADD_OWN_WORD,
+            window_seconds=RATE_LIMIT_WINDOW_SECONDS,
+        )
+    except RateLimitExceeded as exc:
+        return callable_error("RESOURCE_EXHAUSTED", str(exc), 429)
+
+    # 5. Create the word card. (BE-12: PUBLIC_ASSETS_BUCKET is guarded and any
+    # failure to resolve it is raised *inside* this try/except, so it produces
+    # a proper Callable error response instead of a raw, unhandled KeyError.)
+    try:
+        assets_bucket = os.environ.get("PUBLIC_ASSETS_BUCKET")
+        if not assets_bucket:
+            raise RuntimeError("PUBLIC_ASSETS_BUCKET environment variable is not configured.")
         result = create_own_word(
             raw_input=text,
             user_id=caller_uid,
@@ -143,9 +153,12 @@ def add_own_word_fn(request: flask.Request) -> tuple:
     except ValueError as exc:
         logger.warning("Own-word creation failed for user '%s': %s", caller_uid, exc)
         return callable_error("INVALID_ARGUMENT", str(exc), 400)
+    except RuntimeError as exc:
+        logger.error("Own-word creation misconfigured for user '%s': %s", caller_uid, exc)
+        return callable_error("INTERNAL", "Server is misconfigured. Please contact support.", 500)
     except Exception as exc:
         logger.exception("Own-word creation failed for user '%s': %s", caller_uid, exc)
         return callable_error("INTERNAL", "Failed to create word card. Please try again.", 500)
 
-    # 5. Return the word card
+    # 6. Return the word card
     return callable_response(result)

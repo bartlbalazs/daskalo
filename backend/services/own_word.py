@@ -20,12 +20,16 @@ import re
 import tempfile
 import time
 from datetime import UTC, datetime
+from functools import lru_cache
 
 from google import genai
 from google.cloud import storage, texttospeech
 from google.cloud.firestore import SERVER_TIMESTAMP
 from google.cloud.firestore import Client as FirestoreClient
 from google.genai import types
+
+from constants import GEMINI_MODEL_ID
+from services.gemini_utils import generate_content_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +38,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _MAX_INPUT_CHARS = 50
-_MODEL_ID = "gemini-2.5-flash"
+_MODEL_ID = GEMINI_MODEL_ID
 
 VOICE_FEMALE = "el-GR-Chirp3-HD-Achernar"
 LANGUAGE_CODE = "el-GR"
@@ -89,11 +93,20 @@ def _sanitize_greek(text: str) -> str:
     return sanitized[:80] or "word"
 
 
+# IMP-BE-03: construct the genai client once and reuse it across invocations
+# within the same process, instead of on every single request.
+@lru_cache(maxsize=1)
 def _get_client() -> genai.Client:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
     logger.debug("_get_client: initialising google-genai client project=%r region=%r", project, region)
     return genai.Client(vertexai=True, project=project, location=region)
+
+
+# IMP-BE-03: same treatment for the Firestore client.
+@lru_cache(maxsize=1)
+def _get_db() -> FirestoreClient:
+    return FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +158,14 @@ def create_own_word(
     client = _get_client()
     prompt = _NORMALISE_PROMPT.format(input_text=text)
     t0 = time.perf_counter()
-    response = client.models.generate_content(
+    # BE-09/IMP-BE-04: retries on transient failures and guards against an
+    # empty/None response.text, which would otherwise crash the len() call
+    # below with a raw TypeError instead of a clear error. The custom
+    # "not_greek" JSON-parsing/error-flagging logic below stays as-is — it's
+    # domain-specific and not something the shared parse_json_response()
+    # helper (used by services/evaluation.py) is meant to know about.
+    response = generate_content_with_retry(
+        client,
         model=_MODEL_ID,
         contents=prompt,
         config=_NORMALISE_CONFIG,
@@ -271,7 +291,18 @@ def create_own_word(
     # NOTE: sanitized Greek (slashes/spaces → underscores) is used for the doc ID to
     # avoid Firestore treating slashes in Greek text (e.g. "ήσυχος / ήσυχη / ήσυχο")
     # as subcollection separators, while still preserving uniqueness per word.
-    db = FirestoreClient(database=os.getenv("FIRESTORE_DB", "(default)"))
+    #
+    # BE-13: there is deliberately no "does this word already exist" pre-check here
+    # (or in fn_own_word.py, which used to run one). The doc ID above is deterministic
+    # (chapterId + normalised Greek), and .set() overwrites in place — so resubmitting
+    # the same word is already correctly idempotent at the data level (never creates a
+    # duplicate document). See services/own_word.py and docs/planning/BUGS.md#BE-13 /
+    # the final report for why the old pre-check (comparing the *raw* input against the
+    # *normalised* stored value) was removed rather than "fixed": it can only ever be
+    # fixed by re-deriving the same normalisation Gemini already computed above, at
+    # which point the deterministic-ID + set() below already gives the correct
+    # behaviour for free.
+    db = _get_db()
     doc_id = f"{chapter_id}__{sanitized}"
     word_doc = {
         "greek": greek,

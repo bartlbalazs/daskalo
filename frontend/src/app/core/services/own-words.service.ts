@@ -7,6 +7,7 @@ import {
 import { Auth } from '@angular/fire/auth';
 import { OwnWord } from '../models/firestore.models';
 import { environment } from '../../../environments/environment';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 /** Response payload returned by the add-own-word Cloud Function. */
 interface AddOwnWordResult {
@@ -101,7 +102,7 @@ export class OwnWordsService {
 
     const idToken = await user.getIdToken();
 
-    const response = await fetch(environment.addOwnWordUrl, {
+    const response = await fetchWithTimeout(environment.addOwnWordUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

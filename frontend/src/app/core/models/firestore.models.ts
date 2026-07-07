@@ -156,7 +156,10 @@ export interface ConversationLine {
   speaker: 'male' | 'female';
   text: string;
   translation: string;
-  audioPath: string;
+  /** Full gs:// URI, written by the content-cli ingest step (CC-08 — renamed
+   *  from audioPath since every other asset already used the *Url suffix
+   *  post-ingest). */
+  audioUrl: string;
 }
 
 export interface ConversationCheckpointOption {

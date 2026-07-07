@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, DictationData, EvaluationResult } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 
 @Component({
   selector: 'app-dictation',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AudioPlayerComponent],
   template: `
     <div class="space-y-4">
@@ -24,7 +25,6 @@ import { AudioPlayerComponent } from './audio-player.component';
 
       <!-- Textarea -->
       <textarea
-        [(value)]="answerValue"
         (input)="onInput($event)"
         [disabled]="submitted()"
         rows="3"
@@ -78,6 +78,17 @@ import { AudioPlayerComponent } from './audio-player.component';
               {{ evaluation()!.feedback }}
             </p>
           </div>
+
+          <!-- Retry button — always available so a failed evaluation (e.g. network
+               error) doesn't permanently lock the student out of resubmitting. -->
+          <div class="flex justify-end">
+            <button
+              (click)="retry()"
+              class="px-4 py-2 rounded-lg border border-greek-300 text-greek-700 text-xs font-semibold hover:bg-greek-50 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         }
       }
     </div>
@@ -85,10 +96,15 @@ import { AudioPlayerComponent } from './audio-player.component';
 })
 export class DictationComponent {
   @Input({ required: true }) exercise!: Exercise;
+  /** Unused internally since FE-22 (sentenceAudioUrls is always populated;
+   *  see audioUrl() below) — kept as an Input so exercise-card.component.ts
+   *  can keep binding it uniformly across all exercise types without a
+   *  template error. */
   @Input() chapterStoragePath = '';
   @Input() sentenceAudioUrls: string[] = [];
   @Output() submitted$ = new EventEmitter<string>();
   @Output() answered = new EventEmitter<boolean>();
+  @Output() retried = new EventEmitter<void>();
 
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
@@ -101,14 +117,17 @@ export class DictationComponent {
   }
 
   audioUrl(): string | null {
+    // FE-22: sentenceAudioUrls is always populated by the content-cli ingest
+    // step (package_output.py) for any chapter with a passage, and its real
+    // per-sentence filenames are `sentence_{idx:02d}_{slug}.mp3` (see
+    // generate_media.py) — never the plain `sentence_{idx:02d}.mp3` a
+    // chapterStoragePath-based guess would produce. A prior fallback here
+    // that reconstructed a guessed URL from chapterStoragePath was
+    // confirmed dead (this data is always present) and would have built a
+    // broken (404) URL if it were ever reached, so it's been removed
+    // rather than kept as a non-functional safety net.
     const idx = this.data()?.sentence_index ?? 0;
-    // Prefer exact URL from sentenceAudioUrls if available and non-empty
-    const exact = this.sentenceAudioUrls?.[idx];
-    if (exact) return exact;
-    // Fallback: construct from chapterStoragePath (legacy, likely wrong for prefixed files)
-    if (!this.chapterStoragePath) return null;
-    const padded = String(idx).padStart(2, '0');
-    return `${this.chapterStoragePath}/sentence_${padded}.mp3`;
+    return this.sentenceAudioUrls?.[idx] ?? null;
   }
 
   onInput(event: Event): void {
@@ -124,6 +143,15 @@ export class DictationComponent {
   setEvaluation(result: EvaluationResult): void {
     this.evaluation.set(result);
     this.answered.emit(result.isCorrect);
+  }
+
+  /** Reset the card to an answerable state so the student can resubmit
+   *  (e.g. after an evaluation request failure). Keeps the typed answer
+   *  so they don't have to retype it. */
+  retry(): void {
+    this.submitted.set(false);
+    this.evaluation.set(null);
+    this.retried.emit();
   }
 
   canSubmit(): boolean {

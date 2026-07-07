@@ -1,21 +1,18 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 import { from, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { GcsUrlResolverService } from '../services/gcs-url-resolver.service';
 
 @Pipe({
   name: 'gcsUrl',
   standalone: true
 })
 export class GcsUrlPipe implements PipeTransform {
-  private storage = inject(Storage);
+  private resolver = inject(GcsUrlResolverService);
 
   transform(gsUri: string | undefined | null): Observable<string> {
     if (!gsUri) return of('');
-    if (!gsUri.startsWith('gs://')) return of(gsUri);
-
-    const storageRef = ref(this.storage, gsUri);
-    return from(getDownloadURL(storageRef)).pipe(
+    return from(this.resolver.resolve(gsUri)).pipe(
       catchError(() => of(''))
     );
   }

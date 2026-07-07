@@ -1,17 +1,17 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   Exercise,
   FillInTheBlankData,
   OddOneOutData,
-  RoleplayData,
   CulturalContextData,
 } from '../../../core/models/firestore.models';
 
-export type McOption = { text: string; isCorrect: boolean };
+export interface McOption { text: string; isCorrect: boolean }
 
 @Component({
   selector: 'app-multiple-choice',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- fill_in_the_blank: show sentence with blank highlighted -->
     @if (exercise.type === 'fill_in_the_blank') {
@@ -86,16 +86,15 @@ export class MultipleChoiceComponent implements OnInit {
     this._options.set(this._shuffle(this._rawOptions()));
   }
 
-  get selectedText(): () => string | null {
-    return () => {
-      const i = this.selectedIndex();
-      return i !== null ? this.options()[i]?.text ?? null : null;
-    };
-  }
+  /** Text of the currently-selected option, or null if none selected — used
+   *  to render the fill_in_the_blank blank's live preview. */
+  selectedText = computed<string | null>(() => {
+    const i = this.selectedIndex();
+    return i !== null ? this.options()[i]?.text ?? null : null;
+  });
 
-  options(): McOption[] {
-    return this._options();
-  }
+  /** Shuffled options for this exercise (fixed for the component's lifetime after ngOnInit). */
+  options = this._options.asReadonly();
 
   private _rawOptions(): McOption[] {
     const d = this.exercise.data as Record<string, unknown>;
@@ -135,6 +134,13 @@ export class MultipleChoiceComponent implements OnInit {
     this.submitted.set(true);
     const correct = this.options()[this.selectedIndex()!]?.isCorrect ?? false;
     this.answered.emit(correct);
+  }
+
+  /** Whether an option is currently selected — used to disable the shared
+   *  "Check" button (in ExerciseCardComponent) until the student picks one,
+   *  instead of silently no-oping on click. */
+  canSubmit(): boolean {
+    return this.selectedIndex() !== null;
   }
 
   isCorrect(): boolean {

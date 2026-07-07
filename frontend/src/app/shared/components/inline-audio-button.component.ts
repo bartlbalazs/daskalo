@@ -1,5 +1,5 @@
 import { Component, OnDestroy, signal, inject, input, effect } from '@angular/core';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { GcsUrlResolverService } from '../services/gcs-url-resolver.service';
 
 /**
  * A small circular play/pause button for inline audio playback.
@@ -41,7 +41,7 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
   `,
 })
 export class InlineAudioButtonComponent implements OnDestroy {
-  private storage = inject(Storage);
+  private resolver = inject(GcsUrlResolverService);
 
   src = input.required<string>();
 
@@ -92,15 +92,15 @@ export class InlineAudioButtonComponent implements OnDestroy {
   }
 
   private async resolveUrl(url: string, generation: number): Promise<void> {
-    if (!url.startsWith('gs://')) {
-      this.resolvedUrl = url;
-      this.loading.set(false);
-      return;
-    }
     try {
-      const resolved = await getDownloadURL(ref(this.storage, url));
+      const resolved = await this.resolver.resolve(url);
       if (generation === this.srcGeneration) {
         this.resolvedUrl = resolved;
+        // Reset loading here too (not just on failure below) — resolve()
+        // returns an already-resolved promise for plain http(s) URLs, and
+        // the effect() in the constructor calls resolveUrl() fire-and-forget
+        // (no .then() to reset it the way playAudio()'s does via startPlayback()).
+        this.loading.set(false);
       }
     } catch {
       if (generation === this.srcGeneration) {

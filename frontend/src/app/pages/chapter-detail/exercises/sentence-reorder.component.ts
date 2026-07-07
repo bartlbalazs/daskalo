@@ -1,5 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter, signal, OnInit
+  Component, Input, Output, EventEmitter, signal, computed, OnInit, ChangeDetectionStrategy
 } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Exercise, SentenceReorderData } from '../../../core/models/firestore.models';
@@ -7,10 +7,13 @@ import { Exercise, SentenceReorderData } from '../../../core/models/firestore.mo
 @Component({
   selector: 'app-sentence-reorder',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DragDropModule],
   template: `
     <div class="space-y-4">
-      <p class="text-xs font-semibold uppercase tracking-widest text-surface-400">Drag words into the correct order</p>
+      <p class="text-xs font-semibold uppercase tracking-widest text-surface-400">
+        Drag words into the correct order, or use Tab + Enter/Space to pick up and place a word.
+      </p>
 
       <!-- Drag list -->
       <div
@@ -23,19 +26,31 @@ import { Exercise, SentenceReorderData } from '../../../core/models/firestore.mo
           ? (isCorrect() ? 'border-emerald-300 bg-emerald-50' : 'border-red-200 bg-red-50')
           : 'border-surface-300 bg-surface-50'"
       >
-        @for (word of words(); track $index) {
+        @for (word of words(); track $index; let i = $index) {
           <div
             cdkDrag
             [cdkDragDisabled]="submitted()"
+            [attr.tabindex]="submitted() ? null : 0"
+            [attr.role]="submitted() ? null : 'button'"
+            [attr.aria-pressed]="submitted() ? null : (selectedForMove() === i)"
+            [attr.aria-label]="submitted() ? null : tileAriaLabel(word, i)"
+            (keydown.enter)="onTileActivate(i)"
+            (keydown.space)="$event.preventDefault(); onTileActivate(i)"
+            (keydown.escape)="cancelMove()"
             class="px-3 py-2 rounded-lg text-sm font-medium select-none transition-colors"
             [class]="submitted()
               ? (isCorrect() ? 'bg-emerald-500 text-white cursor-default' : 'bg-red-400 text-white cursor-default')
-              : 'bg-white border border-greek-300 text-greek-800 shadow-sm cursor-grab active:cursor-grabbing hover:border-greek-500 hover:bg-greek-50'"
+              : (selectedForMove() === i
+                ? 'bg-greek-100 border-2 border-greek-500 text-greek-900 shadow-md cursor-grab ring-2 ring-greek-300'
+                : 'bg-white border border-greek-300 text-greek-800 shadow-sm cursor-grab active:cursor-grabbing hover:border-greek-500 hover:bg-greek-50')"
           >
             {{ word }}
           </div>
         }
       </div>
+
+      <!-- Screen-reader-only status announcements for keyboard pick-up/place/cancel -->
+      <div class="sr-only" aria-live="polite">{{ moveStatusMessage() }}</div>
 
       <!-- Feedback -->
       @if (submitted()) {
@@ -63,6 +78,13 @@ export class SentenceReorderComponent implements OnInit {
   words = signal<string[]>([]);
   submitted = signal(false);
 
+  /** Index (in the current words() order) of the word tile currently
+   *  "picked up" via keyboard — the keyboard-operable alternative to CDK
+   *  drag-drop (IMP-FE-07). null = nothing picked up. */
+  selectedForMove = signal<number | null>(null);
+  /** Screen-reader-only status announcements for pick-up/place/cancel actions. */
+  moveStatusMessage = signal('');
+
   private _correctOrder: string[] = [];
 
   ngOnInit(): void {
@@ -80,10 +102,66 @@ export class SentenceReorderComponent implements OnInit {
     this.words.set(arr);
   }
 
-  isCorrect(): boolean {
+  /**
+   * Keyboard-operable "select then place" alternative to dragging (IMP-FE-07):
+   *   1. Enter/Space on a word with nothing picked up yet — picks it up.
+   *   2. Enter/Space on the SAME word again — cancels the pick-up.
+   *   3. Enter/Space on a DIFFERENT word — moves the picked-up word to that position.
+   * Escape (bound separately below) always cancels.
+   */
+  onTileActivate(index: number): void {
+    if (this.submitted()) return;
+    const picked = this.selectedForMove();
+
+    if (picked === null) {
+      this.selectedForMove.set(index);
+      this.moveStatusMessage.set(
+        `Picked up "${this.words()[index]}". Choose a position to place it, or press Escape to cancel.`
+      );
+      return;
+    }
+
+    if (picked === index) {
+      this.cancelMove();
+      return;
+    }
+
+    const arr = [...this.words()];
+    moveItemInArray(arr, picked, index);
+    this.words.set(arr);
+    this.moveStatusMessage.set(`Moved "${arr[index]}" to position ${index + 1}.`);
+    this.selectedForMove.set(null);
+  }
+
+  cancelMove(): void {
+    if (this.selectedForMove() !== null) {
+      this.moveStatusMessage.set('Cancelled.');
+    }
+    this.selectedForMove.set(null);
+  }
+
+  tileAriaLabel(word: string, index: number): string {
+    const picked = this.selectedForMove();
+    if (picked === index) {
+      return `${word}, selected. Press Enter to cancel, or select another word's position to place it here.`;
+    }
+    if (picked !== null) {
+      return `${word}. Press Enter to place the selected word here.`;
+    }
+    return `${word}. Press Enter or Space to pick up and reorder.`;
+  }
+
+  /** Whether the current word order matches the correct order — called
+   *  repeatedly from the template (border/tile colors + feedback banner), so
+   *  memoized as a computed rather than a plain method. _correctOrder is a
+   *  plain field but is only ever assigned once in ngOnInit and never
+   *  mutated again, so words() (a real signal) is the only thing that
+   *  actually varies — this is behaviorally identical to the previous
+   *  plain-method version, just cached until words() changes. */
+  isCorrect = computed<boolean>(() => {
     const w = this.words();
     return w.length === this._correctOrder.length && w.every((v, i) => v === this._correctOrder[i]);
-  }
+  });
 
   correctOrderStr(): string {
     return this._correctOrder.join(' ');

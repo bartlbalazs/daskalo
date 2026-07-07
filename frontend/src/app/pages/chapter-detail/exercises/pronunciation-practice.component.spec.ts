@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
 import { PronunciationPracticeComponent } from './pronunciation-practice.component';
 import { Exercise } from '../../../core/models/firestore.models';
 
@@ -10,13 +9,6 @@ import { Exercise } from '../../../core/models/firestore.models';
 const EXERCISE: Exercise = {
   type: 'pronunciation_practice',
   prompt: '',
-  data: { target_text: 'Καλημέρα' },
-};
-
-const EXERCISE_WITH_AUDIO: Exercise = {
-  type: 'pronunciation_practice',
-  prompt: '',
-  audioUrl: 'https://example.com/audio.mp3',
   data: { target_text: 'Καλημέρα' },
 };
 

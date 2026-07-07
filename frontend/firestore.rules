@@ -13,11 +13,21 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if request.auth.uid == userId;
-      // Client may only create its own document (on first sign-in) with status = "pending".
+      // Client may only create its own document (on first sign-in) with status
+      // "pending" and every progress field at its zero/empty starting value —
+      // this prevents a client from pre-seeding xp, completed chapters/practice
+      // sets, or vocabulary on signup. Keep this in sync with the exact shape
+      // written by AuthService._ensureUserDocument() in auth.service.ts.
       // All subsequent updates (xp, completedChapterIds, lastActive, etc.) are performed
       // exclusively by the backend via the Admin SDK, which bypasses these rules.
       allow create: if request.auth.uid == userId
-        && request.resource.data.status == "pending";
+        && request.resource.data.status == "pending"
+        && request.resource.data.progress.currentBookId == ''
+        && request.resource.data.progress.xp == 0
+        && request.resource.data.progress.completedChapterIds.size() == 0
+        && (!('completedPracticeSetIds' in request.resource.data.progress)
+            || request.resource.data.progress.completedPracticeSetIds.size() == 0)
+        && request.resource.data.vocabularyList.size() == 0;
       allow update, delete: if false;
 
       // Favorite words subcollection — fully managed by the client (active users only).

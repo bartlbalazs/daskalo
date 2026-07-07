@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, ListeningComprehensionData, ListeningOption } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 
 @Component({
   selector: 'app-listening-comprehension',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AudioPlayerComponent],
   template: `
     <div class="space-y-4">
@@ -57,7 +58,10 @@ import { AudioPlayerComponent } from './audio-player.component';
 })
 export class ListeningComprehensionComponent implements OnInit {
   @Input({ required: true }) exercise!: Exercise;
-  /** Base GCS path of the chapter, e.g. gs://bucket/chapters/chapterId */
+  /** Unused internally since FE-22 (sentenceAudioUrls is always populated;
+   *  see audioUrl() below) — kept as an Input so exercise-card.component.ts
+   *  can keep binding it uniformly across all exercise types without a
+   *  template error. */
   @Input() chapterStoragePath = '';
   /** Exact resolved GCS URLs for each sentence audio file. */
   @Input() sentenceAudioUrls: string[] = [];
@@ -81,14 +85,17 @@ export class ListeningComprehensionComponent implements OnInit {
   }
 
   audioUrl(): string | null {
+    // FE-22: sentenceAudioUrls is always populated by the content-cli ingest
+    // step (package_output.py) for any chapter with a passage, and its real
+    // per-sentence filenames are `sentence_{idx:02d}_{slug}.mp3` (see
+    // generate_media.py) — never the plain `sentence_{idx:02d}.mp3` a
+    // chapterStoragePath-based guess would produce. A prior fallback here
+    // that reconstructed a guessed URL from chapterStoragePath was
+    // confirmed dead (this data is always present) and would have built a
+    // broken (404) URL if it were ever reached, so it's been removed
+    // rather than kept as a non-functional safety net.
     const idx = this.data()?.sentence_index ?? 0;
-    // Prefer exact URL from sentenceAudioUrls if available and non-empty
-    const exact = this.sentenceAudioUrls?.[idx];
-    if (exact) return exact;
-    // Fallback: construct from chapterStoragePath (legacy, likely wrong for prefixed files)
-    if (!this.chapterStoragePath) return null;
-    const padded = String(idx).padStart(2, '0');
-    return `${this.chapterStoragePath}/sentence_${padded}.mp3`;
+    return this.sentenceAudioUrls?.[idx] ?? null;
   }
 
   select(index: number): void {

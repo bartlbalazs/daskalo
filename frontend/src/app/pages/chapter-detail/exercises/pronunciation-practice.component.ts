@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, EvaluationResult, PronunciationPracticeData } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 import { NgClass } from '@angular/common';
@@ -11,6 +11,7 @@ type RecordingState = 'idle' | 'requesting' | 'recording' | 'recorded' | 'submit
 @Component({
   selector: 'app-pronunciation-practice',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AudioPlayerComponent, NgClass],
   template: `
     <div class="space-y-5">

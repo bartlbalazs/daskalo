@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, PassageComprehensionData, PassageSentence, VocabularyItem } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 import { HighlightVocabPipe } from '../../../shared/pipes/highlight-vocab.pipe';
@@ -10,6 +10,7 @@ interface QState {
 @Component({
   selector: 'app-passage-comprehension',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AudioPlayerComponent, HighlightVocabPipe],
   template: `
     <div class="space-y-6">
@@ -21,7 +22,11 @@ interface QState {
             <span
               class="cursor-pointer rounded px-0.5 transition-colors duration-150 inline"
               [class]="revealed().has(si) ? 'bg-amber-100 text-amber-900' : 'hover:bg-greek-100'"
+              tabindex="0"
+              role="button"
               (click)="toggleSentence(si)"
+              (keydown.enter)="toggleSentence(si)"
+              (keydown.space)="$event.preventDefault(); toggleSentence(si)"
               [title]="revealed().has(si) ? sentence.english : 'Click to translate'"
               [innerHTML]="(sentence.greek + ' ') | highlightVocab:vocabulary"
             ></span>
@@ -99,17 +104,41 @@ export class PassageComprehensionComponent implements OnChanges {
   /** Set of sentence indices whose English translation is currently revealed. */
   revealed = signal<Set<number>>(new Set());
   private _states = signal<QState[]>([]);
+  /** Local, independently-shuffled copy of the exercise's questions/options —
+   *  never mutates `exercise.data`, which is owned by the Firestore stream
+   *  and may be structurally shared with other consumers/re-emissions. */
+  private _shuffledData = signal<PassageComprehensionData>({ questions: [] });
+
+  /** Identity fingerprint of the last-processed exercise, used to tell a
+   *  genuine exercise change (e.g. navigating to a different chapter) apart
+   *  from a redundant Firestore listener re-emission of the same content
+   *  (which shouldn't wipe the student's in-progress answers). */
+  private _lastIdentity: string | null = null;
 
   ngOnChanges(): void {
-    // Re-initialise whenever the exercise input changes (including on navigation
-    // to a new chapter). Signal writes here are safe — ngOnChanges runs before
-    // template rendering, outside the change-detection rendering path.
-    this.submitted.set(false);
-    this.revealed.set(new Set());
     const d = this.exercise.data as unknown as PassageComprehensionData;
     const questions = d?.questions ?? [];
-    // Shuffle options for each question so the correct answer isn't always first.
-    questions.forEach(q => { q.options = this._shuffle(q.options); });
+
+    const identity = JSON.stringify({
+      prompt: this.exercise.prompt,
+      questions: questions.map(q => ({ q: q.question, opts: q.options.map(o => o.text) })),
+    });
+
+    if (identity === this._lastIdentity) {
+      // Same exercise content re-emitted (e.g. an unrelated field changed
+      // elsewhere in the parent document) — leave answered/revealed state
+      // and the already-shuffled options untouched.
+      return;
+    }
+    this._lastIdentity = identity;
+
+    this.submitted.set(false);
+    this.revealed.set(new Set());
+    // Shuffle into a fresh local copy — never mutate the Firestore-owned
+    // input objects in place.
+    this._shuffledData.set({
+      questions: questions.map(q => ({ ...q, options: this._shuffle(q.options) })),
+    });
     this._states.set(questions.map(() => ({ selected: null })));
   }
 
@@ -126,7 +155,7 @@ export class PassageComprehensionComponent implements OnChanges {
   }
 
   data(): PassageComprehensionData {
-    return this.exercise.data as unknown as PassageComprehensionData;
+    return this._shuffledData();
   }
 
   qState(qi: number): QState {

@@ -1,7 +1,7 @@
 import {
-  Component, Input, Output, EventEmitter, signal, computed, OnInit
+  Component, Input, Output, EventEmitter, signal, computed, OnInit, ChangeDetectionStrategy
 } from '@angular/core';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Exercise, SlangMatcherData } from '../../../core/models/firestore.models';
 
 interface MatchSlot {
@@ -12,24 +12,43 @@ interface MatchSlot {
 @Component({
   selector: 'app-slang-matcher',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DragDropModule],
   template: `
     <div class="space-y-5">
       <!-- Unplaced slang bank -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-surface-400 mb-2">Drag the slang expressions to their formal match</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-surface-400 mb-2">
+          Drag the slang expressions to their formal match, or use Tab + Enter/Space to pick up and place one.
+        </p>
         <div
           cdkDropList
           id="slang-bank"
           [cdkDropListData]="bank()"
           [cdkDropListConnectedTo]="slotIds()"
           (cdkDropListDropped)="dropToBank($event)"
+          [attr.tabindex]="submitted() ? null : 0"
+          [attr.role]="submitted() ? null : 'button'"
+          [attr.aria-label]="submitted() ? null : bankZoneAriaLabel()"
+          (keydown.enter)="activateBankZone()"
+          (keydown.space)="$event.preventDefault(); activateBankZone()"
+          (keydown.escape)="cancelSelection()"
           class="min-h-[2.75rem] flex flex-wrap gap-2 rounded-xl border-2 border-dashed border-surface-300 p-3 bg-surface-50"
         >
           @for (item of bank(); track item) {
             <div
               cdkDrag
-              class="px-3 py-1.5 rounded-lg bg-greek-600 text-white text-sm font-medium cursor-grab active:cursor-grabbing shadow-sm select-none"
+              [attr.tabindex]="submitted() ? null : 0"
+              [attr.role]="submitted() ? null : 'button'"
+              [attr.aria-pressed]="submitted() ? null : isBankItemSelected(item)"
+              [attr.aria-label]="submitted() ? null : bankItemAriaLabel(item)"
+              (keydown.enter)="$event.stopPropagation(); activateBankItem(item)"
+              (keydown.space)="$event.preventDefault(); $event.stopPropagation(); activateBankItem(item)"
+              (keydown.escape)="$event.stopPropagation(); cancelSelection()"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium cursor-grab active:cursor-grabbing shadow-sm select-none transition-colors"
+              [class]="isBankItemSelected(item)
+                ? 'bg-greek-800 text-white ring-2 ring-greek-400'
+                : 'bg-greek-600 text-white'"
             >
               {{ item }}
             </div>
@@ -62,6 +81,13 @@ interface MatchSlot {
               [cdkDropListData]="slotArrayFor(i)"
               [cdkDropListConnectedTo]="['slang-bank'].concat(otherSlotIds(i))"
               (cdkDropListDropped)="dropToSlot($event, i)"
+              [attr.tabindex]="submitted() ? null : 0"
+              [attr.role]="submitted() ? null : 'button'"
+              [attr.aria-pressed]="submitted() ? null : (selectedSlang()?.from === i)"
+              [attr.aria-label]="submitted() ? null : slotAriaLabel(slot, i)"
+              (keydown.enter)="activateSlot(i)"
+              (keydown.space)="$event.preventDefault(); activateSlot(i)"
+              (keydown.escape)="cancelSelection()"
               class="flex-1 min-h-[2.5rem] rounded-xl border-2 border-dashed flex items-center px-3 transition-colors"
               [class]="slotBorderClass(i)"
             >
@@ -95,6 +121,9 @@ interface MatchSlot {
         }
       </div>
 
+      <!-- Screen-reader-only status announcements for keyboard pick-up/place/cancel -->
+      <div class="sr-only" aria-live="polite">{{ statusMessage() }}</div>
+
       <!-- Show correct answers after wrong submission -->
       @if (submitted() && !isAllCorrect()) {
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
@@ -121,6 +150,14 @@ export class SlangMatcherComponent implements OnInit {
   slots = this._slots.asReadonly();
   bank = this._bank.asReadonly();
 
+  /** Currently "picked up" slang word for keyboard-based placement — the
+   *  keyboard-operable alternative to CDK drag-drop (IMP-FE-07). Tracks
+   *  where the word came from ('bank' or a slot index) so cancelling or
+   *  placing elsewhere can put things back correctly. */
+  selectedSlang = signal<{ value: string; from: 'bank' | number } | null>(null);
+  /** Screen-reader-only status announcements for pick-up/place/cancel actions. */
+  statusMessage = signal('');
+
   ngOnInit(): void {
     const pairs = this.pairs();
     this._slots.set(pairs.map(p => ({ formal: p.formal, slang: null })));
@@ -131,9 +168,9 @@ export class SlangMatcherComponent implements OnInit {
     return (this.exercise.data as unknown as SlangMatcherData)?.pairs ?? [];
   }
 
-  slotIds(): string[] {
-    return this.slots().map((_, i) => 'slot-' + i);
-  }
+  /** DOM ids of every slot's drop list — used to connect the slang bank and
+   *  every other slot as valid drop targets for cross-list dragging. */
+  slotIds = computed<string[]>(() => this.slots().map((_, i) => 'slot-' + i));
 
   otherSlotIds(exclude: number): string[] {
     return this.slots().map((_, i) => 'slot-' + i).filter((_, i) => i !== exclude);
@@ -155,11 +192,14 @@ export class SlangMatcherComponent implements OnInit {
   }
 
   slotBorderClass(i: number): string {
-    if (!this.submitted()) {
-      const s = this.slots()[i];
-      return s?.slang ? 'border-greek-300 bg-greek-50/50' : 'border-surface-300 bg-white';
+    if (this.submitted()) {
+      return this.slotCorrect(i) ? 'border-emerald-300 bg-emerald-50' : 'border-red-300 bg-red-50';
     }
-    return this.slotCorrect(i) ? 'border-emerald-300 bg-emerald-50' : 'border-red-300 bg-red-50';
+    if (this.selectedSlang()?.from === i) {
+      return 'border-greek-500 bg-greek-50 ring-2 ring-greek-300';
+    }
+    const s = this.slots()[i];
+    return s?.slang ? 'border-greek-300 bg-greek-50/50' : 'border-surface-300 bg-white';
   }
 
   dropToSlot(event: CdkDragDrop<string[]>, slotIndex: number): void {
@@ -206,6 +246,123 @@ export class SlangMatcherComponent implements OnInit {
     }
     this._slots.set(slots);
     this._bank.set(bank);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Keyboard-operable "select then place" alternative to dragging (IMP-FE-07)
+  // ---------------------------------------------------------------------------
+
+  isBankItemSelected(value: string): boolean {
+    const picked = this.selectedSlang();
+    return picked?.from === 'bank' && picked.value === value;
+  }
+
+  /** Activate a bank word: picks it up, switches the pick-up to it, or cancels. */
+  activateBankItem(value: string): void {
+    if (this.submitted()) return;
+    if (this.isBankItemSelected(value)) {
+      this.cancelSelection();
+      return;
+    }
+    this.selectedSlang.set({ value, from: 'bank' });
+    this.statusMessage.set(
+      `Picked up "${value}" from the word bank. Choose a slot to place it, or press Escape to cancel.`
+    );
+  }
+
+  /** Activate a slot: picks up its word, places a held word here, or cancels. */
+  activateSlot(index: number): void {
+    if (this.submitted()) return;
+    const picked = this.selectedSlang();
+
+    if (picked === null) {
+      const slot = this.slots()[index];
+      if (slot?.slang) {
+        this.selectedSlang.set({ value: slot.slang, from: index });
+        this.statusMessage.set(
+          `Picked up "${slot.slang}". Choose a slot to place it, or press Escape to cancel.`
+        );
+      }
+      return;
+    }
+
+    if (picked.from === index) {
+      this.cancelSelection();
+      return;
+    }
+
+    const slots = [...this._slots()];
+    const bank = [...this._bank()];
+
+    // Displace whatever is currently in the target slot back to the bank
+    // (mirrors dropToSlot()'s swap behaviour for pointer drag-drop).
+    if (slots[index].slang) bank.push(slots[index].slang!);
+
+    if (picked.from === 'bank') {
+      const bi = bank.indexOf(picked.value);
+      if (bi !== -1) bank.splice(bi, 1);
+    } else {
+      slots[picked.from] = { ...slots[picked.from], slang: null };
+    }
+
+    slots[index] = { ...slots[index], slang: picked.value };
+    this._slots.set(slots);
+    this._bank.set(bank);
+    this.statusMessage.set(`Placed "${picked.value}" next to "${slots[index].formal}".`);
+    this.selectedSlang.set(null);
+  }
+
+  /** Activate the word-bank drop zone itself: returns a held slot word to the bank. */
+  activateBankZone(): void {
+    if (this.submitted()) return;
+    const picked = this.selectedSlang();
+    if (!picked || picked.from === 'bank') {
+      this.cancelSelection();
+      return;
+    }
+
+    const slots = [...this._slots()];
+    const bank = [...this._bank(), picked.value];
+    slots[picked.from] = { ...slots[picked.from], slang: null };
+    this._slots.set(slots);
+    this._bank.set(bank);
+    this.statusMessage.set(`Returned "${picked.value}" to the word bank.`);
+    this.selectedSlang.set(null);
+  }
+
+  cancelSelection(): void {
+    if (this.selectedSlang()) {
+      this.statusMessage.set('Cancelled.');
+    }
+    this.selectedSlang.set(null);
+  }
+
+  bankZoneAriaLabel(): string {
+    const picked = this.selectedSlang();
+    if (picked && picked.from !== 'bank') {
+      return `Word bank. Press Enter to return "${picked.value}" here.`;
+    }
+    return 'Word bank.';
+  }
+
+  bankItemAriaLabel(value: string): string {
+    if (this.isBankItemSelected(value)) {
+      return `${value}, selected. Press Enter to cancel.`;
+    }
+    return `${value}. Press Enter or Space to pick up.`;
+  }
+
+  slotAriaLabel(slot: MatchSlot, index: number): string {
+    const picked = this.selectedSlang();
+    const base = slot.slang ? `${slot.formal}: currently matched with ${slot.slang}.` : `${slot.formal}: empty.`;
+
+    if (picked?.from === index) {
+      return `${base} Selected for moving. Press Enter to cancel.`;
+    }
+    if (picked) {
+      return `${base} Press Enter to place "${picked.value}" here.`;
+    }
+    return slot.slang ? `${base} Press Enter to pick up "${slot.slang}".` : `${base} Nothing to pick up here.`;
   }
 
   submit(): void {

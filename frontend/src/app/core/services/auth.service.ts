@@ -84,7 +84,7 @@ export class AuthService {
         createdAt: serverTimestamp(),
         lastActive: serverTimestamp(),
         progress: {
-          currentPhaseId: '',
+          currentBookId: '',
           completedChapterIds: [],
           xp: 0,
         },

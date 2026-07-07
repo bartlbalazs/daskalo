@@ -1,5 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter, signal, ViewChild, inject
+  Component, Input, Output, EventEmitter, signal, computed, ViewChild, inject, ChangeDetectionStrategy
 } from '@angular/core';
 import { Exercise, ExerciseType, EvaluationResult, PassageSentence, VocabularyItem } from '../../../core/models/firestore.models';
 import { LessonService } from '../../../core/services/lesson.service';
@@ -43,6 +43,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
 @Component({
   selector: 'app-exercise-card',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MultipleChoiceComponent,
     SlangMatcherComponent,
@@ -201,6 +202,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             [exercise]="exercise"
             (submitted$)="onAiSubmit($event)"
             (answered)="onAiAnswered($event)"
+            (retried)="onAiRetry()"
           />
         }
 
@@ -210,6 +212,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             [exercise]="exercise"
             (submitted$)="onAiSubmit($event)"
             (answered)="onAiAnswered($event)"
+            (retried)="onAiRetry()"
           />
         }
 
@@ -221,6 +224,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             [sentenceAudioUrls]="sentenceAudioUrls"
             (submitted$)="onAiSubmit($event)"
             (answered)="onAiAnswered($event)"
+            (retried)="onAiRetry()"
           />
         }
 
@@ -241,6 +245,19 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
             (answered)="onFrontendAnswer($event)"
           />
         }
+
+        <!-- TODO(FE-19): 'lyrics_fill' and 'vocab_flashcard' have no renderer —
+             neither branch nor child component exists for them below. Per
+             content-cli's own generation rules (see content_prompts.py /
+             generate_practice.py: "NO FLASHCARDS... MUST NOT generate
+             word_card or vocab_flashcard exercises") vocab_flashcard is
+             actively forbidden from being generated, and lyrics_fill doesn't
+             appear anywhere in the content-cli generation pipeline either —
+             so neither type is emitted by any content today. Both are still
+             excluded from grading via chapter-detail.page.ts's
+             _nonGradableTypes. Build a real renderer here if/when either
+             type is actually reintroduced upstream, rather than
+             speculatively now. -->
       </div>
 
       <!-- Card footer: per-exercise Check button -->
@@ -248,7 +265,8 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
         <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end rounded-b-2xl">
           <button
             (click)="submit()"
-            class="px-4 py-2 rounded-lg bg-greek-600 text-white text-xs font-semibold hover:bg-greek-700 transition-colors"
+            [disabled]="!canSubmit()"
+            class="px-4 py-2 rounded-lg bg-greek-600 text-white text-xs font-semibold hover:bg-greek-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Check
           </button>
@@ -325,6 +343,15 @@ export class ExerciseCardComponent {
     if (this.exercise.type === 'dictation') { this.dictationRef?.submit(); return; }
   }
 
+  /** Whether the shared "Check" button should be enabled. Currently only the
+   *  MCQ family (fill_in_the_blank/roleplay_choice/odd_one_out/cultural_context)
+   *  requires a selection before submitting is meaningful; other types keep
+   *  their existing (always-enabled) behaviour. */
+  canSubmit(): boolean {
+    if (this.isMCQ()) return this.mcqRef?.canSubmit() ?? false;
+    return true;
+  }
+
   /** Called when a frontend-graded exercise emits its result. */
   onFrontendAnswer(correct: boolean): void {
     this.state.set(correct ? 'correct' : 'incorrect');
@@ -388,14 +415,26 @@ export class ExerciseCardComponent {
   }
 
   /** No-op — state managed in onAiSubmit watcher. */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op, see comment above
   onAiAnswered(_correct: boolean): void {}
+
+  /** Reset card state so the student can retry an AI-graded text/audio
+   *  exercise after a failed (or completed) evaluation — mirrors
+   *  onPronunciationRetry() below. */
+  onAiRetry(): void {
+    this.state.set('unanswered');
+  }
 
   /** Reset card state so the student can attempt pronunciation again. */
   onPronunciationRetry(): void {
     this.state.set('unanswered');
   }
 
-  cardBorderClass(): string {
+  /** Card border/header/badge/label classes are pure functions of the own
+   *  `state` signal and are read directly (multiple times) from the
+   *  template on every change-detection pass, so they're memoized as
+   *  computed signals rather than plain methods. */
+  cardBorderClass = computed<string>(() => {
     switch (this.state()) {
       case 'correct': return 'border-emerald-300';
       case 'incorrect': return 'border-red-300';
@@ -403,9 +442,9 @@ export class ExerciseCardComponent {
       case 'evaluated': return 'border-greek-300';
       default: return 'border-surface-200';
     }
-  }
+  });
 
-  cardHeaderClass(): string {
+  cardHeaderClass = computed<string>(() => {
     switch (this.state()) {
       case 'correct': return 'bg-emerald-50 border-emerald-100';
       case 'incorrect': return 'bg-red-50 border-red-100';
@@ -413,9 +452,9 @@ export class ExerciseCardComponent {
       case 'evaluated': return 'bg-greek-50 border-greek-100';
       default: return 'bg-surface-50 border-surface-100';
     }
-  }
+  });
 
-  numberBadgeClass(): string {
+  numberBadgeClass = computed<string>(() => {
     switch (this.state()) {
       case 'correct': return 'bg-emerald-500 text-white';
       case 'incorrect': return 'bg-red-400 text-white';
@@ -423,9 +462,9 @@ export class ExerciseCardComponent {
       case 'evaluated': return 'bg-greek-600 text-white';
       default: return 'bg-surface-200 text-surface-600';
     }
-  }
+  });
 
-  typeLabelClass(): string {
+  typeLabelClass = computed<string>(() => {
     switch (this.state()) {
       case 'correct': return 'text-emerald-700';
       case 'incorrect': return 'text-red-600';
@@ -433,5 +472,5 @@ export class ExerciseCardComponent {
       case 'evaluated': return 'text-greek-700';
       default: return 'text-surface-500';
     }
-  }
+  });
 }

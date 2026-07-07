@@ -8,6 +8,7 @@ export const environment = {
   evaluateAttemptUrl: 'https://YOUR_EVALUATE_ATTEMPT_FUNCTION_URL',
   completeChapterUrl: 'https://YOUR_COMPLETE_CHAPTER_FUNCTION_URL',
   completePracticeUrl: 'https://YOUR_COMPLETE_PRACTICE_FUNCTION_URL',
+  addOwnWordUrl: 'https://YOUR_ADD_OWN_WORD_FUNCTION_URL',
   firestoreDb: 'YOUR_FIRESTORE_DB_NAME', // e.g. 'daskalo-db' (leave empty for default db)
   firebase: {
     apiKey: 'YOUR_API_KEY',

@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, TranslationChallengeData, EvaluationResult } from '../../../core/models/firestore.models';
 
 @Component({
   selector: 'app-translation-challenge',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-4">
       <!-- English sentence to translate -->
@@ -14,7 +15,6 @@ import { Exercise, TranslationChallengeData, EvaluationResult } from '../../../c
 
       <!-- Textarea -->
       <textarea
-        [(value)]="answerValue"
         (input)="onInput($event)"
         [disabled]="submitted()"
         rows="3"
@@ -68,6 +68,17 @@ import { Exercise, TranslationChallengeData, EvaluationResult } from '../../../c
               {{ evaluation()!.feedback }}
             </p>
           </div>
+
+          <!-- Retry button — always available so a failed evaluation (e.g. network
+               error) doesn't permanently lock the student out of resubmitting. -->
+          <div class="flex justify-end">
+            <button
+              (click)="retry()"
+              class="px-4 py-2 rounded-lg border border-greek-300 text-greek-700 text-xs font-semibold hover:bg-greek-50 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         }
       }
     </div>
@@ -77,6 +88,7 @@ export class TranslationChallengeComponent {
   @Input({ required: true }) exercise!: Exercise;
   @Output() submitted$ = new EventEmitter<string>();
   @Output() answered = new EventEmitter<boolean>();
+  @Output() retried = new EventEmitter<void>();
 
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
@@ -101,6 +113,15 @@ export class TranslationChallengeComponent {
   setEvaluation(result: EvaluationResult): void {
     this.evaluation.set(result);
     this.answered.emit(result.isCorrect);
+  }
+
+  /** Reset the card to an answerable state so the student can resubmit
+   *  (e.g. after an evaluation request failure). Keeps the typed answer
+   *  so they don't have to retype it. */
+  retry(): void {
+    this.submitted.set(false);
+    this.evaluation.set(null);
+    this.retried.emit();
   }
 
   canSubmit(): boolean {

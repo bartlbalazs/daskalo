@@ -1,11 +1,12 @@
 import {
-  Component, OnDestroy, signal, inject, input, effect
+  Component, OnDestroy, signal, inject, input, effect, ChangeDetectionStrategy
 } from '@angular/core';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { GcsUrlResolverService } from '../../../shared/services/gcs-url-resolver.service';
 
 @Component({
   selector: 'app-audio-player',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center gap-3 bg-greek-50 border border-greek-100 rounded-xl px-4 py-3">
       <!-- Play / Pause button -->
@@ -72,6 +73,7 @@ import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
         (click)="replay()"
         class="w-7 h-7 rounded-full text-greek-400 flex items-center justify-center hover:text-greek-600 hover:bg-greek-100 transition-colors"
         title="Replay"
+        aria-label="Replay"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -88,7 +90,7 @@ export class AudioPlayerComponent implements OnDestroy {
    *  real URL is provided by the parent. */
   src = input<string>();
 
-  private storage = inject(Storage);
+  private resolver = inject(GcsUrlResolverService);
 
   loading = signal(true);
   playing = signal(false);
@@ -98,7 +100,7 @@ export class AudioPlayerComponent implements OnDestroy {
 
   private audio: HTMLAudioElement | null = null;
 
-  // Generation counter: if src changes while a getDownloadURL() promise is in
+  // Generation counter: if src changes while a resolver.resolve() promise is in
   // flight, the stale promise resolution will see a mismatched generation and
   // discard its result rather than overwriting the new audio.
   private generation = 0;
@@ -163,9 +165,7 @@ export class AudioPlayerComponent implements OnDestroy {
     const gen = ++this.generation;
 
     try {
-      const url = src.startsWith('gs://')
-        ? await getDownloadURL(ref(this.storage, src))
-        : src;
+      const url = await this.resolver.resolve(src);
 
       // If src changed while we were awaiting, discard this result.
       if (gen !== this.generation) return;

@@ -1,0 +1,99 @@
+# Bug Report
+
+Produced by a full-codebase review (frontend, backend, content-cli, infra, docs) on 2026-07-07.
+Every item includes exact `file:line` references found in the codebase at review time.
+
+## Legend
+
+- **Severity**: `Critical` (data loss / security / blocks core flow) · `High` (real user-facing breakage or security gap) · `Medium` (degrades reliability/UX, workaround exists) · `Low` (cosmetic, dead code, or narrow edge case)
+- **Effort**: `S` (< 1 hr, localized) · `M` (a few hours, touches 2-3 files) · `L` (design + multi-file change)
+- **Status**: tracked separately as fixes land on `fix/bugs-and-improvements`
+
+---
+
+## Backend (`backend/`)
+
+| ID | Severity | Effort | Location | Description |
+|----|----------|--------|----------|-------------|
+| BE-01 | Critical | S | `backend/main.py:121-139` | `/complete-practice` is never registered on the local FastAPI dev server (`fn_complete_practice.py` is not imported). The frontend's dev `environment.ts` points at `http://localhost:8000/complete-practice`, so the practice-completion flow 404s for every local developer. |
+| BE-02 | High | M | `backend/fn_evaluate.py:123,143` | The `status == "pending"` check and the `pending → evaluating` write are not transactional. Two concurrent calls for the same `attemptId` both pass the check and both call Gemini/STT — double LLM spend and a benign-looking race on the final write. |
+| BE-03 | High | M | `backend/fn_evaluate.py:143-190`, `frontend/firestore.rules:57` | If the function crashes/times out between the `evaluating` write and the final `completed` write (Gemini call can run up to the 120s function timeout), the attempt is stuck in `evaluating` forever: clients cannot update it (rules deny `update`) and re-calls get `409` because status is no longer `pending`. No requeue/expiry path exists. |
+| BE-04 | High | S | `backend/fn_evaluate.py:185-190` | The final Firestore write (`status: completed` + evaluation) sits **outside** the `try/except` at lines 167-182. If it throws, the caller gets a raw framework 500 with no Callable envelope and no CORS headers — even though the (paid) evaluation succeeded. |
+| BE-05 | High | M | `backend/fn_own_word.py:71ff`, `backend/services/progress.py`, `backend/services/practice_progress.py` | No function checks `users/{uid}.status == "active"`. The Admin SDK bypasses Firestore rules, so a `pending` (unapproved) user with a valid Firebase token can still trigger paid Gemini/TTS/GCS work via `add-own-word`, `complete-chapter`, `complete-practice`. |
+| BE-06 | Medium | M | `backend/services/progress.py:58ff`, `backend/services/practice_progress.py:21ff` | Neither completion endpoint verifies the user actually attempted any exercise in the chapter/practice set — any authenticated+active user can claim XP for every chapter/practice-set ID once, burning a Gemini call per chapter claim. |
+| BE-07 | Medium | S | `backend/services/practice_progress.py:63-67` | XP is computed as `current_xp + PRACTICE_XP` from a stale read instead of Firestore `Increment` (which `progress.py:196` correctly uses elsewhere). Concurrent chapter + practice completion can silently drop XP. The idempotency guard at line 49 has the same read-then-write race. |
+| BE-08 | Medium | S | `backend/services/progress.py:110,190,207` | `completedChapterIds` is read, appended to in Python, and written back — not `ArrayUnion`, not transactional. Two concurrent `complete-chapter` calls both pass the "already done" guard and both append, producing a duplicate ID and double XP. |
+| BE-09 | Medium | M | `backend/services/evaluation.py:214,218,357`; `backend/services/progress.py:165` | `response.text` can be `None` (safety-blocked/empty candidates); `len(response.text)` / `.strip()` then raise before any JSON parsing. There is no `try/except` around `json.loads(response.text)` and no retry — the attempt is marked `error` with no recovery. |
+| BE-10 | Medium | S | `backend/fn_evaluate.py:151-164,174` | If the chapter doc is missing, `exerciseId` fails to parse, or the index is out of range, `prompt` silently stays `""` and Gemini is still called with an empty exercise prompt — no 404/validation error. `docs/DATA_MODEL.md:185`'s example `exerciseId: "ex_2_describe"` would itself break `int(exerciseId.split("_")[-1])`; today's frontend generates `ex_{index}` so it happens to work, but `exerciseId` is client-controlled at attempt creation and unvalidated by rules. |
+| BE-11 | Medium | S | `backend/services/evaluation.py:331-334` | `evaluate_pronunciation` never guards against an empty `target_text` (e.g. chapter lookup failed) — Gemini grades a transcript against nothing rather than failing fast. |
+| BE-12 | Medium | S | `backend/fn_own_word.py:134` | `os.environ["PUBLIC_ASSETS_BUCKET"]` is unguarded; a missing env var raises `KeyError` outside any try, returning a raw 500 without the Callable envelope/CORS headers. |
+| BE-13 | Low | S | `backend/fn_own_word.py:110-117` | The duplicate-word check compares the *raw* user input against the *LLM-normalized* stored `greek` (e.g. `δάσκαλος` vs stored `ο δάσκαλος`) — it essentially never matches, and the same query runs twice. Real dedup only happens via the deterministic doc ID overwrite, so "duplicates" silently re-spend Gemini + TTS + GCS every time. |
+| BE-14 | Low | S | `backend/services/evaluation.py:31`, `backend/services/progress.py:27`, `backend/services/own_word.py:37`, `backend/fn_complete_practice.py:45` vs `backend/services/practice_progress.py:18` | Model name (`gemini-2.5-flash`) and `PRACTICE_XP = 175` are hardcoded/duplicated across files instead of a shared constants module. |
+| BE-15 | Low | S | `backend/openapi` rate limiting (`infra/openapi.yaml.tpl:37,42,47,52`) | Quotas are `unit: "1/min/{project}"` — shared across **all** users, not per-caller. One very active user can lock every other user out of grading for a minute. |
+| BE-16 | Low | S | `backend/main.py:74-80` | Local dev CORS combines `allow_origins=["*"]` with `allow_credentials=True`, an invalid combination per the Fetch spec (dev-only, browsers will reject/echo unpredictably). |
+| BE-17 | Low | S | `backend/callable_helpers.py:98` | `verify_firebase_token` catches a broad `Exception`, conflating transient network/JWKS-fetch failures (should be `503`) with genuinely invalid tokens (`401`). |
+| BE-18 | Low | S | `backend/tests/test_fn_evaluate.py:110` vs `backend/fn_evaluate.py:161` | Test fixture uses `targetText`, production code reads `target_text` — passes today only because `evaluate_pronunciation` is patched in that test; the field-name mismatch is real and would break the untested integration path. |
+
+## Frontend (`frontend/`)
+
+| ID | Severity | Effort | Location | Description |
+|----|----------|--------|----------|-------------|
+| FE-01 | Critical | S | `frontend/src/environments/environment.prod.ts.example:8-10` | The example prod environment is missing `addOwnWordUrl`, which `own-words.service.ts:104` reads. A production build generated from this example fails to compile. |
+| FE-02 | High | S | **User-reported.** `frontend/src/app/pages/vocabulary/vocabulary.page.ts:290-294` | The word-card "source" badge (shown in the Favorites and Search flat-grid views) renders only `Ch. {{ word.chapterOrder }}` — the per-book chapter order — with no book label. Since `chapterOrder` restarts at 1 in every book, "Ch. 2" from Book 1 and "Ch. 2" from Book 3 render identically, so favorited/searched words from different books become visually indistinguishable and appear to "mix up". Fix: include the book (e.g. `Book {{ word.bookOrder }} · Ch. {{ word.chapterOrder }}`, consistent with the "Book {{ book.order }}" label already used in `layout.component.ts:181` and `chapters.page.ts:49`). |
+| FE-03 | High | S | `frontend/src/app/core/services/auth.service.ts:87` vs `frontend/src/app/core/models/firestore.models.ts:204` | New users are created with `progress.currentPhaseId`, but the TypeScript model (and every reader) expects `progress.currentBookId`. The field is effectively dead/unread — any future feature that relies on "current book" will silently get `undefined`. |
+| FE-04 | High | M | `frontend/src/app/pages/practice-detail/practice-detail.page.ts:173-182` | The route `switchMap` sets `alreadyCompleted` but never resets `answeredMap`, `practiceCompleted`, `completeError` (contrast the chapter-detail equivalent at `chapter-detail.page.ts:535-538`). Navigating `/practice/a → /practice/b` reuses the component instance, so answers from set A carry over and set B can show "Practice Complete" without the student answering anything. |
+| FE-05 | High | M | `frontend/src/app/pages/chapter-detail/exercises/exercise-card.component.ts:350-361,378-387` | When the `/evaluate` fetch fails, AI-graded text exercises (`image_description`, `translation_challenge`, `dictation`) are marked `submitted=true` with a fake "Evaluation failed" result and **no retry path** (only `pronunciation_practice` has `retry()`). A transient backend hiccup permanently consumes the student's attempt on that exercise. |
+| FE-06 | Medium | M | `frontend/src/app/core/services/lesson.service.ts:120-129,156-168,197-206`, `frontend/src/app/core/services/own-words.service.ts:104-120` | Every `fetch()` call parses `response.json()` without checking `response.ok` and has no `AbortController`/timeout. A 500/HTML error page throws an opaque `SyntaxError`; a hung request leaves "Evaluating…" spinners indefinitely. |
+| FE-07 | Medium | S | `frontend/src/app/pages/vocabulary/vocabulary.page.ts:462-486` | The own-word dedup set is seeded with un-prefixed chapter keys (`r.greek.toLowerCase()`) but checked against `own__`-prefixed keys, so an own word duplicating a chapter word is never filtered out. Two rows with the same Greek string then violate `track word.greek` in the template (`:188,221`), producing `NG0955` duplicate-track-key warnings/errors. |
+| FE-08 | Medium | M | `frontend/src/app/pages/chapter-detail/exercises/passage-comprehension.component.ts:103-114` | `ngOnChanges` re-shuffles options and clears `submitted`/`_states` on **any** input change. Because the parent chapter is a realtime `docData` listener, any Firestore re-emission of the chapter document wipes in-progress answers. The handler also mutates the shared object owned by the Firestore stream (`q.options = this._shuffle(...)`), which can leak reordered options into other subscribers of the same chapter doc. |
+| FE-09 | Medium | S | `frontend/firestore.rules:19-20` | The `users` create rule only checks `status == "pending"` — it does not constrain `progress.xp`, `progress.completedChapterIds`, etc. A malicious client can self-create a document with `progress: { xp: 999999, completedChapterIds: [...] }` pre-seeded; once an admin activates the account, the inflated progress stands permanently. |
+| FE-10 | Medium | S | `frontend/src/app/pages/chapter-detail/chapter-detail.page.ts:616-625`, `frontend/src/app/pages/grammar-book/grammar-book.page.ts:359-362` | `marked` output for `grammarSummary`/`grammar_table`/`explanation` is injected via `bypassSecurityTrustHtml` with no sanitization. Content currently originates only from the trusted content-cli pipeline, but any future write path (or a compromised ingest step) becomes stored XSS. |
+| FE-11 | Low | S | `frontend/src/app/shared/pipes/highlight-vocab.pipe.ts:26-39` | Iterative `replace()` over already-transformed HTML means a shorter vocab entry (e.g. `σκύλος`) can match text that was already wrapped for a longer entry (e.g. `ο σκύλος`), corrupting the inserted `<span data-translation="...">` markup. |
+| FE-12 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/conversation.component.ts:520-530` | A failing audio source can trigger both `audio.play().catch(onError)` and `audio.onerror`, each independently scheduling `_playNextStep()` — "Play All" can skip or overlap steps. |
+| FE-13 | Low | S | `frontend/src/app/pages/chapter-detail/chapter-detail.page.ts:636-659`, `frontend/src/app/pages/vocabulary/vocabulary.page.ts:502-525` | Ad-hoc `new Audio()` per click with no tracking of the previously created element — clicking several vocab words in quick succession plays multiple clips simultaneously. |
+| FE-14 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/multiple-choice.component.ts:133-138` | Clicking "Check" with nothing selected silently no-ops — no inline validation message. |
+| FE-15 | Low | S | `frontend/src/app/layout/layout.component.ts:301-307` | `window.addEventListener('resize', ...)` is added in `ngOnInit` with no corresponding removal in `ngOnDestroy` — leaks a listener per component instantiation. The handler body is also an empty `if` (dead code). |
+| FE-16 | Low | S | `frontend/src/app/layout/layout.component.ts:293-299` | Subscribes directly to `getBooks()` (an infinite realtime stream) with no `takeUntilDestroyed`/unsubscribe. |
+| FE-17 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/matching.component.ts:92,203-217` | The per-pair `HTMLAudioElement` cache (`_audioCache`) is never released in `ngOnDestroy`. |
+| FE-18 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/image-description.component.ts:30`, `dictation.component.ts:27`, `translation-challenge.component.ts:17` | `[(value)]` two-way binding on a native `<textarea>` is inert (native elements don't emit a `valueChange` event); it compiles but only the separate `(input)` handler actually does anything — misleading dead code. |
+| FE-19 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/exercise-card.component.ts` (type dispatch) | `lyrics_fill` and `vocab_flashcard` are declared `ExerciseType`s with no renderer — a chapter containing either type renders an empty exercise card body. |
+| FE-20 | Low | S | `frontend/src/app/pages/login/login.page.ts` | Does not redirect an already-authenticated user away from `/login`. |
+| FE-21 | Low | S | `frontend/src/app/core/services/favorite-words.service.ts:98-122` | Optimistic add/remove of a favorite is never rolled back if the underlying Firestore write fails — local state can permanently diverge from the server. |
+| FE-22 | Low | S | `frontend/src/app/pages/chapter-detail/exercises/dictation.component.ts:108-111`, `listening-comprehension.component.ts:88-91` | Legacy audio-URL fallback path is annotated in-code as "likely wrong" — never removed or verified. |
+| FE-23 | Low | S | `frontend/src/app/pages/practice-detail/practice-detail.page.ts:185-191` | `bookId` is derived via a second realtime `getPracticeSet` subscription plus a chained `getChapter` — doubles realtime listeners for data already available from the first subscription. |
+
+## Content-CLI (`content-cli/`)
+
+| ID | Severity | Effort | Location | Description |
+|----|----------|--------|----------|-------------|
+| CC-01 | Medium | M | `content-cli/nodes/package_output.py:40-43` | Passage audio is selected as the first `audio_files` entry whose **filename** contains `"passage"`. Every filename is prefixed with `variant_id`; a chapter titled e.g. "A Passage to Crete" makes the first vocab clip match instead, silently mis-assigning `passageAudioPath`. |
+| CC-02 | Medium | M | `content-cli/nodes/package_output.py:88-89` | Any MP3 whose name contains `"_grammar_"` is routed to `assets/audio/grammar/`. A title/topic containing "grammar" puts `_grammar_` into every file's prefix, misrouting vocab/passage/sentence audio and causing ingest to fail with `ValueError("Asset ... not found in ZIP")` (`content-cli/services/ingest_helpers.py:53-56`). |
+| CC-03 | Medium | M | `content-cli/nodes/generate_media.py:202-220,288-296`, `content-cli/nodes/package_output.py:141-166`, `content-cli/services/ingest_helpers.py:121-139` | `matching` exercises are generated with absolute local `pair.audioPath` for chapter-level content, but chapter packaging never rewrites those paths to relative ZIP paths and ingest never uploads them — if the LLM ever emits a `matching` exercise on a chapter (the type isn't in `available_types` today but the Pydantic union permits it), absolute local filesystem paths would leak into Firestore. |
+| CC-04 | Medium | S | `content-cli/prompts/content_prompts.py:345-347` vs `content-cli/models/content_models.py:97` | `GENERATE_EXERCISES_PROMPT` tells the model to include ≥1 `pronunciation_practice` "regardless" of length, but `pronunciation_practice` is only in the `long`-length type pool — for `short`/`medium` chapters the model is simultaneously told to stay within the allowed set and to include a disallowed type, and the reviewer checks for it too (`content_prompts.py:436`), risking spurious rejections. |
+| CC-05 | Medium | S | `content-cli/prompts/content_prompts.py:461` | `GENERATE_PRACTICE_PROMPT` hardcodes "A1/A2 level" regardless of the source chapter's actual CEFR level (no CEFR input is threaded into practice generation), so B2/C1 practice sets are graded against the wrong difficulty framing. |
+| CC-06 | Low | S | `content-cli/main.py:91,98` | Entering `0` at the interactive book/chapter picker silently selects the *last* item (Python negative indexing); an out-of-range number crashes with an unhandled `IndexError`. |
+| CC-07 | Low | S | `content-cli/main.py:286,364` | Practice-set ID is hardcoded to `{chapter_id}_ps_01` while the docstring claims "incrementing if needed" — re-running for the same chapter silently overwrites the existing practice set via merge-write. |
+| CC-08 | Low | S | `content-cli/services/ingest_helpers.py:139,191` | Conversation line audio keeps the field name `audioPath` even after rewriting to a `gs://` URL, while every other asset is renamed to `*Url` with the `*Path` key removed — an inconsistency the frontend must special-case. |
+| CC-09 | Low | S | `content-cli/nodes/review_content.py:3,23,33` | Docstring says the reviewer uses `gemini-3.1-pro-preview`, but `MODEL_NAME = "gemini-2.5-flash"`; it also reads `VERTEX_REGION` unlike every other node (which use `GEMINI_LOCATION`). |
+| CC-10 | Low | S | `content-cli/main.py:456,543-549` | `daskalo upload` (local, default) requires `GOOGLE_CLOUD_PROJECT` via `_check_env` even though local ingest deliberately ignores it and forces the `demo-daskalo` project. |
+
+## Documentation Drift
+
+| ID | Severity | Effort | Location | Description |
+|----|----------|--------|----------|-------------|
+| DOC-01 | High | S | `docs/DATA_MODEL.md:20` vs `frontend/src/app/core/services/lesson.service.ts:31` | Docs describe a `phases` collection and `progress.currentPhaseId`; the actual app reads/writes a `books` collection and (inconsistently, see FE-03) `progress.currentPhaseId`/`currentBookId`. This drift directly contributed to bug FE-03. |
+| DOC-02 | Medium | S | `docs/CONTENT_PIPELINE.md` (whole file) | Describes an old single-node pipeline, WaveNet/Piper voices, a `--direct` CLI flag that no longer exists, and stale `LESSON_CONFIG` numbers/state fields (`phase_id`). |
+| DOC-03 | Low | S | `AGENTS.md` (Content CLI commands section) | Still documents `daskalo generate --direct`, a flag that does not exist in `content-cli/main.py`. |
+| DOC-04 | Low | S | `README.md` ("Google Cloud TTS & Piper") and `content-cli/pyproject.toml:4` | TTS is Google Cloud Text-to-Speech only; Piper is not used anywhere in the code. |
+| DOC-05 | Low | S | `shared/data/curriculum.yaml` | Unused legacy monolith — no code loads it (per-book YAMLs under `shared/data/books/` are authoritative); left in place it risks drifting further from reality and confusing future contributors. |
+
+---
+
+## Summary
+
+- **Backend**: 18 bugs (1 Critical, 3 High, 9 Medium, 5 Low)
+- **Frontend**: 23 bugs (1 Critical, 4 High, 5 Medium, 13 Low) — includes the user-reported FE-02
+- **Content-CLI**: 10 bugs (0 Critical, 0 High, 5 Medium, 5 Low)
+- **Documentation**: 5 drift items
+
+All items above are in scope for `fix/bugs-and-improvements`.

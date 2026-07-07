@@ -573,55 +573,6 @@ class GrammarConceptOutline(BaseModel):
     brief_explanation: str = Field(description="A very short explanation of how it's used in the passage")
 
 
-class LessonPlan(BaseModel):
-    """Output schema for the plan_lesson node."""
-
-    chapter_title: str = Field(
-        description=(
-            "A creative, engaging English title for this chapter (e.g. 'Lost in Monastiraki'). "
-            "Should be evocative and specific — not just a plain topic label."
-        )
-    )
-    chapter_summary: str = Field(
-        description=(
-            "A single sentence in English pitching the lesson scenario to the learner "
-            "(e.g. 'You\\'re wandering through the flea market and need to ask for directions to the Acropolis.'). "
-            "Written in second person, warm and inviting."
-        )
-    )
-    chapter_introduction: str = Field(
-        description=(
-            "A 2-3 paragraph English introduction designed to spark interest and raise the mood before the lesson begins. "
-            "It should 'lure' the student in by vividly setting the cultural or historical context of the scenario. "
-            "Make them curious and excited to learn. Do NOT include any Greek text or grammar rules here."
-        )
-    )
-    chapter_image_prompt: str = Field(
-        description=(
-            "An English prompt for AI image generation that captures the lesson's scenario as a cover image. "
-            "Should depict the main scene of the lesson vividly "
-            "(e.g. 'A tourist looking at a map in a bustling Athens flea market, Mediterranean sunlight, "
-            "colourful stalls in the background.'). No text or letters in the image."
-        )
-    )
-    passage: list[PassageSentence] = Field(
-        description=(
-            "The reading passage as a list of sentence objects. Each object has 'greek' (the Greek sentence) "
-            "and 'english' (its full English translation). Do NOT return the passage as a plain string."
-        )
-    )
-    vocabulary: list[VocabularyItem]
-    grammar_concept_outlines: list[GrammarConceptOutline]
-
-
-class LessonExercises(BaseModel):
-    """Output schema for the generate_exercises node."""
-
-    grammar_notes: list[GrammarNote]
-    exercises: list[Exercise]
-    image_prompts: list[ImagePrompt]  # One entry per image_description exercise
-
-
 class ReviewResult(BaseModel):
     """Output schema for the review_content node."""
 

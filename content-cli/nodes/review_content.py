@@ -1,6 +1,6 @@
 """
 Node: review_content
-Uses gemini-3.1-pro-preview to review the generated lesson for quality, tone, and accuracy.
+Uses gemini-2.5-flash to review the generated lesson for quality, tone, and accuracy.
 Returns a structured ReviewResult with per-category booleans and an issues list.
 """
 
@@ -10,9 +10,9 @@ import os
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from models.content_models import ReviewResult
+from models.content_models import LESSON_CONFIG, LessonLength, ReviewResult
 from nodes.draft_lesson_core import _INVOKE_RETRIES, _RETRY_SLEEP, MAX_RETRIES
-from prompts.content_prompts import REVIEW_CONTENT_PROMPT
+from prompts.content_prompts import REVIEW_CONTENT_PROMPT, pronunciation_review_note_text
 from state import ContentState
 from utils.llm_utils import invoke_with_retry
 
@@ -30,7 +30,7 @@ def review_content(state: ContentState) -> dict:
     model = ChatGoogleGenerativeAI(
         model=MODEL_NAME,
         project=os.environ["GOOGLE_CLOUD_PROJECT"],
-        location=os.getenv("VERTEX_REGION", "europe-west1"),
+        location=os.getenv("GEMINI_LOCATION", "global"),
         timeout=240.0,
         max_retries=1,
     )
@@ -43,6 +43,9 @@ def review_content(state: ContentState) -> dict:
         "exercises": [_strip_asset_paths(_exercise_to_dict(ex)) for ex in state.get("exercises", [])],
     }
 
+    lesson_length = state.get("lesson_length", LessonLength.MEDIUM)
+    config = LESSON_CONFIG.get(lesson_length, LESSON_CONFIG[LessonLength.MEDIUM])
+
     prompt = REVIEW_CONTENT_PROMPT.format(
         chapter_topic=state["chapter_topic"],
         cefr_level=state.get("cefr_level", "A1"),
@@ -50,6 +53,7 @@ def review_content(state: ContentState) -> dict:
         mandatory_vocabulary=", ".join(state.get("mandatory_vocabulary", [])),
         accumulated_grammar=state.get("accumulated_grammar", "None"),
         content_json=json.dumps(content_summary, ensure_ascii=False, indent=2),
+        pronunciation_review_note=pronunciation_review_note_text(config["available_types"]),
     )
 
     result: ReviewResult = invoke_with_retry(
@@ -91,15 +95,15 @@ def review_content(state: ContentState) -> dict:
 def should_regenerate(state: ContentState) -> str:
     """
     Conditional edge after review_content.
-    Routes back to plan_lesson if feedback exists AND retries remain.
-    Otherwise routes to generate_media.
+    Routes back to draft_lesson_core (via the "regenerate" edge key) if feedback exists
+    AND retries remain. Otherwise routes to generate_media.
     """
     feedback = state.get("review_feedback", "")
     attempts = state.get("generation_attempts", 0)
 
     if feedback and attempts < MAX_RETRIES:
-        logger.info("Routing back to plan_lesson (attempt %d of %d).", attempts, MAX_RETRIES)
-        return "plan_lesson"
+        logger.info("Routing back to draft_lesson_core (attempt %d of %d).", attempts, MAX_RETRIES)
+        return "regenerate"
 
     if feedback:
         logger.warning("Max retries reached (%d). Proceeding with current content despite feedback.", MAX_RETRIES)

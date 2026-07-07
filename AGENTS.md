@@ -7,7 +7,7 @@ When asked to build or modify features, you MUST adhere to these rules.
 This is a Greek Language Learning application consisting of three parts:
 - **`frontend/`**: Angular SPA (Firebase Hosting, Firestore).
 - **`backend/`**: Python FastAPI (Cloud Run Functions, direct HTTP Callables).
-- **`content-cli/`**: Python LangGraph local tool (Vertex AI, Piper TTS).
+- **`content-cli/`**: Python LangGraph local tool (Vertex AI, Google Cloud Text-to-Speech).
 - **Docs**: Always consult `/docs/ARCHITECTURE.md` and `/docs/DATA_MODEL.md` before making structural or database changes.
 
 ## 2. Global Rules
@@ -61,9 +61,12 @@ This is a Greek Language Learning application consisting of three parts:
 
 ### Commands
 - *Install dependencies*: `cd content-cli && uv sync`
-- *Run CLI (local emulator, interactive)*: `cd content-cli && uv run daskalo generate`
-- *Run CLI (local emulator, direct ingest)*: `cd content-cli && uv run daskalo generate --direct`
-- *Run CLI (production)*: `cd content-cli && uv run daskalo generate --no-local`
+- *Run CLI (interactive, writes directly to the local Firestore emulator)*: `cd content-cli && uv run daskalo generate`
+- *Run CLI (production — generates the ZIP only; operator uploads it manually)*: `cd content-cli && uv run daskalo generate --no-local`
+- *Upload an existing chapter ZIP into the local Firestore emulator*: `cd content-cli && uv run daskalo upload output/<chapter>.zip`
+- *Upload an existing chapter ZIP directly to production GCP*: `cd content-cli && uv run daskalo upload --remote output/<chapter>.zip`
+- *Generate a Practice Set from an existing chapter ZIP*: `cd content-cli && uv run daskalo generate-practice output/<chapter>.zip`
+- *Run tests*: `cd content-cli && uv run pytest`
 - *Run Linter*: `cd content-cli && uv run ruff check .`
 
 ## 6. Local Emulation Environment

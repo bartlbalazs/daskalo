@@ -15,7 +15,7 @@ import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from models.content_models import LESSON_CONFIG, ExercisesResult, LessonLength
-from prompts.content_prompts import GENERATE_EXERCISES_PROMPT
+from prompts.content_prompts import GENERATE_EXERCISES_PROMPT, pronunciation_requirement_text
 from state import ContentState
 from utils.llm_utils import invoke_with_retry
 
@@ -63,6 +63,7 @@ def generate_exercises(state: ContentState) -> dict:
         exercise_count=config["exercise_count"],
         available_types=", ".join(config["available_types"]),
         comprehension_questions=comprehension_questions,
+        pronunciation_requirement=pronunciation_requirement_text(config["available_types"]),
     )
 
     result: ExercisesResult = invoke_with_retry(

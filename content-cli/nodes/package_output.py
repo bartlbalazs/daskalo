@@ -6,6 +6,11 @@ ready for operator review and upload to the GCS ingestion bucket.
 The descriptor follows the schema defined in docs/DATA_MODEL.md.
 Internal-only fields (image_prompts, audioPath absolute paths) are
 excluded or replaced with relative ZIP-internal paths during packaging.
+
+Audio ZIP-folder routing is driven purely by the `role` tag that
+`generate_media.py` attaches to every generated file in `state["audio_assets"]`
+— never by sniffing filenames for substrings like "passage" or "_grammar_"
+(see CC-01/CC-02 in docs/planning/BUGS.md).
 """
 
 import json
@@ -17,12 +22,26 @@ from models.content_models import (
     ConversationExercise,
     GrammarNote,
     ImageDescriptionExercise,
+    MatchingExercise,
     PronunciationPracticeExercise,
     VocabularyItem,
 )
 from state import ContentState
 
 logger = logging.getLogger(__name__)
+
+# Audio ZIP-subfolder per semantic role. Any role not listed here (vocab,
+# passage, pronunciation, matching) is packed directly under "assets/audio".
+_ROLE_SUBDIR: dict[str, str] = {
+    "conversation": "assets/audio/conversation",
+    "grammar": "assets/audio/grammar",
+}
+_DEFAULT_AUDIO_SUBDIR = "assets/audio"
+
+
+def _audio_subdir_for_role(role: str) -> str:
+    """Return the ZIP subfolder for a given audio asset role (never filename-based)."""
+    return _ROLE_SUBDIR.get(role, _DEFAULT_AUDIO_SUBDIR)
 
 
 def package_output(state: ContentState) -> dict:
@@ -36,11 +55,10 @@ def package_output(state: ContentState) -> dict:
     passage: list = state.get("passage", [])
     passage_for_descriptor = [s.model_dump() for s in passage]
 
-    passage_audio_path = None
-    for p in state.get("audio_files", []):
-        if "passage" in Path(p).name and not Path(p).name.startswith("conv_"):
-            passage_audio_path = f"assets/audio/{Path(p).name}"
-            break
+    # CC-01: passage audio identity comes from the dedicated state field set by
+    # generate_media.py, not from scanning audio_files for a "passage" substring.
+    passage_audio_local_path = state.get("passage_audio_path", "")
+    passage_audio_path = f"assets/audio/{Path(passage_audio_local_path).name}" if passage_audio_local_path else None
 
     sentence_audio_paths = []
     for p in state.get("sentence_audio_files", []):
@@ -79,16 +97,10 @@ def package_output(state: ContentState) -> dict:
     with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("descriptor.json", json.dumps(descriptor, ensure_ascii=False, indent=2))
 
-        for audio_path in state.get("audio_files", []):
-            name = Path(audio_path).name
-            # Conversation line audio goes into a sub-folder for tidiness
-            if name.startswith(f"{chapter_id}") and "_conv_" in name:
-                _pack_file(zf, audio_path, "assets/audio/conversation")
-            # Grammar note audio goes into its own sub-folder
-            elif "_grammar_" in name and name.endswith(".mp3"):
-                _pack_file(zf, audio_path, "assets/audio/grammar")
-            else:
-                _pack_file(zf, audio_path, "assets/audio")
+        # CC-02: route every audio file to its ZIP subfolder purely off the
+        # `role` tag recorded in state["audio_assets"] — never off filename content.
+        for asset in state.get("audio_assets", []):
+            _pack_file(zf, asset["path"], _audio_subdir_for_role(asset.get("role", "")))
 
         for sent_path in state.get("sentence_audio_files", []):
             _pack_file(zf, sent_path, "assets/audio/sentences")
@@ -145,6 +157,9 @@ def _serialise_exercise(exercise) -> dict:
       not on the model itself).
     - Converts absolute imagePath / audioPath to ZIP-relative paths.
     - For ConversationExercise, converts each line's audioPath to a ZIP-relative path.
+    - For MatchingExercise, converts each pair's audioPath to a ZIP-relative path (CC-03;
+      matching exercises aren't normally emitted for chapters, but are handled defensively
+      the same way package_practice_output.py already does for practice sets).
     """
     if hasattr(exercise, "model_dump"):
         d = exercise.model_dump(exclude_none=False)
@@ -162,6 +177,11 @@ def _serialise_exercise(exercise) -> dict:
         for line in d.get("data", {}).get("lines", []):
             if line.get("audioPath"):
                 line["audioPath"] = f"assets/audio/conversation/{Path(line['audioPath']).name}"
+
+    if isinstance(exercise, MatchingExercise):
+        for pair in d.get("data", {}).get("pairs", []):
+            if pair.get("audioPath"):
+                pair["audioPath"] = f"assets/audio/{Path(pair['audioPath']).name}"
 
     return d
 

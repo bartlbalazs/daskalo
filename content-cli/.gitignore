@@ -14,6 +14,9 @@ __pycache__/
 # Generated output files
 output/
 
+# LangGraph SQLite checkpoints (resumability state; see IMP-CC-01)
+.checkpoints/
+
 # Ruff / pytest caches
 .ruff_cache/
 .pytest_cache/

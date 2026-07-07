@@ -51,7 +51,7 @@ from models.content_models import (
     PassageSentence,
     PronunciationPracticeExercise,
 )
-from state import ContentState
+from state import AudioAsset, ContentState
 from utils.media_utils import (
     VOICE_FEMALE,
     VOICE_MALE,
@@ -72,6 +72,12 @@ _BOOK_SPEAKING_RATE: dict[str, float] = {
     "b3": 0.88,
 }
 _DEFAULT_SPEAKING_RATE = 1.00
+
+# --- Media failure threshold (IMP-CC-03) ------------------------------------
+# If more than this fraction of all media tasks fail, or either the cover image
+# or the passage audio is missing, raise instead of silently packaging a
+# chapter with missing assets.
+_MAX_FAILURE_RATIO = 0.20
 
 
 def _passage_rate(book_id: str) -> float:
@@ -106,19 +112,17 @@ def generate_media(state: ContentState) -> dict:
     logger.info("Book '%s' - passage speaking rate %.2f, voice gender: %s", book_id, narration_rate, narrator_gender)
 
     audio_files: list[str] = []
+    audio_assets: list[AudioAsset] = []  # Role-tagged records — drives package_output routing (CC-01/CC-02)
     sentence_audio_files: list[str] = []
     image_files: list[str] = []
     chapter_image_path: str = ""
+    passage_audio_path: str = ""  # Set explicitly below; never inferred from filename at packaging time
 
     vocabulary = state.get("vocabulary", [])
     exercises = state.get("exercises", [])
     image_prompts = state.get("image_prompts", [])
     grammar_notes: list[GrammarNote] = state.get("grammar_notes", [])
     passage: list[PassageSentence] = state.get("passage", [])
-
-    # Pre-existing audio map: greek_text -> local_path (populated for practice-set re-generation
-    # when the source chapter ZIP has already been extracted). Keys are the original Greek strings.
-    existing_audio: dict[str, str] = state.get("existing_audio", {})  # type: ignore[assignment]
 
     # -----------------------------------------------------------------------
     # Build TTS task list — each entry is (text, voice, output_path, rate, callback)
@@ -137,14 +141,6 @@ def generate_media(state: ContentState) -> dict:
         if not greek_text:
             continue
         tts_text = re.split(r"\s*/\s*|\s+-\s*", greek_text)[0].strip()
-
-        # Reuse existing audio from a source ZIP if available (practice-set re-use)
-        if tts_text in existing_audio:
-            existing_path = existing_audio[tts_text]
-            vocab_item.audioPath = existing_path
-            audio_files.append(existing_path)
-            logger.debug("Reusing existing vocab audio for '%s': %s", tts_text, existing_path)
-            continue
 
         voice = VOICE_FEMALE if idx % 2 == 0 else VOICE_MALE
         safe_name = re.sub(r"[^\w]", "_", tts_text)[:30]
@@ -208,13 +204,6 @@ def generate_media(state: ContentState) -> dict:
                 continue
             tts_text = re.split(r"\s*/\s*|\s+-\s*", pair.greek)[0].strip()
 
-            # Reuse existing audio if available
-            if tts_text in existing_audio:
-                pair.audioPath = existing_audio[tts_text]  # type: ignore[attr-defined]
-                audio_files.append(existing_audio[tts_text])
-                logger.debug("Reusing existing matching audio for '%s'", tts_text)
-                continue
-
             safe_name = re.sub(r"[^\w]", "_", tts_text)[:30]
             out_path = str(Path(work_dir) / f"{prefix}matching_{ex_idx:02d}_pair_{pair_idx:02d}_{safe_name}.mp3")
             tts_tasks.append((tts_text, VOICE_FEMALE, out_path, narration_rate, f"matching:{ex_idx}:{pair_idx}"))
@@ -244,12 +233,16 @@ def generate_media(state: ContentState) -> dict:
         path = tts_results.get(f"vocab:{idx}")
         if path:
             audio_files.append(path)
+            audio_assets.append({"role": "vocab", "path": path})
             vocab_item.audioPath = path
 
-    # Full passage
+    # Full passage — identity tracked explicitly in `passage_audio_path` (CC-01),
+    # never inferred later from a filename substring match.
     passage_path = tts_results.get("audio")
     if passage_path:
         audio_files.append(passage_path)
+        audio_assets.append({"role": "passage", "path": passage_path})
+        passage_audio_path = passage_path
 
     # Per-sentence (keep index alignment)
     for idx in range(len(passage)):
@@ -262,6 +255,7 @@ def generate_media(state: ContentState) -> dict:
             path = tts_results.get(f"grammar:{note_idx}:{ex_idx}")
             if path:
                 audio_files.append(path)
+                audio_assets.append({"role": "grammar", "path": path})
                 example.audioPath = path
 
     # Pronunciation
@@ -271,6 +265,7 @@ def generate_media(state: ContentState) -> dict:
         path = tts_results.get(f"pronunciation:{idx}")
         if path:
             audio_files.append(path)
+            audio_assets.append({"role": "pronunciation", "path": path})
             exercise.audioPath = path
 
     # Conversation lines
@@ -281,6 +276,7 @@ def generate_media(state: ContentState) -> dict:
             path = tts_results.get(f"conv:{ex_idx}:{line_idx}")
             if path:
                 audio_files.append(path)
+                audio_assets.append({"role": "conversation", "path": path})
                 line.audioPath = path
             else:
                 line.audioPath = None
@@ -293,6 +289,7 @@ def generate_media(state: ContentState) -> dict:
             path = tts_results.get(f"matching:{ex_idx}:{pair_idx}")
             if path:
                 audio_files.append(path)
+                audio_assets.append({"role": "matching", "path": path})
                 pair.audioPath = path  # type: ignore[attr-defined]
 
     # -----------------------------------------------------------------------
@@ -360,6 +357,12 @@ def generate_media(state: ContentState) -> dict:
             exercise.imagePath = path
 
     tts_failures = sum(1 for v in tts_results.values() if v is None)
+    image_failures = sum(1 for v in image_results.values() if v is None)
+    total_tasks = len(tts_tasks) + len(image_tasks)
+    total_failures = tts_failures + image_failures
+    total_successes = total_tasks - total_failures
+    failure_ratio = (total_failures / total_tasks) if total_tasks else 0.0
+
     logger.info(
         "TTS complete — %d audio files generated%s",
         len(audio_files) + len([p for p in sentence_audio_files if p]),
@@ -377,9 +380,43 @@ def generate_media(state: ContentState) -> dict:
         len(image_files),
         "yes" if chapter_image_path else "no",
     )
+
+    # -----------------------------------------------------------------------
+    # IMP-CC-03: media failure threshold — fail loudly instead of silently
+    # proceeding to packaging with missing critical assets.
+    # -----------------------------------------------------------------------
+    missing_cover = bool(cover_prompt) and not chapter_image_path
+    missing_passage = bool(passage) and not passage_audio_path
+    ratio_exceeded = total_tasks > 0 and failure_ratio > _MAX_FAILURE_RATIO
+
+    if missing_cover or missing_passage or ratio_exceeded:
+        problems: list[str] = []
+        if missing_cover:
+            problems.append("cover image generation failed")
+        if missing_passage:
+            problems.append("passage audio generation failed")
+        if ratio_exceeded:
+            problems.append(
+                f"{total_failures}/{total_tasks} media tasks failed ({failure_ratio:.0%}, threshold {_MAX_FAILURE_RATIO:.0%})"
+            )
+        logger.error(
+            "Media generation did not meet the quality threshold — %s (%d/%d tasks succeeded overall).",
+            "; ".join(problems),
+            total_successes,
+            total_tasks,
+        )
+        raise RuntimeError(
+            "generate_media: aborting before packaging — " + "; ".join(problems) + ". "
+            f"({total_successes}/{total_tasks} media tasks succeeded overall.)"
+        )
+
+    logger.info("%d/%d media assets generated successfully.", total_successes, total_tasks)
+
     return {
         "work_dir": work_dir,
         "audio_files": audio_files,
+        "audio_assets": audio_assets,
+        "passage_audio_path": passage_audio_path,
         "sentence_audio_files": sentence_audio_files,
         "image_files": image_files,
         "chapter_image_path": chapter_image_path,

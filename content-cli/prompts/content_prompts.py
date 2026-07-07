@@ -175,85 +175,6 @@ Only leave grammar_table null for purely narrative or cultural notes with no str
 Output field: grammar_notes (list of GrammarNote objects).
 """.strip()
 
-# ---------------------------------------------------------------------------
-# Content generation (Legacy two-step process — kept for reference)
-# ---------------------------------------------------------------------------
-
-PLAN_LESSON_PROMPT = """
-You are an expert Modern Greek language teacher creating a lesson plan for adult learners.
-
-Topic seed: {chapter_topic}
-Student interests (use these to personalise vocabulary and examples): {student_interests}
-
-LANGUAGE SKILL FOCUS FOR THIS CHAPTER: {language_skill}
-All content — passage, vocabulary choices, and grammar outlines — must serve this skill focus. \
-The learner should finish the chapter feeling confident specifically in this skill area.
-
---- ERA & GENRE CLASSIFICATION (INTERNAL) ---
-First, silently classify the topic into one of these categories:
-1. Modern Everyday (e.g. going to a taverna, renting a car)
-2. Historical Event/Figure (e.g. 1821 Revolution, Alexander the Great)
-3. Mythology & Literature (e.g. The Odyssey, Greek gods)
-
-Based on this classification, adapt your tone and style:
-- If Modern Everyday: Use a conversational, warm, and encouraging tone. Weave in 1-2 genuine \
-modern Greek slang words or colloquial expressions (e.g. τέλεια, ρε φίλε, σιγά) naturally. \
-IMPORTANT: Do not overuse the word "χαλαρά".
-- If Historical or Mythological: DROP modern slang entirely. Use a slightly more formal, \
-storytelling tone appropriate for the era, while ensuring the core vocabulary remains standard, \
-modern Greek accessible to the CEFR level. A few archaic nouns (e.g. 'musket', 'chariot') are acceptable \
-for flavor, but do not focus the lesson on them. Third-person narrative is great here.
-
-CRITICAL PASSAGE RULE: Do NOT include any dialogue or direct speech in the passage under any circumstances, \
-regardless of the era. The passage will be narrated by a single continuous voice, so dialogue sounds unnatural.
-
-Treat the topic seed as a creative starting point. Invent a vivid scenario that brings the topic \
-to life. Go beyond shallow tourist stereotypes. Deeply weave authentic Greek culture, history, \
-or societal nuances into the scenario. Simplify the narrative for language acquisition, but \
-do NOT fictionalize real historical events.
-
-Then craft a punchy English chapter title and a single warm, inviting English sentence that \
-pitches the scenario to the learner.
-
-Also provide a chapter_image_prompt: a rich English description of a cover image. \
-CRITICAL FOR IMAGES: You have total freedom over the art style. Choose a style that perfectly matches \
-the era (e.g., "19th-century romantic oil painting", "Byzantine fresco", "Classicist marble statue", \
-"vintage travel poster", or "photorealistic modern photography" ONLY if the topic is modern). \
-Append your chosen art style to the end of the prompt. No text or letters in the image.
-
---- PEDAGOGICAL CONSTRAINTS (CRITICAL) ---
-
-TARGET GRAMMAR (You MUST explicitly feature these concepts heavily in the passage and define them in the outline):
-{target_grammar}
-
-MANDATORY VOCABULARY (These specific Greek words MUST be included in your generated vocabulary list, regardless of the topic):
-{mandatory_vocabulary}
-
-ACCUMULATED KNOWLEDGE (The student ONLY knows these concepts. Do NOT use grammar or verb tenses outside of this list + the target grammar):
-{accumulated_grammar}
-
-PREVIOUSLY LEARNED VOCABULARY (The student already knows these words. You may use them, but DO NOT include them in the new vocabulary list):
-{accumulated_vocabulary}
-
-------------------------------------------
-
-Lesson length: {lesson_length}
-  - Reading passage: {passage_sentences} sentences. The passage must be substantially long and richly detailed. \
-Use a wide variety of vocabulary, complex sentence structures appropriate to the level, and vivid \
-descriptive language to bring the scenario to life. It should read as a proper short narrative, not a \
-bare-bones grammar exercise. Ensure it strictly adheres to the accumulated grammar limits. \
-IMPORTANT: Return the passage as a JSON list of objects, each with "greek" (one Greek sentence) \
-and "english" (its full English translation). Do NOT return the passage as a plain string.
-  - Vocabulary: {vocab_count} key words from the passage (must include the mandatory words above). \
-For each word, provide the natural, full Greek form (with article for nouns, full infinitive for verbs) \
-and a concise English translation.
-  - Grammar outlines: {grammar_concepts} grammar concept(s). For each, provide the name of the concept \
-in English and a brief explanation in English of how it's used in the passage. The grammar notes \
-expanded in the second step MUST include a complete Markdown table for every conjugation, declension, \
-or paradigm.
-
-""".strip()
-
 GENERATE_GRAMMAR_SUMMARY_PROMPT = """
 You are an expert Modern Greek language teacher writing a high-quality, self-contained grammar \
 reference summary for a completed lesson chapter. This summary will be displayed to students in \
@@ -342,8 +263,8 @@ CRITICAL LANGUAGE RULES:
 - For example, an exercise prompt should be "Fill in the blank with the correct word." (English), but the sentence itself "Ο σκύλος είναι ___." (Greek).
 
 Generate {exercise_count} exercises. Each exercise must be of a DIFFERENT type, chosen from this allowed set: \
-{available_types}. You MUST include at least one image_description exercise and at least one \
-pronunciation_practice exercise regardless of how many exercises are requested. \
+{available_types}. You MUST include at least one image_description exercise regardless of how many \
+exercises are requested.{pronunciation_requirement} \
 If "conversation" is in the allowed set, you MUST include exactly one conversation exercise.
 
 Exercise type specifications:
@@ -400,6 +321,35 @@ stated difficulty level. Do not repeat exercise types within the same lesson. Al
 """.strip()
 
 # ---------------------------------------------------------------------------
+# Conditional prompt fragments (CC-04)
+#
+# `pronunciation_practice` only appears in the `long`-length exercise type pool
+# (see LESSON_CONFIG in models/content_models.py). These helpers interpolate
+# the "must include pronunciation_practice" instruction only when it is
+# actually one of the available types for the current lesson length, so the
+# generator and reviewer prompts never contradict the allowed type set for
+# `short`/`medium` lessons.
+# ---------------------------------------------------------------------------
+
+
+def pronunciation_requirement_text(available_types: list[str]) -> str:
+    """Instruction fragment for GENERATE_EXERCISES_PROMPT, conditional on availability."""
+    if "pronunciation_practice" in available_types:
+        return (
+            " You MUST also include at least one pronunciation_practice exercise, "
+            "regardless of how many exercises are requested."
+        )
+    return ""
+
+
+def pronunciation_review_note_text(available_types: list[str]) -> str:
+    """Instruction fragment for REVIEW_CONTENT_PROMPT, conditional on availability."""
+    if "pronunciation_practice" in available_types:
+        return " Is there at least one pronunciation_practice exercise?"
+    return ""
+
+
+# ---------------------------------------------------------------------------
 # Content review
 # ---------------------------------------------------------------------------
 
@@ -433,7 +383,7 @@ Evaluate each of the following categories independently:
 2. accuracy   — Is the Greek text grammatically correct and natural-sounding?
 3. level      — Is the content appropriately calibrated for a {cefr_level} student? Did they teach the Target Grammar?
 4. slang      — Is slang used correctly contextually? If the topic is Modern Everyday, does it include 1-2 authentic modern Greek colloquialisms? If the topic is Historical or Mythological, does it completely OMIT modern slang? Fail if modern slang is used in a historical setting, or if a modern setting sounds too textbook-stiff.
-5. exercises  — Are the exercises varied, clearly tied to the passage, and calibrated to the correct level? Is there a conversation exercise if one was expected? Is there at least one pronunciation_practice exercise?
+5. exercises  — Are the exercises varied, clearly tied to the passage, and calibrated to the correct level? Is there a conversation exercise if one was expected?{pronunciation_review_note}
 6. culture    — Does the content incorporate deep, authentic cultural elements (history, mythology, art, real society) rather than shallow tourist stereotypes?
 
 Set approved to true only if ALL six categories pass AND all strict curriculum constraints (grammar/mandatory words/tables) are met.
@@ -458,7 +408,7 @@ No text or letters visible anywhere in the image.
 # ---------------------------------------------------------------------------
 
 GENERATE_PRACTICE_PROMPT = """
-You are an expert Greek language teacher creating a "Practice Set" (homework drill) for an A1/A2 level language learning app.
+You are an expert Greek language teacher creating a "Practice Set" (homework drill) for a {cefr_level} level language learning app.
 Your goal is to generate exactly 10 to 12 interactive exercises based on the current chapter's theme and vocabulary.
 
 CRITICAL CONSTRAINTS:
@@ -483,5 +433,5 @@ CRITICAL LANGUAGE RULES:
 [PREVIOUS_VOCABULARY]
 {previous_vocab_json}
 
-Please generate the Practice Set ensuring the difficulty is appropriate for the student's current level.
+Please generate the Practice Set ensuring the difficulty is appropriate for a {cefr_level} student.
 """.strip()

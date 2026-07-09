@@ -1,5 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter, signal
+  Component, Input, Output, EventEmitter, signal, ChangeDetectionStrategy
 } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Exercise, EvaluationResult } from '../../../core/models/firestore.models';
@@ -9,6 +9,7 @@ import { LightboxComponent } from '../../../shared/components/lightbox.component
 @Component({
   selector: 'app-image-description',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AsyncPipe, GcsUrlPipe, LightboxComponent],
   template: `
     <div class="space-y-4">
@@ -18,7 +19,12 @@ import { LightboxComponent } from '../../../shared/components/lightbox.component
           [src]="(exercise.imageUrl | gcsUrl | async) ?? ''"
           alt="Exercise image"
           class="w-full rounded-xl object-cover max-h-72 border border-surface-200 cursor-pointer"
+          tabindex="0"
+          role="button"
+          aria-label="View full-size image"
           (click)="openLightboxFromEvent($event)"
+          (keydown.enter)="openLightboxFromEvent($event)"
+          (keydown.space)="$event.preventDefault(); openLightboxFromEvent($event)"
         />
       }
 
@@ -27,7 +33,6 @@ import { LightboxComponent } from '../../../shared/components/lightbox.component
 
       <!-- Textarea -->
       <textarea
-        [(value)]="answerValue"
         (input)="onInput($event)"
         [disabled]="submitted()"
         rows="4"
@@ -82,6 +87,17 @@ import { LightboxComponent } from '../../../shared/components/lightbox.component
               {{ evaluation()!.feedback }}
             </p>
           </div>
+
+          <!-- Retry button — always available so a failed evaluation (e.g. network
+               error) doesn't permanently lock the student out of resubmitting. -->
+          <div class="flex justify-end">
+            <button
+              (click)="retry()"
+              class="px-4 py-2 rounded-lg border border-greek-300 text-greek-700 text-xs font-semibold hover:bg-greek-50 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         }
       }
     </div>
@@ -91,6 +107,7 @@ export class ImageDescriptionComponent {
   @Input({ required: true }) exercise!: Exercise;
   @Output() submitted$ = new EventEmitter<string>();
   @Output() answered = new EventEmitter<boolean>();
+  @Output() retried = new EventEmitter<void>();
 
   submitted = signal(false);
   evaluation = signal<EvaluationResult | null>(null);
@@ -121,6 +138,15 @@ export class ImageDescriptionComponent {
   setEvaluation(result: EvaluationResult): void {
     this.evaluation.set(result);
     this.answered.emit(result.isCorrect);
+  }
+
+  /** Reset the card to an answerable state so the student can resubmit
+   *  (e.g. after an evaluation request failure). Keeps the typed answer
+   *  so they don't have to retype it. */
+  retry(): void {
+    this.submitted.set(false);
+    this.evaluation.set(null);
+    this.retried.emit();
   }
 
   canSubmit(): boolean {

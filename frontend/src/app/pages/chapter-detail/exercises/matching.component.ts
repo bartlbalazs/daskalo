@@ -1,12 +1,13 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit, inject } from '@angular/core';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { Component, Input, Output, EventEmitter, signal, computed, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, MatchingData, MatchingPair } from '../../../core/models/firestore.models';
+import { GcsUrlResolverService } from '../../../shared/services/gcs-url-resolver.service';
 
 type PairState = 'idle' | 'selected' | 'correct' | 'error';
 
 @Component({
   selector: 'app-matching',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -55,7 +56,12 @@ type PairState = 'idle' | 'selected' | 'correct' | 'error';
     </div>
 
     <!-- Progress indicator -->
-    <div class="mt-4 flex items-center gap-2">
+    <div class="mt-4 flex items-center gap-2"
+      role="progressbar"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="pairsRange().length"
+      [attr.aria-valuenow]="matchedCount()"
+      [attr.aria-label]="'Matched ' + matchedCount() + ' of ' + pairsRange().length + ' pairs'">
       @for (i of pairsRange(); track i) {
         <div class="h-1.5 flex-1 rounded-full transition-all duration-300"
           [class]="i < matchedCount() ? 'bg-emerald-400' : 'bg-surface-200'">
@@ -67,14 +73,14 @@ type PairState = 'idle' | 'selected' | 'correct' | 'error';
     </div>
   `,
 })
-export class MatchingComponent implements OnInit {
+export class MatchingComponent implements OnInit, OnDestroy {
   @Input({ required: true }) exercise!: Exercise;
   @Output() answered = new EventEmitter<boolean>();
 
-  private readonly storage = inject(Storage);
+  private readonly resolver = inject(GcsUrlResolverService);
 
-  shuffledGreek = signal<Array<{ idx: number; greek: string; audioUrl?: string }>>([]);
-  shuffledEnglish = signal<Array<{ idx: number; english: string }>>([]);
+  shuffledGreek = signal<{ idx: number; greek: string; audioUrl?: string }[]>([]);
+  shuffledEnglish = signal<{ idx: number; english: string }[]>([]);
 
   greekState = signal<Record<number, PairState>>({});
   englishState = signal<Record<number, PairState>>({});
@@ -88,8 +94,8 @@ export class MatchingComponent implements OnInit {
 
   private _pairs: MatchingPair[] = [];
   // Resolved HTTPS download URLs per pair index (populated asynchronously in ngOnInit)
-  private _resolvedAudioUrls: Map<number, string> = new Map();
-  private _audioCache: Map<string, HTMLAudioElement> = new Map();
+  private _resolvedAudioUrls = new Map<number, string>();
+  private _audioCache = new Map<string, HTMLAudioElement>();
 
   ngOnInit(): void {
     const data = this.exercise.data as unknown as MatchingData;
@@ -112,19 +118,23 @@ export class MatchingComponent implements OnInit {
     this._pairs.forEach((pair, i) => {
       const raw = pair.audioUrl;
       if (!raw) return;
-      if (raw.startsWith('gs://')) {
-        getDownloadURL(ref(this.storage, raw))
-          .then(url => this._resolvedAudioUrls.set(i, url))
-          .catch(() => { /* audio unavailable — silent fail */ });
-      } else {
-        // Already an HTTPS URL (e.g. local emulator or pre-resolved)
-        this._resolvedAudioUrls.set(i, raw);
-      }
+      this.resolver.resolve(raw)
+        .then(url => this._resolvedAudioUrls.set(i, url))
+        .catch(() => { /* audio unavailable — silent fail */ });
     });
   }
 
-  pairsRange(): number[] {
-    return Array.from({ length: this._pairs.length }, (_, i) => i);
+  /** Range [0, pairCount) — used to render one progress dot per pair. Derived
+   *  from shuffledGreek() (same length as _pairs, just reordered) rather than
+   *  the plain _pairs field so this can be a computed signal. */
+  pairsRange = computed<number[]>(() => Array.from({ length: this.shuffledGreek().length }, (_, i) => i));
+
+  ngOnDestroy(): void {
+    for (const audio of this._audioCache.values()) {
+      audio.pause();
+      audio.src = '';
+    }
+    this._audioCache.clear();
   }
 
   selectGreek(idx: number): void {

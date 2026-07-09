@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { FavoriteWordsService } from '../../core/services/favorite-words.service';
 import { OwnWordsService } from '../../core/services/own-words.service';
 import { VocabularyItem, Book, Chapter } from '../../core/models/firestore.models';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { GcsUrlResolverService } from '../../shared/services/gcs-url-resolver.service';
 
 interface VocabRow extends VocabularyItem {
   chapterId: string;
@@ -93,7 +93,7 @@ interface BookGroup {
             class="w-full bg-white border border-surface-200 text-surface-900 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-greek-400 focus:border-transparent shadow-sm transition-shadow hover:shadow-md text-lg"
           />
           @if (searchQuery()) {
-            <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-surface-400 hover:text-surface-600">
+            <button (click)="searchQuery.set('')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-surface-400 hover:text-surface-600" aria-label="Clear search">
                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -254,6 +254,7 @@ interface BookGroup {
                 ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
                 : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
               [title]="favoriteWordsService.isFavorited(word.chapterId, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
+              [attr.aria-label]="favoriteWordsService.isFavorited(word.chapterId, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
             >
               @if (favoriteWordsService.isFavorited(word.chapterId, word.greek)) {
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -271,6 +272,7 @@ interface BookGroup {
                 (click)="playAudio(word.audioUrl, word.greek)"
                 class="w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-greek-500"
                 title="Listen to pronunciation"
+                aria-label="Listen to pronunciation"
                 [disabled]="playingWord() === word.greek"
                 [class.opacity-80]="playingWord() === word.greek"
               >
@@ -289,7 +291,7 @@ interface BookGroup {
           </div>
           @if (showSource) {
             <div class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-surface-100 text-surface-500 mt-1">
-              Ch. {{ word.chapterOrder }}
+              Book {{ word.bookOrder }} &middot; Ch. {{ word.chapterOrder }}
             </div>
           }
         </div>
@@ -304,12 +306,15 @@ export class VocabularyPage implements OnInit {
   readonly favoriteWordsService = inject(FavoriteWordsService);
   readonly ownWordsService = inject(OwnWordsService);
   private scroller = inject(ViewportScroller);
-  private storage = inject(Storage);
+  private resolver = inject(GcsUrlResolverService);
 
   searchQuery = signal('');
   showFavoritesOnly = signal(false);
   loading = signal(true);
   playingWord = signal<string | null>(null);
+  /** Tracks the currently-playing vocabulary word Audio instance so a new
+   *  click can stop the previous one instead of overlapping playback. */
+  private currentWordAudio: HTMLAudioElement | null = null;
 
   allRows = signal<VocabRow[]>([]);
   completedChapters = signal<Chapter[]>([]);
@@ -477,9 +482,11 @@ export class VocabularyPage implements OnInit {
       };
     });
 
-    // Deduplicate own words by greek (in case of near-duplicates across chapters)
+    // Deduplicate own words by greek — checked against the same unprefixed key
+    // used to seed `seen` above, so an own word matching existing chapter
+    // vocabulary (or another own word) is correctly filtered out.
     const ownDeduped = ownRows.filter(r => {
-      const key = `own__${r.greek.toLowerCase()}`;
+      const key = r.greek.toLowerCase();
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -502,25 +509,33 @@ export class VocabularyPage implements OnInit {
   playAudio(url: string, word?: string): void {
     if (word) this.playingWord.set(word);
 
+    // Stop any currently-playing word audio before starting a new one, so
+    // rapid successive clicks don't overlap playback.
+    if (this.currentWordAudio) {
+      this.currentWordAudio.pause();
+      this.currentWordAudio = null;
+    }
+
     const play = (resolvedUrl: string) => {
       const audio = new Audio(resolvedUrl);
+      this.currentWordAudio = audio;
       audio.play();
       audio.onended = () => {
+        if (this.currentWordAudio === audio) this.currentWordAudio = null;
         if (word) this.playingWord.set(null);
       };
       audio.onerror = () => {
+        if (this.currentWordAudio === audio) this.currentWordAudio = null;
         if (word) this.playingWord.set(null);
       };
     };
 
-    if (url.startsWith('gs://')) {
-      getDownloadURL(ref(this.storage, url))
-        .then(play)
-        .catch(() => {
-          if (word) this.playingWord.set(null);
-        });
-    } else {
-      play(url);
-    }
+    // resolver.resolve() passes plain http(s) URLs through unchanged, so no
+    // need to branch on the gs:// prefix here ourselves.
+    this.resolver.resolve(url)
+      .then(play)
+      .catch(() => {
+        if (word) this.playingWord.set(null);
+      });
   }
 }

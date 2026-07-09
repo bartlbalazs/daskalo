@@ -45,7 +45,7 @@ Daskalo is built as a modern, cloud-native monorepo:
 **Content Pipeline (CLI Engine)**
 *   **LangGraph / LangChain** for orchestrating complex lesson generation workflows
 *   **Google Cloud Vertex AI** (Gemini 2.5-flash / 3.1) for evaluation and content creation
-*   **Google Cloud TTS & Piper** for voice generation
+*   **Google Cloud Text-to-Speech** (Chirp3-HD voices) for voice generation
 
 ---
 

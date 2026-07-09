@@ -4,7 +4,7 @@ All generated content is carried as typed Pydantic model instances so that nodes
 downstream of generate_content work with validated, attribute-accessible objects.
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from typing_extensions import TypedDict
 
@@ -16,6 +16,19 @@ from models.content_models import (
     PassageSentence,
     VocabularyItem,
 )
+
+# Semantic role of a generated audio file. `generate_media.py` tags every audio
+# file it produces with one of these roles; `package_output.py` routes and
+# serialises assets purely off `role`, never by sniffing filenames for
+# substrings like "passage" or "_grammar_" (see CC-01/CC-02 in docs/planning/BUGS.md).
+AudioAssetRole = Literal["vocab", "passage", "grammar", "pronunciation", "conversation", "matching"]
+
+
+class AudioAsset(TypedDict):
+    """A single generated audio file tagged with its semantic role."""
+
+    role: AudioAssetRole
+    path: str  # Absolute local filesystem path within work_dir
 
 
 class ContentState(TypedDict):
@@ -30,7 +43,7 @@ class ContentState(TypedDict):
 
     # --- Curriculum constraints (populated by build_context) ---
     target_grammar: str
-    language_skill: str  # The specific language skill this chapter teaches (from curriculum.yaml)
+    language_skill: str  # The specific language skill this chapter teaches (from shared/data/books/*.yaml)
     mandatory_vocabulary: list[str]
     accumulated_grammar: str
     accumulated_vocabulary: list[str]
@@ -60,7 +73,9 @@ class ContentState(TypedDict):
 
     # --- Generated asset paths (local filesystem within work_dir) ---
     work_dir: str  # Temp directory for this generation run
-    audio_files: list[str]  # Absolute paths to vocab + passage .mp3 files
+    audio_files: list[str]  # Absolute paths to every generated .mp3 file (all roles)
+    audio_assets: list[AudioAsset]  # Role-tagged records for the same files — drives packaging routing
+    passage_audio_path: str  # Absolute path to the full-passage clip; set explicitly by generate_media
     sentence_audio_files: list[str]  # Absolute paths to per-sentence passage clips
     image_files: list[str]  # Absolute paths to generated .jpg files
     chapter_image_path: str  # Absolute path to the chapter cover image (.jpg)

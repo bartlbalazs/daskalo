@@ -1,11 +1,12 @@
 import {
-  Component, Input, Output, EventEmitter, signal, OnInit
+  Component, Input, Output, EventEmitter, signal, OnInit, ChangeDetectionStrategy
 } from '@angular/core';
 import { Exercise, WordScrambleData } from '../../../core/models/firestore.models';
 
 @Component({
   selector: 'app-word-scramble',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-4">
       <!-- Scrambled letters -->

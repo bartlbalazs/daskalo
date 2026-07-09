@@ -3,12 +3,22 @@ Shared media generation helpers — TTS synthesis and image generation.
 
 Used by both generate_media (chapter pipeline) and generate_practice_media
 (practice-set pipeline) to avoid duplicating Cloud TTS and Vertex AI logic.
+
+Client reuse (IMP-CC-04): both `TextToSpeechClient` and `genai.Client` wrap a
+gRPC/HTTP channel that Google's client libraries are designed to have shared
+across concurrent calls from a single process — but rather than rely on that
+guarantee holding across every version of both SDKs, each client is cached
+per worker thread via `threading.local()` (one client per thread, not a
+single global singleton) and reused across every task that thread runs from
+the ThreadPoolExecutor pools in generate_media.py / generate_practice_media.py,
+instead of constructing a brand-new client for every single TTS/image call.
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import threading
 from pathlib import Path
 
 from google import genai
@@ -27,6 +37,42 @@ LANGUAGE_CODE = "el-GR"
 IMAGE_MODEL = "gemini-3-pro-image-preview"
 IMAGE_REGION = "global"
 
+# One client per worker thread (IMP-CC-04) — see module docstring.
+_thread_local = threading.local()
+
+
+def _get_tts_client() -> texttospeech.TextToSpeechClient:
+    """Return this thread's TextToSpeechClient, constructing it on first use."""
+    client = getattr(_thread_local, "tts_client", None)
+    if client is None:
+        client = texttospeech.TextToSpeechClient()
+        _thread_local.tts_client = client
+    return client
+
+
+def _get_genai_client(project: str) -> genai.Client:
+    """Return this thread's genai.Client, constructing it on first use."""
+    client = getattr(_thread_local, "genai_client", None)
+    if client is None:
+        client = genai.Client(
+            vertexai=True,
+            project=project,
+            location=IMAGE_REGION,
+            http_options=types.HttpOptions(
+                api_version="v1",
+                retry_options=types.HttpRetryOptions(
+                    attempts=8,
+                    initial_delay=15.0,
+                    max_delay=180.0,
+                    exp_base=2,
+                    jitter=30.0,
+                    http_status_codes=[429, 503],
+                ),
+            ),
+        )
+        _thread_local.genai_client = client
+    return client
+
 
 def synthesize_speech(
     text: str,
@@ -42,7 +88,7 @@ def synthesize_speech(
     Returns ``True`` on success, ``False`` on any failure.
     """
     try:
-        client = texttospeech.TextToSpeechClient()
+        client = _get_tts_client()
         synthesis_input = texttospeech.SynthesisInput(text=text)
         voice = texttospeech.VoiceSelectionParams(
             language_code=LANGUAGE_CODE,
@@ -80,22 +126,7 @@ def generate_image(scene_description: str, output_path: str) -> bool:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
 
     try:
-        client = genai.Client(
-            vertexai=True,
-            project=project,
-            location=IMAGE_REGION,
-            http_options=types.HttpOptions(
-                api_version="v1",
-                retry_options=types.HttpRetryOptions(
-                    attempts=8,
-                    initial_delay=15.0,
-                    max_delay=180.0,
-                    exp_base=2,
-                    jitter=30.0,
-                    http_status_codes=[429, 503],
-                ),
-            ),
-        )
+        client = _get_genai_client(project)
         prompt = IMAGE_GENERATION_PROMPT_TEMPLATE.format(scene_description=scene_description)
         response = client.models.generate_content(
             model=IMAGE_MODEL,

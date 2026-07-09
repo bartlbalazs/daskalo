@@ -31,6 +31,7 @@ type BubbleState = 'idle' | 'open' | 'submitting' | 'success' | 'error';
               (click)="close()"
               class="w-7 h-7 rounded-full flex items-center justify-center text-surface-400 hover:text-surface-600 hover:bg-surface-100 transition-colors"
               title="Close"
+              aria-label="Close"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -121,6 +122,7 @@ type BubbleState = 'idle' | 'open' | 'submitting' | 'success' | 'error';
           ? 'bg-greek-700 text-white hover:bg-greek-800'
           : 'bg-greek-600 text-white hover:bg-greek-700'"
         title="Add your own word"
+        [attr.aria-label]="state() !== 'idle' ? 'Close' : 'Add your own word'"
       >
         <!-- Pencil icon -->
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

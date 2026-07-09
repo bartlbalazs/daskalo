@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PracticeSet } from '../../core/models/firestore.models';
-import { switchMap, map } from 'rxjs';
+import { switchMap, map, shareReplay } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
 import { AsyncPipe } from '@angular/common';
 import { ExerciseCardComponent } from '../chapter-detail/exercises/exercise-card.component';
@@ -38,7 +38,12 @@ import { environment } from '../../../environments/environment';
               [src]="(ps.coverImageUrl | gcsUrl | async) ?? ''"
               alt=""
               class="w-full h-48 md:h-72 object-cover rounded-2xl mb-7 border border-practice-500 shadow-xl cursor-pointer"
+              tabindex="0"
+              role="button"
+              aria-label="View full-size cover image"
               (click)="openLightboxFromEvent($event)"
+              (keydown.enter)="openLightboxFromEvent($event)"
+              (keydown.space)="$event.preventDefault(); openLightboxFromEvent($event)"
             />
           }
 
@@ -157,7 +162,7 @@ import { environment } from '../../../environments/environment';
     <app-lightbox [imageUrl]="lightboxUrl()" (closed)="closeLightbox()" />
   `,
 })
-export class PracticeDetailPage implements OnInit {
+export class PracticeDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly lessonService = inject(LessonService);
   private readonly authService = inject(AuthService);
@@ -170,27 +175,42 @@ export class PracticeDetailPage implements OnInit {
   alreadyCompleted = signal(false);
   lightboxUrl = signal<string | null>(null);
 
-  practiceSet = toSignal(
-    this.route.paramMap.pipe(
-      switchMap(params => {
-        const id = params.get('id') ?? '';
-        const completedIds = this.authService.currentUser()?.progress?.completedPracticeSetIds ?? [];
-        this.alreadyCompleted.set(completedIds.includes(id));
-        return this.lessonService.getPracticeSet(id);
-      })
-    )
+  /** Shared practice-set stream (FE-23): both practiceSet and bookId below
+   *  derive from this single subscription instead of each independently
+   *  deriving the id from route.paramMap and calling getPracticeSet() for
+   *  the same document. refCount: true (unlike LessonService's app-wide
+   *  shareReplay caches) — this stream is scoped to this page instance, so
+   *  the underlying Firestore listener should tear down once the component
+   *  is destroyed and both toSignal() consumers below unsubscribe, rather
+   *  than persisting forever. */
+  private practiceSet$ = this.route.paramMap.pipe(
+    switchMap(params => {
+      const id = params.get('id') ?? '';
+
+      // Reset all per-attempt state — otherwise navigating between two
+      // different practice sets carries stale answered/completed state
+      // forward from the previous set.
+      this.answeredMap.set(new Map());
+      this.practiceCompleted.set(false);
+      this.completeError.set(null);
+      this.earnedXp.set(175);
+
+      const completedIds = this.authService.currentUser()?.progress?.completedPracticeSetIds ?? [];
+      this.alreadyCompleted.set(completedIds.includes(id));
+      return this.lessonService.getPracticeSet(id);
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
   );
+
+  practiceSet = toSignal(this.practiceSet$);
 
   /** Resolve the bookId from the parent chapter so the own-word bubble can use it. */
   bookId = toSignal(
-    this.route.paramMap.pipe(
-      switchMap(params => this.lessonService.getPracticeSet(params.get('id') ?? '')),
+    this.practiceSet$.pipe(
       switchMap(ps => this.lessonService.getChapter(ps.chapterId)),
       map(chapter => chapter.bookId),
     )
   );
-
-  ngOnInit(): void {}
 
   openLightboxFromEvent(event: Event): void {
     const src = (event.target as HTMLImageElement).src;

@@ -1,27 +1,28 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AsyncPipe, DOCUMENT } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LessonService } from '../../core/services/lesson.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FavoriteWordsService } from '../../core/services/favorite-words.service';
-import { Chapter, Exercise, GrammarNote, PassageSentence, VocabularyItem } from '../../core/models/firestore.models';
+import { Chapter, PassageSentence, VocabularyItem } from '../../core/models/firestore.models';
 import { switchMap } from 'rxjs';
 import { GcsUrlPipe } from '../../shared/pipes/gcs-url.pipe';
 import { HighlightVocabPipe } from '../../shared/pipes/highlight-vocab.pipe';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
+import { GcsUrlResolverService } from '../../shared/services/gcs-url-resolver.service';
 import { ExerciseCardComponent } from './exercises/exercise-card.component';
 import { AudioPlayerComponent } from './exercises/audio-player.component';
 import { InlineAudioButtonComponent } from '../../shared/components/inline-audio-button.component';
 import { OwnWordBubbleComponent } from './own-word-bubble.component';
 import { LightboxComponent } from '../../shared/components/lightbox.component';
 import { environment } from '../../../environments/environment';
-import { marked } from 'marked';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MarkdownRenderService } from '../../shared/services/markdown-render.service';
+import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-chapter-detail',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AsyncPipe, RouterLink, GcsUrlPipe, HighlightVocabPipe, ExerciseCardComponent, AudioPlayerComponent, InlineAudioButtonComponent, OwnWordBubbleComponent, LightboxComponent],
   template: `
     @if (chapter(); as chapter) {
@@ -45,7 +46,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
               [src]="(chapter.coverImageUrl | gcsUrl | async) ?? ''"
               alt=""
               class="w-full h-64 md:h-96 object-cover rounded-2xl mb-7 border border-greek-500 shadow-xl cursor-pointer"
+              tabindex="0"
+              role="button"
+              aria-label="View full-size cover image"
               (click)="openLightboxFromEvent($event)"
+              (keydown.enter)="openLightboxFromEvent($event)"
+              (keydown.space)="$event.preventDefault(); openLightboxFromEvent($event)"
             />
           }
 
@@ -85,7 +91,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             </div>
           }
 
-          @if (firstSentence(chapter); as first) {
+          @if (firstSentence(); as first) {
             <div class="max-w-3xl mx-auto mb-10">
               <blockquote class="relative p-6 md:p-8 bg-greek-50 rounded-3xl border border-greek-100 text-center shadow-sm">
                 <!-- Quote icon decorative -->
@@ -138,7 +144,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                   @if (note.imageUrl) {
                     <img [src]="(note.imageUrl | gcsUrl | async) ?? ''" alt=""
                       class="w-full h-48 md:h-64 object-cover border-b border-surface-100 cursor-pointer"
-                      (click)="openLightboxFromEvent($event)" />
+                      tabindex="0"
+                      role="button"
+                      aria-label="View full-size image"
+                      (click)="openLightboxFromEvent($event)"
+                      (keydown.enter)="openLightboxFromEvent($event)"
+                      (keydown.space)="$event.preventDefault(); openLightboxFromEvent($event)" />
                   }
                   <div class="p-6 md:p-10">
                     <h3 class="font-serif text-xl font-semibold text-greek-900 mb-2">{{ note.heading }}</h3>
@@ -213,7 +224,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
           @if (chapter.vocabulary.length) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              @for (word of sortedVocabulary(chapter); track word.greek) {
+              @for (word of sortedVocabulary(); track word.greek) {
                 <div class="group bg-white border border-greek-100 rounded-xl p-4 hover:border-greek-300 hover:shadow-md transition-all duration-150">
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
@@ -229,6 +240,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                           ? 'text-greek-600 bg-greek-100 hover:bg-greek-200'
                           : 'text-surface-300 hover:text-greek-500 hover:bg-greek-50'"
                         [title]="favoriteWordsService.isFavorited(chapter.id, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
+                        [attr.aria-label]="favoriteWordsService.isFavorited(chapter.id, word.greek) ? 'Remove from favorites' : 'Save to favorites'"
                       >
                         @if (favoriteWordsService.isFavorited(chapter.id, word.greek)) {
                           <!-- Filled bookmark -->
@@ -248,6 +260,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                           (click)="playAudio(word.audioUrl, word.greek)"
                           class="w-9 h-9 rounded-full bg-greek-50 text-greek-600 flex items-center justify-center hover:bg-greek-600 hover:text-white transition-colors"
                           title="Listen to pronunciation"
+                          aria-label="Listen to pronunciation"
                           [disabled]="playingWord() === word.greek"
                         >
                           @if (playingWord() === word.greek) {
@@ -296,17 +309,22 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           @if (chapter.exercises.length) {
 
             <!-- Progress bar -->
-            @if (gradableCount(chapter) > 0) {
+            @if (gradableCount() > 0) {
               <div class="mb-8">
                 <div class="flex justify-between items-center text-xs text-surface-500 mb-2">
                   <span>Progress</span>
-                  <span class="font-semibold text-greek-700">{{ answeredCount(chapter) }} / {{ gradableCount(chapter) }} completed</span>
+                  <span class="font-semibold text-greek-700">{{ answeredCount() }} / {{ gradableCount() }} completed</span>
                 </div>
-                <div class="w-full bg-greek-100 rounded-full h-2.5 overflow-hidden">
+                <div class="w-full bg-greek-100 rounded-full h-2.5 overflow-hidden"
+                  role="progressbar"
+                  aria-valuemin="0"
+                  [attr.aria-valuemax]="gradableCount()"
+                  [attr.aria-valuenow]="answeredCount()"
+                  [attr.aria-label]="'Exercise progress: ' + answeredCount() + ' of ' + gradableCount() + ' completed'">
                   <div
                     class="h-2.5 rounded-full transition-all duration-500"
-                    [class]="allAnswered(chapter) ? 'bg-emerald-500' : 'bg-greek-500'"
-                    [style.width.%]="answeredCount(chapter) / gradableCount(chapter) * 100">
+                    [class]="allAnswered() ? 'bg-emerald-500' : 'bg-greek-500'"
+                    [style.width.%]="answeredCount() / gradableCount() * 100">
                   </div>
                 </div>
               </div>
@@ -318,7 +336,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                   [exercise]="exercise"
                   [index]="$index"
                   [chapterId]="chapter.id"
-                  [chapterStoragePath]="chapterStoragePath(chapter.id)"
+                  [chapterStoragePath]="chapterStoragePath()"
                   [sentenceAudioUrls]="chapter.sentenceAudioUrls ?? []"
                   [passageAudioUrl]="chapter.passageAudioUrl ?? ''"
                   [passage]="chapter.passage ?? []"
@@ -353,7 +371,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             }
 
             <!-- Complete Chapter button — shown when all exercises have been attempted -->
-            @if (allAnswered(chapter) && !chapterCompleted() && !alreadyCompleted()) {
+            @if (allAnswered() && !chapterCompleted() && !alreadyCompleted()) {
               <div class="rounded-2xl bg-emerald-50 border-2 border-emerald-300 px-6 py-6 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
                 <div class="flex-1 text-center sm:text-left">
                   <p class="font-bold text-emerald-800 text-base">All exercises passed!</p>
@@ -505,12 +523,15 @@ export class ChapterDetailPage implements OnInit {
   private lessonService = inject(LessonService);
   private authService = inject(AuthService);
   readonly favoriteWordsService = inject(FavoriteWordsService);
-  private storage = inject(Storage);
-  private sanitizer = inject(DomSanitizer);
+  private resolver = inject(GcsUrlResolverService);
+  private markdownRenderService = inject(MarkdownRenderService);
   private document = inject(DOCUMENT);
 
   playingWord = signal<string | null>(null);
   lightboxUrl = signal<string | null>(null);
+  /** Tracks the currently-playing vocabulary word Audio instance so a new
+   *  click can stop the previous one instead of overlapping playback. */
+  private currentWordAudio: HTMLAudioElement | null = null;
 
   /** Tracks which exercise indices have been answered and their result (index -> correct). */
   private answeredMap = signal<Map<number, boolean>>(new Map());
@@ -544,24 +565,26 @@ export class ChapterDetailPage implements OnInit {
     )
   );
 
-  /** Return the first passage sentence, or undefined if the passage is empty. */
-  firstSentence(chapter: Chapter): PassageSentence | undefined {
-    return chapter.passage?.[0];
-  }
+  /** The first passage sentence, or undefined if the passage is empty. */
+  firstSentence = computed<PassageSentence | undefined>(() => this.chapter()?.passage?.[0]);
 
   ngOnInit(): void {
     this.favoriteWordsService.ensureLoaded();
   }
 
-  /** Return vocabulary sorted alphabetically by Greek word. */
-  sortedVocabulary(chapter: Chapter) {
+  /** Vocabulary for the current chapter, sorted alphabetically by Greek word. */
+  sortedVocabulary = computed<VocabularyItem[]>(() => {
+    const chapter = this.chapter();
+    if (!chapter) return [];
     return [...chapter.vocabulary].sort((a, b) => a.greek.localeCompare(b.greek, 'el'));
-  }
+  });
 
-  /** Build the GCS path prefix for a chapter's assets. */
-  chapterStoragePath(chapterId: string): string {
-    return `gs://${environment.firebase.storageBucket}/chapters/${chapterId}`;
-  }
+  /** The GCS path prefix for the current chapter's assets. */
+  chapterStoragePath = computed<string>(() => {
+    const chapter = this.chapter();
+    if (!chapter) return '';
+    return `gs://${environment.firebase.storageBucket}/chapters/${chapter.id}`;
+  });
 
   /** Called when any exercise-card emits an answer. */
   onExerciseAnswered(event: { index: number; correct: boolean }, _chapter: Chapter): void {
@@ -575,28 +598,33 @@ export class ChapterDetailPage implements OnInit {
   /** Exercise types that are never graded (no answered event emitted). */
   private readonly _nonGradableTypes = new Set(['lyrics_fill', 'vocab_flashcard']);
 
-  /** Number of exercises that produce a gradable result. */
-  gradableCount(chapter: Chapter): number {
+  /** Number of exercises in the current chapter that produce a gradable result. */
+  gradableCount = computed<number>(() => {
+    const chapter = this.chapter();
+    if (!chapter) return 0;
     return chapter.exercises.filter(ex => !this._nonGradableTypes.has(ex.type)).length;
-  }
+  });
 
   /** Number of gradable exercises that have been answered. */
-  answeredCount(chapter: Chapter): number {
+  answeredCount = computed<number>(() => {
+    const chapter = this.chapter();
+    if (!chapter) return 0;
     const gradableIndices = chapter.exercises
       .map((ex, i) => ({ ex, i }))
       .filter(({ ex }) => !this._nonGradableTypes.has(ex.type))
       .map(({ i }) => i);
+    const answered = this.answeredMap();
     let count = 0;
-    gradableIndices.forEach(i => { if (this.answeredMap().has(i)) count++; });
+    gradableIndices.forEach(i => { if (answered.has(i)) count++; });
     return count;
-  }
+  });
 
   /** True when every gradable exercise has been attempted (regardless of correctness). */
-  allAnswered(chapter: Chapter): boolean {
-    const gradable = this.gradableCount(chapter);
+  allAnswered = computed<boolean>(() => {
+    const gradable = this.gradableCount();
     if (gradable === 0) return false;
-    return this.answeredCount(chapter) >= gradable;
-  }
+    return this.answeredCount() >= gradable;
+  });
 
   async onCompleteChapter(chapterId: string): Promise<void> {
     this.completing.set(true);
@@ -612,16 +640,14 @@ export class ChapterDetailPage implements OnInit {
     }
   }
 
-  /** Render a Markdown string to trusted HTML (used for grammar tables). */
+  /** Render a Markdown string to sanitized, trusted HTML (used for grammar tables). */
   renderMarkdown(md: string): SafeHtml {
-    const html = marked.parse(md, { async: false }) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    return this.markdownRenderService.renderBlock(md);
   }
 
   /** Render inline Markdown (bold, italic, code) without block-level wrapping. */
   renderMarkdownInline(md: string): SafeHtml {
-    const html = marked.parseInline(md, { async: false }) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    return this.markdownRenderService.renderInline(md);
   }
 
   openLightboxFromEvent(event: Event): void {
@@ -636,25 +662,33 @@ export class ChapterDetailPage implements OnInit {
   playAudio(url: string, word?: string): void {
     if (word) this.playingWord.set(word);
 
+    // Stop any currently-playing word audio before starting a new one, so
+    // rapid successive clicks don't overlap playback.
+    if (this.currentWordAudio) {
+      this.currentWordAudio.pause();
+      this.currentWordAudio = null;
+    }
+
     const play = (resolvedUrl: string) => {
       const audio = new Audio(resolvedUrl);
+      this.currentWordAudio = audio;
       audio.play();
       audio.onended = () => {
+        if (this.currentWordAudio === audio) this.currentWordAudio = null;
         if (word) this.playingWord.set(null);
       };
       audio.onerror = () => {
+        if (this.currentWordAudio === audio) this.currentWordAudio = null;
         if (word) this.playingWord.set(null);
       };
     };
 
-    if (url.startsWith('gs://')) {
-      getDownloadURL(ref(this.storage, url))
-        .then(play)
-        .catch(() => {
-          if (word) this.playingWord.set(null);
-        });
-    } else {
-      play(url);
-    }
+    // resolver.resolve() passes plain http(s) URLs through unchanged, so no
+    // need to branch on the gs:// prefix here ourselves.
+    this.resolver.resolve(url)
+      .then(play)
+      .catch(() => {
+        if (word) this.playingWord.set(null);
+      });
   }
 }

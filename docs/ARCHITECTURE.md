@@ -3,7 +3,7 @@
 ## 1. Overview
 The application consists of three main components:
 1. **Frontend (User Application)**: An Angular SPA deployed to Firebase Hosting.
-2. **Backend (Evaluation & Progress)**: Two Python Cloud Functions (2nd gen) deployed to Google Cloud Functions, fronted by an API Gateway.
+2. **Backend (Evaluation & Progress)**: Four Python Cloud Functions (2nd gen) deployed to Google Cloud Functions, fronted by an API Gateway.
 3. **Content Generator (Operator Tool)**: A local Python CLI utilizing LangGraph for AI-assisted content creation.
 
 ## 2. Component Details
@@ -21,32 +21,35 @@ The application consists of three main components:
   - Browser-based Speech-to-Text for pronunciation practice.
 
 ### 2.2 Backend (Cloud Functions 2nd gen + API Gateway)
-- **Role**: Secure evaluation of complex exercises and chapter completion processing.
+- **Role**: Secure evaluation of complex exercises, chapter/practice-set completion processing, and student-authored vocabulary ("own words").
 - **Deployment**: Google Cloud Functions (2nd gen), one function per entry point file.
 - **Auth model (layered)**:
-  1. **API Gateway** validates the Firebase JWT at the edge (`issuer: https://securetoken.google.com/{project_id}`, `audience: {project_id}`). Requests without a valid token are rejected with `401` before reaching the function.
+  1. **API Gateway** validates the Firebase JWT at the edge (`issuer: https://securetoken.google.com/{project_id}`, `audience: {project_id}`). Requests without a valid token are rejected with `401` before reaching the function. It also enforces a coarse per-project rate limit per endpoint (shared across all users).
   2. **Cloud Functions** are deployed `--no-allow-unauthenticated`. Only the `api-gateway-sa` service account (with `roles/run.invoker`) can invoke them.
-  3. **Function code** re-verifies the Firebase ID token and checks Firestore document ownership + `status=pending` (defence-in-depth).
+  3. **Function code** re-verifies the Firebase ID token, confirms `users/{uid}.status == "active"` (`callable_helpers.ensure_active_user`), enforces a per-user/per-function rate limit as defense-in-depth under the gateway's per-project quota (`callable_helpers.check_rate_limit`, backed by the `rate_limits` collection — see `docs/DATA_MODEL.md`), and checks Firestore document ownership + status preconditions (e.g. `exercise_attempts.status == "pending"`) — all before any billable Gemini/TTS/STT call.
 - **Wire Protocol**: Firebase Callable convention — request body `{"data": {...}}`, success response `{"result": {...}}`, error response `{"error": {"status": "...", "message": "..."}}`.
 - **Functions**:
-  - `evaluate_attempt_fn` (`fn_evaluate.py`): Evaluates an AI-graded exercise attempt using Gemini and writes the result to Firestore.
-  - `complete_chapter_fn` (`fn_complete_chapter.py`): Generates a progress summary via Gemini and updates the user document in Firestore (`completedChapterIds`, `lastActive`, `lastProgressSummary`). Grammar book entries are NOT generated here — see the content-cli pipeline.
-- **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, and response formatting used by both functions.
-- **AI Integration**: Uses Gemini for exercise evaluation and progress summary generation.
+  - `evaluate_attempt_fn` (`fn_evaluate.py`): Evaluates an AI-graded exercise attempt using Gemini and writes the result to Firestore. The `pending → evaluating → completed/error` transition is claimed inside a Firestore transaction (preventing double-evaluation races) and a stale `evaluating` claim can be reclaimed after a timeout instead of being stuck forever.
+  - `complete_chapter_fn` (`fn_complete_chapter.py`): Generates a progress summary via Gemini and updates the user document in Firestore (`completedChapterIds` via `ArrayUnion`, `xp` via `Increment`, `lastActive`, `lastProgressSummary`), inside a transaction. Grammar book entries are NOT generated here — see the content-cli pipeline.
+  - `complete_practice_fn` (`fn_complete_practice.py`): Idempotently awards a flat XP amount for completing a practice set (`completedPracticeSetIds` via `ArrayUnion`, `xp` via `Increment`), inside a transaction.
+  - `add_own_word_fn` (`fn_own_word.py`): Normalizes a student-submitted Greek word/phrase via Gemini, synthesizes pronunciation audio (Cloud TTS), uploads it to the public assets bucket, and writes it to `users/{uid}/ownWords` via a deterministic document ID (idempotent overwrite).
+- **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, response formatting, the active-user gate, and the per-user rate limiter — used by all four functions.
+- **AI Integration**: Uses Gemini for exercise evaluation, pronunciation grading, progress summary generation, and own-word normalization; Cloud Speech-to-Text for pronunciation transcription; Cloud Text-to-Speech for own-word audio.
 - **Service accounts**:
-  - `api-gateway-sa` — held by API Gateway; has `roles/run.invoker` on both functions.
-  - `cf-runtime-sa` — attached to both Cloud Functions; has `roles/aiplatform.user`, `roles/datastore.user`, `roles/speech.client`, `roles/firebase.sdkAdminServiceAgent`.
+  - `api-gateway-sa` — held by API Gateway; has `roles/run.invoker` on all four functions.
+  - `cf-runtime-sa` — attached to all four Cloud Functions; has `roles/aiplatform.user`, `roles/datastore.user`, `roles/speech.client`, `roles/firebase.sdkAdminServiceAgent`.
 
 ### 2.3 Content Generator (Local CLI)
 - **Role**: Offline tool for operators to generate multimodal course content.
-- **Tech Stack**: Python, LangGraph, Vertex AI (Gemini for text generation), local Piper TTS.
+- **Tech Stack**: Python, LangGraph, Vertex AI (Gemini for text generation and image generation), Google Cloud Text-to-Speech.
 - **Process**:
   1. Operator inputs chapter, topic, and optional student interests.
   2. LangGraph nodes generate text, vocabulary, grammar explanations, and a pre-built grammar summary (`grammarSummary`).
   3. The `generate_grammar_summary` node (Gemini Pro) runs after `generate_grammar_notes` and produces a thorough Markdown reference (grammar tables, key vocabulary, tips & common mistakes). This is stored on the chapter document and is identical for all students.
   4. A Reviewer Node ensures quality and appropriateness (max 2 retries).
-  5. Media is generated (TTS audio, Vertex AI images).
-  6. Content is written directly to the Firestore emulator (local) or production Firestore (`--no-local`).
+  5. Media is generated (TTS audio, Gemini-generated images).
+  6. The pipeline is checkpointed (SQLite, keyed by a hash of the operator's inputs) so a late-stage failure can be resumed from the last completed node by re-running the same command, instead of discarding all prior work. See `docs/CONTENT_PIPELINE.md`.
+  7. Content is written directly to the Firestore emulator (local) or production Firestore (`--no-local`).
 
 ## 3. Data Flow
 
@@ -133,7 +136,7 @@ cp infra/terraform.tfvars.example infra/terraform.tfvars
 | `infra/storage.tf` | Public assets GCS bucket (CORS, `allUsers:objectViewer`) |
 | `infra/firestore.tf` | Firestore database (NATIVE mode) |
 | `infra/iam.tf` | `api-gateway-sa`, `cf-runtime-sa`, IAM bindings |
-| `infra/functions.tf` | CF source GCS bucket, source zip object, 2x `google_cloudfunctions2_function` |
+| `infra/functions.tf` | CF source GCS bucket, source zip object, 4x `google_cloudfunctions2_function` |
 | `infra/api_gateway.tf` | `google_api_gateway_api/config/gateway` (OpenAPI 2.0 spec, Firebase JWT, CORS) |
 | `infra/firebase_hosting.tf` | `google_firebase_web_app`, `google_firebase_hosting_site` |
 | `infra/outputs.tf` | `api_gateway_url`, function URLs, Firebase web app config |

@@ -15,10 +15,11 @@ import {
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { Observable, from, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { Chapter, Book, ExerciseAttempt, AttemptPayload, ExerciseType, EvaluationResult, PracticeSet } from '../models/firestore.models';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 @Injectable({ providedIn: 'root' })
 export class LessonService {
@@ -26,19 +27,43 @@ export class LessonService {
   private authService = inject(AuthService);
   private auth = inject(Auth);
 
+  /** Cached books$ stream (IMP-FE-03) — LayoutComponent's sidebar and
+   *  ChaptersPage both need the full books list; without caching, each
+   *  independently opens its own realtime Firestore listener for identical
+   *  data. `shareReplay({ bufferSize: 1, refCount: false })` means every
+   *  caller shares one underlying listener and immediately gets the last
+   *  emitted value on subscribe, and the listener is never torn down (the
+   *  books list is small and cheap to keep hot for the app's lifetime). */
+  private _books$: Observable<Book[]> | null = null;
+
+  /** Cached chapters$ streams keyed by bookId, same rationale as _books$ above. */
+  private readonly _chaptersByBook$ = new Map<string, Observable<Chapter[]>>();
+
   /** Stream all active books ordered by their display order. */
   getBooks(): Observable<Book[]> {
-    const ref = collection(this.firestore, 'books');
-    return collectionData(query(ref, orderBy('order')), { idField: 'id' }) as Observable<Book[]>;
+    if (!this._books$) {
+      const ref = collection(this.firestore, 'books');
+      this._books$ = (collectionData(query(ref, orderBy('order')), { idField: 'id' }) as Observable<Book[]>).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+    return this._books$;
   }
 
   /** Stream all chapters belonging to a given book. */
   getChaptersByBook(bookId: string): Observable<Chapter[]> {
-    const ref = collection(this.firestore, 'chapters');
-    return collectionData(
-      query(ref, where('bookId', '==', bookId), orderBy('order')),
-      { idField: 'id' }
-    ) as Observable<Chapter[]>;
+    let chapters$ = this._chaptersByBook$.get(bookId);
+    if (!chapters$) {
+      const ref = collection(this.firestore, 'chapters');
+      chapters$ = (collectionData(
+        query(ref, where('bookId', '==', bookId), orderBy('order')),
+        { idField: 'id' }
+      ) as Observable<Chapter[]>).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this._chaptersByBook$.set(bookId, chapters$);
+    }
+    return chapters$;
   }
 
   /** Stream a single chapter document in real-time. */
@@ -117,7 +142,7 @@ export class LessonService {
     // instead (falls back to the header for local dev without a gateway).
     if (idToken) requestData['idToken'] = idToken;
 
-    const response = await fetch(environment.evaluateAttemptUrl, {
+    const response = await fetchWithTimeout(environment.evaluateAttemptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +178,7 @@ export class LessonService {
 
     const idToken = await this.auth.currentUser?.getIdToken();
 
-    const response = await fetch(environment.completeChapterUrl, {
+    const response = await fetchWithTimeout(environment.completeChapterUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -194,7 +219,7 @@ export class LessonService {
 
     const idToken = await this.auth.currentUser?.getIdToken();
 
-    const response = await fetch(environment.completePracticeUrl, {
+    const response = await fetchWithTimeout(environment.completePracticeUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

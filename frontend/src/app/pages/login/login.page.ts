@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -67,11 +68,27 @@ import { AuthService } from '../../core/services/auth.service';
     </div>
   `,
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   loading = signal(false);
   error = signal('');
+
+  /** Redirect an already-authenticated user away from /login instead of
+   *  showing the sign-in screen again — mirrors activeUserGuard's logic. */
+  async ngOnInit(): Promise<void> {
+    const fbUser = await this.authService.waitForAuthResolved();
+    if (!fbUser) return;
+
+    await this.authService.loadCurrentUser(fbUser.uid);
+    if (this.authService.isActive()) {
+      this.router.navigate(['/chapters']);
+    } else if (this.authService.currentUser()) {
+      // Firestore user doc exists but hasn't been activated yet.
+      this.router.navigate(['/pending']);
+    }
+  }
 
   async signInWithGoogle(): Promise<void> {
     this.error.set('');

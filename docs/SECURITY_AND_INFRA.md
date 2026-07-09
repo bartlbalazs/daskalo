@@ -12,6 +12,8 @@ This document outlines the security rules and infrastructure requirements for th
 ### 1.2 Firestore Security Rules
 Strict security rules are required to ensure data integrity and prevent unauthorized access. The rules must enforce the "active" status check.
 
+> The canonical, always-current rules are `frontend/firestore.rules` (deployed via `firebase deploy --only firestore:rules`). The snippet below is illustrative only, kept intentionally short — refer to the real file for the exact, complete rule set (it also covers `favoriteWords`, `ownWords`, and `practice_sets`, and constrains the exact shape a client may write on user-document creation).
+
 ```javascript
 rules_version = '2';
 service cloud.firestore {
@@ -27,22 +29,25 @@ service cloud.firestore {
       return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == "active";
     }
 
-    // Users can read/write their own document
+    // Users can read their own document. Creation is allowed only with
+    // status: "pending" and every progress field at its zero/empty value —
+    // all subsequent updates (activation, xp, completed chapters, ...) are
+    // performed exclusively by the backend via the Admin SDK.
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
-      // Note: We'll need a way for the backend to set/update 'status'.
-      // The backend uses the Admin SDK, which bypasses these rules.
+      allow read: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId && request.resource.data.status == "pending";
+      allow update, delete: if false;
     }
 
-    // Phases and Chapters are strictly read-only for active users
-    match /phases/{phaseId} {
+    // Books and Chapters are strictly read-only for active users
+    match /books/{bookId} {
       allow read: if isActiveUser();
-      allow write: if false; // Only written by the Backend Ingestion Service
+      allow write: if false; // Only written by the content-cli ingestion pipeline
     }
 
     match /chapters/{chapterId} {
       allow read: if isActiveUser();
-      allow write: if false; // Only written by the Backend Ingestion Service
+      allow write: if false; // Only written by the content-cli ingestion pipeline
     }
 
     // Exercise Attempts
@@ -50,7 +55,7 @@ service cloud.firestore {
     // Active users can create new attempts, but cannot fake evaluations
     match /exercise_attempts/{attemptId} {
       allow read: if isActiveUser() && resource.data.userId == request.auth.uid;
-      allow create: if isActiveUser() && request.resource.data.userId == request.auth.uid && request.resource.data.evaluation == null;
+      allow create: if isActiveUser() && request.resource.data.userId == request.auth.uid && request.resource.data.evaluation == null && request.resource.data.status == "pending";
       allow update, delete: if false; // Only the Backend can update (add evaluation)
     }
   }
@@ -71,16 +76,16 @@ Three security checkpoints protect every backend call:
 |-------|-----------------|
 | **API Gateway** | Firebase JWT signature + issuer + audience validation at the edge. Rejects unauthenticated requests before they reach Cloud Functions. |
 | **Cloud Run IAM** | Cloud Functions are `--no-allow-unauthenticated`. Only `api-gateway-sa` (with `roles/run.invoker`) can invoke them. |
-| **Function code** | Re-verifies the Firebase ID token, checks Firestore document ownership (`userId == caller uid`), and checks `status=pending`. |
+| **Function code** | Re-verifies the Firebase ID token, confirms `users/{uid}.status == "active"`, enforces a per-user/per-function rate limit (defense-in-depth under the gateway's per-project quota), checks Firestore document ownership (`userId == caller uid`), and validates status preconditions (e.g. atomically claims `exercise_attempts.status: "pending" → "evaluating"` inside a transaction). |
 
 ### 2.3 Service Accounts
 
 #### `api-gateway-sa`
 - **Purpose**: Used by API Gateway to invoke Cloud Functions.
-- **Permissions**: `roles/run.invoker` (project-level — covers both functions).
+- **Permissions**: `roles/run.invoker` (project-level — covers all four functions).
 
 #### `cf-runtime-sa`
-- **Purpose**: Attached to both Cloud Functions at runtime.
+- **Purpose**: Attached to all four Cloud Functions at runtime.
 - **Permissions**:
   - `roles/aiplatform.user` — call Gemini models via Vertex AI
   - `roles/datastore.user` — read/write Firestore

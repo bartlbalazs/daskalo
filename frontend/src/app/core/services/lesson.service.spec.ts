@@ -26,26 +26,46 @@ function makeMockAuthService(uid = 'user-123') {
   };
 }
 
-/** Mock addDoc: captures the written attempt and returns a ref with an id. */
-const mockAddDoc = vi.fn().mockResolvedValue({ id: 'attempt-abc' });
+/** Mock addDoc: captures the written attempt and returns a ref with an id.
+ *  Declared via vi.hoisted() so it's guaranteed to be initialised before the
+ *  vi.mock() factory below runs — vi.mock() calls are hoisted to the top of
+ *  the file (above regular const declarations), and referencing a plain
+ *  top-level const from inside the factory can throw a TDZ
+ *  ReferenceError if this module ends up bundled/evaluated alongside other
+ *  spec files that also import LessonService/AuthService (e.g. sharing a
+ *  common chunk with a different module-evaluation order). */
+const { mockAddDoc } = vi.hoisted(() => ({
+  mockAddDoc: vi.fn().mockResolvedValue({ id: 'attempt-abc' }),
+}));
 
-vi.mock('@angular/fire/firestore', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@angular/fire/firestore')>();
-  return {
-    ...actual,
-    addDoc: (...args: unknown[]) => mockAddDoc(...args),
-    collection: vi.fn().mockReturnValue({}),
-    collectionData: vi.fn().mockReturnValue({ pipe: vi.fn() }),
-    doc: vi.fn().mockReturnValue({}),
-    docData: vi.fn().mockReturnValue({ pipe: vi.fn() }),
-    getDocs: vi.fn().mockResolvedValue({ docs: [] }),
-    query: vi.fn().mockReturnValue({}),
-    orderBy: vi.fn(),
-    where: vi.fn(),
-    documentId: vi.fn(),
-    serverTimestamp: vi.fn().mockReturnValue('SERVER_TS'),
-  };
-});
+vi.mock('@angular/fire/firestore', () => ({
+  // `Firestore` is used as a DI token (`inject(Firestore)` / `provide: Firestore`)
+  // rather than called directly, so any consistent class reference works here —
+  // both LessonService/AuthService and this spec import it from this same
+  // mocked module, so the reference identity matches for DI purposes.
+  Firestore: class MockFirestoreToken {},
+  addDoc: (...args: unknown[]) => mockAddDoc(...args),
+  collection: vi.fn().mockReturnValue({}),
+  collectionData: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+  doc: vi.fn().mockReturnValue({}),
+  docData: vi.fn().mockReturnValue({ pipe: vi.fn() }),
+  getDoc: vi.fn().mockResolvedValue({ exists: () => false }),
+  setDoc: vi.fn().mockResolvedValue(undefined),
+  getDocs: vi.fn().mockResolvedValue({ docs: [] }),
+  query: vi.fn().mockReturnValue({}),
+  orderBy: vi.fn(),
+  where: vi.fn(),
+  documentId: vi.fn(),
+  serverTimestamp: vi.fn().mockReturnValue('SERVER_TS'),
+}));
+
+/** Builds a resolved-`fetch` response that passes the `response.ok` check
+ *  added for IMP-FE-05 — every happy-path test needs `ok: true` now that
+ *  fetchWithTimeout() rejects non-ok responses before the caller ever sees
+ *  the JSON body. */
+function okResponse(body: unknown, status = 200) {
+  return { ok: true, status, statusText: 'OK', json: vi.fn().mockResolvedValue(body) };
+}
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -77,12 +97,7 @@ describe('LessonService', () => {
 
   it('calls evaluate endpoint and returns the evaluation result', async () => {
     const fakeResult = { score: 88, feedback: 'Great!', isCorrect: true };
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ result: fakeResult }),
-      })
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse({ result: fakeResult })));
 
     const result = await service.evaluateAttempt('ch-1', 'ex_0', 'translation_challenge', {
       text: 'Γεια σου',
@@ -99,9 +114,7 @@ describe('LessonService', () => {
   it('strips audioBase64 from the Firestore payload', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ result: { score: 70, feedback: 'OK', isCorrect: false } }),
-      })
+      vi.fn().mockResolvedValue(okResponse({ result: { score: 70, feedback: 'OK', isCorrect: false } }))
     );
 
     await service.evaluateAttempt('ch-1', 'ex_0', 'pronunciation_practice', {
@@ -119,9 +132,9 @@ describe('LessonService', () => {
   // -------------------------------------------------------------------------
 
   it('includes audioBase64 in the HTTP request body when present', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      json: vi.fn().mockResolvedValue({ result: { score: 70, feedback: 'OK', isCorrect: false } }),
-    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      okResponse({ result: { score: 70, feedback: 'OK', isCorrect: false } })
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     await service.evaluateAttempt('ch-1', 'ex_0', 'pronunciation_practice', {
@@ -162,11 +175,13 @@ describe('LessonService', () => {
   // -------------------------------------------------------------------------
 
   it('throws when the backend returns a callable error', async () => {
+    // Callable-style errors arrive as a 200 OK response with an `error` body
+    // (the Cloud Function's own error protocol) — response.ok is still true.
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ error: { status: 'INTERNAL', message: 'Something failed.' } }),
-      })
+      vi.fn().mockResolvedValue(
+        okResponse({ error: { status: 'INTERNAL', message: 'Something failed.' } })
+      )
     );
 
     await expect(
@@ -179,16 +194,59 @@ describe('LessonService', () => {
   // -------------------------------------------------------------------------
 
   it('completeChapter calls the endpoint and refreshes the user profile', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ result: { xpGained: 50 } }),
-      })
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse({ result: { xpGained: 50 } })));
 
     const result = await service.completeChapter('ch-1');
 
     expect(result.xpGained).toBe(50);
     expect(mockAuthService.loadCurrentUser).toHaveBeenCalledOnce();
+  });
+
+  // -------------------------------------------------------------------------
+  // evaluateAttempt / completeChapter — fetch reliability (IMP-FE-05)
+  // -------------------------------------------------------------------------
+
+  it('throws a clear, status-coded error when the response is not ok', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: vi.fn().mockResolvedValue({}),
+      })
+    );
+
+    await expect(service.completeChapter('ch-1')).rejects.toThrow(/500/);
+  });
+
+  it('aborts and throws a clear error when the request exceeds the timeout', async () => {
+    vi.useFakeTimers();
+    // A fetch mock that never resolves on its own, but respects the
+    // AbortController signal passed by fetchWithTimeout — mirrors a real
+    // hung connection being cancelled by the timeout.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init?: RequestInit) => {
+        return new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            const abortError = new Error('The operation was aborted.');
+            abortError.name = 'AbortError';
+            reject(abortError);
+          });
+        });
+      })
+    );
+
+    const pending = service.completeChapter('ch-1');
+    // Swallow the eventual rejection so Vitest's unhandled-rejection
+    // detection doesn't flag it before the assertion below attaches.
+    pending.catch(() => {});
+
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    await expect(pending).rejects.toThrow(/timed out/i);
+
+    vi.useRealTimers();
   });
 });

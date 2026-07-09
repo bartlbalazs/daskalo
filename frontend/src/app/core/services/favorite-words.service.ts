@@ -82,7 +82,8 @@ export class FavoriteWordsService {
   /**
    * Toggle the favorite state for a vocabulary word.
    * If currently favorited — removes it. If not — adds it.
-   * Optimistically updates the local signal before the Firestore write.
+   * Optimistically updates the local signal before the Firestore write, and
+   * rolls the optimistic change back if the write fails.
    */
   async toggleFavorite(
     word: VocabularyItem,
@@ -94,15 +95,26 @@ export class FavoriteWordsService {
 
     const docId = favoriteDocId(chapterId, word.greek);
     const favRef = doc(this.firestore, 'users', uid, 'favoriteWords', docId);
+    const previousEntry = this._favorites().get(docId);
 
-    if (this.isFavorited(chapterId, word.greek)) {
+    if (previousEntry) {
       // Optimistic remove
       this._favorites.update(m => {
         const next = new Map(m);
         next.delete(docId);
         return next;
       });
-      await deleteDoc(favRef);
+      try {
+        await deleteDoc(favRef);
+      } catch (err) {
+        console.error('[FavoriteWordsService] Failed to remove favorite — reverting local state:', err);
+        // Roll back: restore the exact previous entry (including its original favoritedAt).
+        this._favorites.update(m => {
+          const next = new Map(m);
+          next.set(docId, previousEntry);
+          return next;
+        });
+      }
     } else {
       // Optimistic add
       const newFav: FavoriteWord = {
@@ -118,7 +130,17 @@ export class FavoriteWordsService {
         next.set(docId, newFav);
         return next;
       });
-      await setDoc(favRef, newFav);
+      try {
+        await setDoc(favRef, newFav);
+      } catch (err) {
+        console.error('[FavoriteWordsService] Failed to add favorite — reverting local state:', err);
+        // Roll back the optimistic add.
+        this._favorites.update(m => {
+          const next = new Map(m);
+          next.delete(docId);
+          return next;
+        });
+      }
     }
   }
 }

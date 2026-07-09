@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import {
   Exercise,
   ConversationData,
@@ -9,16 +9,17 @@ import {
   TranslationCheckpoint,
   VocabularyItem,
 } from '../../../core/models/firestore.models';
-import { Storage, ref, getDownloadURL } from '@angular/fire/storage';
 import { HighlightVocabPipe } from '../../../shared/pipes/highlight-vocab.pipe';
+import { GcsUrlResolverService } from '../../../shared/services/gcs-url-resolver.service';
 
-type LineStep = { kind: 'line'; line: ConversationLine; lineIndex: number };
-type CheckpointStep = { kind: 'checkpoint'; checkpoint: ConversationCheckpoint; checkpointIndex: number };
+interface LineStep { kind: 'line'; line: ConversationLine; lineIndex: number }
+interface CheckpointStep { kind: 'checkpoint'; checkpoint: ConversationCheckpoint; checkpointIndex: number }
 type ConversationStep = LineStep | CheckpointStep;
 
 @Component({
   selector: 'app-conversation',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [HighlightVocabPipe],
   template: `
     <div class="space-y-3">
@@ -64,7 +65,7 @@ type ConversationStep = LineStep | CheckpointStep;
                   [class]="step.line.speaker === 'male' ? 'text-greek-700' : 'text-gold-700'">
                   {{ step.line.speaker === 'male' ? 'Ο άντρας' : 'Η γυναίκα' }}
                 </span>
-                @if (step.line.audioPath) {
+                @if (step.line.audioUrl) {
                   <button
                     (click)="playLine(step.line, step.lineIndex)"
                     [disabled]="playingIndex() === step.lineIndex"
@@ -73,6 +74,7 @@ type ConversationStep = LineStep | CheckpointStep;
                       ? 'text-greek-500 hover:text-greek-700'
                       : 'text-gold-500 hover:text-gold-700'"
                     title="Play audio"
+                    aria-label="Play audio"
                   >
                     @if (playingIndex() === step.lineIndex) {
                       <svg class="w-3.5 h-3.5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
@@ -226,11 +228,15 @@ type ConversationStep = LineStep | CheckpointStep;
 })
 export class ConversationComponent implements OnInit, OnDestroy {
   @Input({ required: true }) exercise!: Exercise;
+  /** Unused internally since CC-08 (every ConversationLine.audioUrl is now a
+   *  complete gs:// URI, so there's no relative path left to resolve against
+   *  it) — kept as an Input so exercise-card.component.ts can keep binding
+   *  it uniformly across all exercise types without a template error. */
   @Input() chapterStoragePath = '';
   @Input() vocabulary: VocabularyItem[] = [];
   @Output() answered = new EventEmitter<boolean>();
 
-  private storage = inject(Storage);
+  private resolver = inject(GcsUrlResolverService);
 
   steps = signal<ConversationStep[]>([]);
   playingIndex = signal<number | null>(null);
@@ -303,9 +309,9 @@ export class ConversationComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
 
   playLine(line: ConversationLine, idx: number): void {
-    if (!line.audioPath) return;
+    if (!line.audioUrl) return;
     this.playingIndex.set(idx);
-    this._resolveAndPlay(line.audioPath,
+    this._resolveAndPlay(line.audioUrl,
       () => this.playingIndex.set(null),
       () => this.playingIndex.set(null)
     );
@@ -358,14 +364,14 @@ export class ConversationComponent implements OnInit, OnDestroy {
     this.playingIndex.set(line ? step.lineIndex : null);
     this.playAllStepIndex++;
 
-    if (!line.audioPath) {
+    if (!line.audioUrl) {
       // No audio for this line — move on after a short pause
       setTimeout(() => this._playNextStep(), 400);
       return;
     }
 
     this._resolveAndPlay(
-      line.audioPath,
+      line.audioUrl,
       () => {
         this.playingIndex.set(null);
         // Small gap between lines
@@ -472,14 +478,15 @@ export class ConversationComponent implements OnInit, OnDestroy {
     return 'border-surface-200 bg-white text-surface-400';
   }
 
-  totalCheckpoints(): number {
-    return this.steps().filter(s => s.kind === 'checkpoint').length;
-  }
+  /** Total number of checkpoints in this conversation — pure function of the
+   *  own `steps` signal, so memoized as a computed. */
+  totalCheckpoints = computed<number>(() => this.steps().filter(s => s.kind === 'checkpoint').length);
 
-  allCheckpointsAnswered(): boolean {
+  /** True once every checkpoint has been answered — gates the Submit button. */
+  allCheckpointsAnswered = computed<boolean>(() => {
     const total = this.totalCheckpoints();
     return total > 0 && this.checkpointAnswers().size >= total;
-  }
+  });
 
   // ---------------------------------------------------------------------------
   // Submit
@@ -502,6 +509,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
   }
 
   /** Public submit() — no-op; conversation is self-driven via checkpoints + Submit button. */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- intentional no-op, see comment above
   submit(): void {}
 
   // ---------------------------------------------------------------------------
@@ -509,7 +517,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
 
   private _resolveAndPlay(
-    audioPath: string,
+    audioUrl: string,
     onEnded: () => void,
     onError: () => void
   ): void {
@@ -519,29 +527,43 @@ export class ConversationComponent implements OnInit, OnDestroy {
       }
       const audio = new Audio(url);
       this.currentAudio = audio;
-      audio.play().catch(onError);
-      audio.onended = () => {
+
+      // Guard: a failing audio source can trigger BOTH the play() promise
+      // rejection (.catch below) AND the native `error` event on the element
+      // for the same underlying failure. Without this guard, both would call
+      // onError, double-advancing sequential playback (_playNextStep called
+      // twice, skipping/overlapping a step).
+      let settled = false;
+      const fireEnded = () => {
+        if (settled) return;
+        settled = true;
         this.currentAudio = null;
         onEnded();
       };
-      audio.onerror = () => {
+      const fireError = () => {
+        if (settled) return;
+        settled = true;
         this.currentAudio = null;
         onError();
       };
+
+      audio.play().catch(fireError);
+      audio.onended = fireEnded;
+      audio.onerror = fireError;
     };
 
-    if (audioPath.startsWith('gs://')) {
-      getDownloadURL(ref(this.storage, audioPath))
+    if (audioUrl.startsWith('gs://') || audioUrl.startsWith('http')) {
+      this.resolver.resolve(audioUrl)
         .then(play)
         .catch(onError);
-    } else if (audioPath.startsWith('http')) {
-      play(audioPath);
     } else {
-      // Relative path: resolve against chapterStoragePath in GCS
-      const gsPath = `${this.chapterStoragePath}/${audioPath}`;
-      getDownloadURL(ref(this.storage, gsPath))
-        .then(play)
-        .catch(onError);
+      // Every conversation line's audioUrl is written as a full gs:// URI by
+      // the content-cli ingest step (CC-08 — the field was renamed from
+      // audioPath, and every asset is now always a complete gs:// or http(s)
+      // reference). An unrecognized format here means missing/malformed
+      // data, not a relative path to resolve against chapterStoragePath.
+      console.error(`[ConversationComponent] Unexpected audio URL format: "${audioUrl}"`);
+      onError();
     }
   }
 }

@@ -8,27 +8,24 @@ EvaluationResult's shape — eliminating fragile markdown-fence stripping.
 """
 
 import base64
-import json
 import logging
 import os
 import time
+from functools import lru_cache
 
 from google import genai
 from google.cloud import speech_v1 as speech
 from google.genai import types
 
-from models.firestore import EvaluationResult, ExerciseAttempt, ExerciseType
+from constants import GEMINI_MODEL_ID
+from models.firestore import AI_GRADED_EXERCISE_TYPES, EvaluationResult, ExerciseAttempt, ExerciseType
+from services.gemini_utils import generate_content_with_retry, parse_json_response
 
 logger = logging.getLogger(__name__)
 
-_GRADED_TYPES = {
-    ExerciseType.image_description,
-    ExerciseType.translation_challenge,
-    ExerciseType.dictation,
-    ExerciseType.pronunciation_practice,
-}
+_GRADED_TYPES = AI_GRADED_EXERCISE_TYPES
 
-_MODEL_ID = "gemini-2.5-flash"
+_MODEL_ID = GEMINI_MODEL_ID
 
 # Response schema mirrors EvaluationResult; used for all graded exercise types.
 # Constraining the model at the API level removes the need for fragile
@@ -124,6 +121,11 @@ _MAX_AUDIO_SECONDS = 15
 _MAX_ANSWER_CHARS = 300
 
 
+# IMP-BE-03: construct the genai client once and reuse it across invocations
+# within the same process, instead of on every single request. Lazily cached
+# (not built at raw import time) so credentials only need to resolve on first
+# actual use, not merely on import.
+@lru_cache(maxsize=1)
 def _get_client() -> genai.Client:
     project = os.environ["GOOGLE_CLOUD_PROJECT"]
     region = os.getenv("REGION", "europe-west1")
@@ -201,7 +203,8 @@ def evaluate_attempt(attempt: ExerciseAttempt, prompt: str, *, image_url: str = 
 
     client = _get_client()
     t0 = time.perf_counter()
-    response = client.models.generate_content(
+    response = generate_content_with_retry(
+        client,
         model=_MODEL_ID,
         contents=contents,
         config=_EVAL_CONFIG,
@@ -215,7 +218,7 @@ def evaluate_attempt(attempt: ExerciseAttempt, prompt: str, *, image_url: str = 
     )
     logger.debug("evaluate_attempt: raw Gemini response: %s", response.text)
 
-    data = json.loads(response.text)
+    data = parse_json_response(response.text)
     raw_score = data.get("score", 0)
     # Override AI's boolean judgment: anything above 60 is considered correct.
     data["isCorrect"] = raw_score > 60
@@ -281,6 +284,17 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
         len(audio_base64),
     )
 
+    # 0. BE-11: guard against an empty target_text (e.g. the chapter/exercise
+    # lookup upstream failed to resolve one) — grading a transcript against
+    # nothing produces a meaningless score instead of failing fast.
+    if not target_text or not target_text.strip():
+        logger.warning(
+            "evaluate_pronunciation: empty target_text — refusing to grade — exerciseId=%r userId=%r",
+            attempt.exerciseId,
+            attempt.userId,
+        )
+        raise ValueError("target_text must not be empty for pronunciation evaluation.")
+
     # 1. Decode base64
     try:
         audio_bytes = base64.b64decode(audio_base64)
@@ -340,7 +354,8 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
 
     client = _get_client()
     t0 = time.perf_counter()
-    response = client.models.generate_content(
+    response = generate_content_with_retry(
+        client,
         model=_MODEL_ID,
         contents=full_prompt,
         config=_EVAL_CONFIG,
@@ -354,7 +369,7 @@ def evaluate_pronunciation(attempt: ExerciseAttempt, target_text: str, audio_bas
     )
     logger.debug("evaluate_pronunciation: raw Gemini response: %s", response.text)
 
-    data = json.loads(response.text)
+    data = parse_json_response(response.text)
     raw_score = data.get("score", 0)
     # Override AI's boolean judgment: anything above 60 is considered correct.
     data["isCorrect"] = raw_score > 60

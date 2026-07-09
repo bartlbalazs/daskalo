@@ -11,9 +11,20 @@ Topology:
           → generate_grammar_summary   (after generate_grammar_notes + extract_vocabulary)
           → review_content             (after generate_grammar_summary + generate_exercises)
           → (conditional) → generate_media → package_output → END
+
+Checkpointing (IMP-CC-01): the compiled graph is backed by a SQLite checkpointer
+so a failure late in the pipeline (e.g. an exhausted LLM retry after several
+expensive Gemini Pro calls) can be resumed from the last completed node instead
+of discarding all prior work. See main.py for how `thread_id` is computed and
+how a resume vs. a fresh run is chosen before invoking the graph.
 """
 
+import sqlite3
+from pathlib import Path
+
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from nodes.build_context import build_context
 from nodes.draft_lesson_core import draft_lesson_core
@@ -27,9 +38,21 @@ from nodes.package_output import package_output
 from nodes.review_content import review_content, should_regenerate
 from state import ContentState
 
+# One SQLite checkpoint file per thread_id, so a checkpoint database never
+# grows unbounded and each generation run's history is independently
+# inspectable/removable. Re-running the exact same `daskalo generate` command
+# recomputes the same thread_id (see main.py), so it always finds this file.
+_CHECKPOINT_DIR = Path(__file__).parent / ".checkpoints"
 
-def build_graph() -> StateGraph:
-    """Construct and compile the content generation state machine."""
+
+def build_graph(thread_id: str = "default") -> CompiledStateGraph:
+    """Construct and compile the content generation state machine.
+
+    `thread_id` selects the SQLite checkpoint database at
+    `.checkpoints/{thread_id}.sqlite`. Callers that don't care about
+    resumability (e.g. a smoke-test import) can omit it and get the
+    "default" checkpoint file.
+    """
     builder = StateGraph(ContentState)
 
     # --- Nodes ---
@@ -75,7 +98,7 @@ def build_graph() -> StateGraph:
         "review_content",
         should_regenerate,
         {
-            "plan_lesson": "draft_lesson_core",  # Route back to draft_lesson_core on rejection
+            "regenerate": "draft_lesson_core",  # Route back to draft_lesson_core on rejection
             "generate_media": "generate_media",
         },
     )
@@ -83,4 +106,15 @@ def build_graph() -> StateGraph:
     builder.add_edge("generate_media", "package_output")
     builder.add_edge("package_output", END)
 
-    return builder.compile()
+    _CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    db_path = _CHECKPOINT_DIR / f"{thread_id}.sqlite"
+    # A plain sqlite3.Connection (rather than the `SqliteSaver.from_conn_string`
+    # context manager) is used deliberately: this CLI is a short-lived process
+    # that invokes the graph once and exits, so there's no `with`-block to hold
+    # open around the invoke() call — the connection is simply reclaimed at
+    # process exit. `check_same_thread=False` is safe here because SqliteSaver
+    # guards all access with an internal `threading.Lock()`.
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    checkpointer = SqliteSaver(conn)
+
+    return builder.compile(checkpointer=checkpointer)

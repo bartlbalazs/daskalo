@@ -15,7 +15,8 @@ Inputs from PracticeState:
   chapter_topic       — the chapter topic seed (for theming)
   chapter_title       — the chapter title (for context)
   chapter_summary     — the chapter summary (for context)
-  curriculum_chapter_id — used to look up the 5 previous chapters' vocabulary
+  curriculum_chapter_id — used to look up the 5 previous chapters' vocabulary and the
+                          source chapter's book CEFR level (e.g. "A1.1", "B2")
   vocabulary          — VocabularyItem list extracted from the chapter descriptor
   book_id             — used for media generation (speaking rate)
 """
@@ -36,7 +37,7 @@ _repo_root = Path(__file__).parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from shared.data.curriculum_loader import get_previous_chapters_vocabulary  # noqa: E402
+from shared.data.curriculum_loader import find_chapter, get_previous_chapters_vocabulary  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -89,10 +90,24 @@ def generate_practice(state: dict) -> dict:
     else:
         previous_vocab_json = "(no previous chapters available — use current vocabulary for all 5 pairs)"
 
+    # CEFR level (CC-05): resolved from the source chapter's book, same pattern build_context.py
+    # uses for the chapter pipeline — replaces the previously hardcoded "A1/A2" in the prompt.
+    cefr_level = "A1"
+    if curriculum_chapter_id:
+        try:
+            book, _chapter = find_chapter(_repo_root, curriculum_chapter_id)
+            if book:
+                cefr_level = book.get("level", "A1")
+            else:
+                logger.warning("Chapter '%s' not found in curriculum books — defaulting to A1.", curriculum_chapter_id)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Could not resolve CEFR level for '%s': %s", curriculum_chapter_id, exc)
+
     prompt = GENERATE_PRACTICE_PROMPT.format(
         chapter_theme=chapter_theme,
         current_vocab_json=current_vocab_json,
         previous_vocab_json=previous_vocab_json,
+        cefr_level=cefr_level,
     )
 
     result: PracticeSetResult = invoke_with_retry(

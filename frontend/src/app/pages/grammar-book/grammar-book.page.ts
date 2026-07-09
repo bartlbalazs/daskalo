@@ -1,12 +1,12 @@
-import { Component, inject, computed, OnInit, signal, HostListener } from '@angular/core';
+import { Component, inject, computed, OnInit, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { ViewportScroller } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { LessonService } from '../../core/services/lesson.service';
 import { Book, Chapter } from '../../core/models/firestore.models';
-import { marked } from 'marked';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MarkdownRenderService } from '../../shared/services/markdown-render.service';
+import { SafeHtml } from '@angular/platform-browser';
 
 interface BookGroup {
   book: Book;
@@ -16,6 +16,7 @@ interface BookGroup {
 @Component({
   selector: 'app-grammar-book',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   template: `
     <!-- Dashboard Header (Gamified Ribbon) -->
@@ -131,8 +132,11 @@ interface BookGroup {
       }
     </div>
 
-    <!-- TOC Drawer Backdrop -->
+    <!-- TOC Drawer Backdrop — decorative click-outside-to-close target;
+         keyboard/AT users close the drawer via Escape (see onEscape() below),
+         so this doesn't need its own tab stop. -->
     @if (tocOpen()) {
+      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
       <div class="fixed inset-0 bg-black/40 z-40 transition-opacity"
            (click)="tocOpen.set(false)">
       </div>
@@ -145,6 +149,7 @@ interface BookGroup {
       <div class="flex items-center justify-between px-5 py-4 border-b border-surface-100">
         <h3 class="font-serif text-lg font-semibold text-greek-900">Contents</h3>
         <button (click)="tocOpen.set(false)"
+                aria-label="Close contents"
                 class="w-8 h-8 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-100 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -294,7 +299,7 @@ interface BookGroup {
 export class GrammarBookPage implements OnInit {
   authService = inject(AuthService);
   private lessonService = inject(LessonService);
-  private sanitizer = inject(DomSanitizer);
+  private markdownRenderService = inject(MarkdownRenderService);
   private scroller = inject(ViewportScroller);
 
   loading = signal(true);
@@ -357,8 +362,7 @@ export class GrammarBookPage implements OnInit {
   }
 
   renderMarkdown(md: string): SafeHtml {
-    const html = marked.parse(md, { async: false }) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    return this.markdownRenderService.renderBlock(md);
   }
 
   scrollTo(id: string): void {

@@ -47,6 +47,20 @@ class ExerciseType(StrEnum):
     matching = "matching"
 
 
+# Exercise types that are graded by Gemini (as opposed to client-side grading).
+# Shared by fn_evaluate.py (which exercises are eligible for /evaluate) and
+# services/progress.py (BE-06: whether a chapter has any attempt trail to
+# verify before awarding completion XP).
+AI_GRADED_EXERCISE_TYPES: frozenset[ExerciseType] = frozenset(
+    {
+        ExerciseType.image_description,
+        ExerciseType.translation_challenge,
+        ExerciseType.dictation,
+        ExerciseType.pronunciation_practice,
+    }
+)
+
+
 # ---------------------------------------------------------------------------
 # Exercise Attempt — written by the frontend, read by the backend
 # ---------------------------------------------------------------------------

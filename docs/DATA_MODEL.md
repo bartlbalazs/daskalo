@@ -17,41 +17,41 @@ Documents representing the students.
   "createdAt": "Timestamp",
   "lastActive": "Timestamp",
   "progress": {
-    "currentPhaseId": "phase_1_the_tourist",
+    "currentBookId": "book_1", // Empty string until the frontend starts setting it; not yet read anywhere.
     "completedChapterIds": ["chapter_1_airport", "chapter_2_taverna"],
-    "completedPracticeSetIds": ["ps_p1_c1_airport_01"],
-    "lastProgressSummary": "You've mastered the accusative case and can now confidently order food at a taverna.", // Plain-text Gemini-generated summary of the last completed chapter.
-    "xp": 450 // Basic gamification
+    "completedPracticeSetIds": ["ps_p1_c1_airport_01"], // Added by the complete-practice function on first completion; absent until then.
+    "lastProgressSummary": "You've mastered the accusative case and can now confidently order food at a taverna.", // Plain-text Gemini-generated summary of the last completed chapter. Added by complete-chapter.
+    "xp": 450 // Basic gamification. Written via Firestore Increment by complete-chapter/complete-practice, never read-modify-write.
   },
-  "vocabularyList": [
-    // Simple list of words the user has encountered and should know
-    { "wordId": "word_kalimera", "learnedAt": "Timestamp" }
-  ]
+  "vocabularyList": [] // Reserved for future use — always created empty and never populated today (superseded in practice by chapters[].vocabulary + the ownWords/favoriteWords subcollections).
 }
 ```
 
-### `phases`
-The high-level groupings of content (e.g., Phase 1: The Tourist). Think of these as books.
+Client-side document creation (`AuthService._ensureUserDocument()`) writes exactly the shape above with `status: "pending"` and every `progress` field at its zero/empty value. `firestore.rules`' `users` create rule enforces this shape (status must be `"pending"`, `progress.xp == 0`, `progress.completedChapterIds` and `vocabularyList` empty, `currentBookId == ''`) so a client cannot pre-seed progress before an admin activates the account.
 
-**Document ID:** `{phaseId}` (e.g., `phase_1`)
+### `books`
+The high-level groupings of content (e.g., Book 1: The Absolute Basics). Loaded from `shared/data/books/book_N.yaml` by the content-cli and upserted into this collection on ingest.
+
+**Document ID:** `{bookId}` (e.g., `book_1`)
 
 ```json
 {
-  "title": "The Tourist",
+  "title": "The Absolute Basics",
   "description": "Survival basics for your first trip to Greece.",
   "order": 1,
+  "level": "A1", // CEFR level, used by content-cli's build_context to constrain generation.
   "isActive": true
 }
 ```
 
 ### `chapters`
-The individual units within a phase (e.g., Chapter 1: At the Airport).
+The individual units within a book (e.g., Chapter 1: At the Airport).
 
 **Document ID:** `{variantId}` (e.g., `p1_c1_airport`)
 
 ```json
 {
-  "phaseId": "phase_1",
+  "bookId": "book_1",
   "curriculumChapterId": "p1_c1",
   "topic": "At the Airport",
   "title": "Lost in Monastiraki",
@@ -182,7 +182,7 @@ Records of user submissions, primarily used to trigger the backend for grading.
 {
   "userId": "{firebase_uid}",
   "chapterId": "chapter_1_airport",
-  "exerciseId": "ex_2_describe",
+  "exerciseId": "ex_2", // Positional: `ex_{index into chapters[].exercises}`. This is what the frontend actually generates (exercise-card.component.ts) and what the backend parses via `int(exerciseId.split("_")[-1])`.
   "type": "image_description", // Must match the exercise definition
   "submittedAt": "Timestamp",
   "payload": {
@@ -190,6 +190,7 @@ Records of user submissions, primarily used to trigger the backend for grading.
     "text": "Βλέπω ένα αεροπλάνο."
   },
   "status": "pending", // Enum: ["pending", "evaluating", "completed", "error"]
+  "evaluatingSince": null, // Timestamp set when status transitions to "evaluating". If a claim is older than the function's staleness threshold, another call may reclaim and retry it instead of being stuck forever.
   "evaluation": null // Initially null. Populated by the Cloud Functions backend.
   /*
     When completed:
@@ -228,6 +229,20 @@ Generated homework drills tied to specific chapters.
 }
 ```
 
+---
+
+### `rate_limits`
+Per-user, per-function sliding-window counters enforced by the backend as defense-in-depth underneath the (per-project, not per-user) API Gateway quota. Written exclusively by the Cloud Functions via Admin SDK; never read or written by the client.
+
+**Document ID:** `{firebase_uid}_{functionName}` (e.g., `abc123_evaluate`)
+
+```json
+{
+  "count": 3,
+  "windowStart": "Timestamp" // Fixed window start; resets once the function's configured window_seconds has elapsed.
+}
+```
+
 ## 2. Ingestion ZIP Format (`descriptor.json`)
 
 When the LangGraph CLI generates content, it packages it into a `.zip` file. The backend reads this `descriptor.json` to understand what to put in Firestore and where to move the assets.
@@ -238,7 +253,7 @@ When the LangGraph CLI generates content, it packages it into a `.zip` file. The
 {
   "version": "1.0",
   "action": "create_or_update_chapter",
-  "phaseId": "phase_1",
+  "bookId": "book_1",
   "chapter": {
      "id": "p1_c1_hotel",
      "curriculumChapterId": "p1_c1",

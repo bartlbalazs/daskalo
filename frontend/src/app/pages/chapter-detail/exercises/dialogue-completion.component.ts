@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, DialogueCompletionData, DialogueCompletionOption, VocabularyItem } from '../../../core/models/firestore.models';
 import { HighlightVocabPipe } from '../../../shared/pipes/highlight-vocab.pipe';
 
 @Component({
   selector: 'app-dialogue-completion',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [HighlightVocabPipe],
   template: `
     <div class="space-y-4">
@@ -85,10 +86,11 @@ export class DialogueCompletionComponent implements OnInit {
     return this.exercise.data as unknown as DialogueCompletionData;
   }
 
-  selectedText(): string | null {
+  /** Text of the currently-selected option, or null if none selected. */
+  selectedText = computed<string | null>(() => {
     const i = this.selectedIndex();
     return i !== null ? this.options()[i]?.text ?? null : null;
-  }
+  });
 
   select(index: number): void {
     if (this.submitted()) return;

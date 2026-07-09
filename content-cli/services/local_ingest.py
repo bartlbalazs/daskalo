@@ -1,10 +1,7 @@
 """
 Local environment integration service.
 
-Provides two modes for targeting the local Firebase Emulator Suite:
-
-  upload_to_storage_emulator(zip_path)
-      Uploads the generated ZIP to the local Storage emulator ingestion bucket.
+Provides direct ingestion into the local Firebase Emulator Suite:
 
   ingest_direct(zip_path)
       Bypasses the ZIP → Storage → backend flow entirely.
@@ -12,7 +9,7 @@ Provides two modes for targeting the local Firebase Emulator Suite:
       the chapter document directly to the Firestore emulator. Useful for fast
       local iteration without running the backend.
 
-Both modes require the Firebase Emulator Suite to be running (dev.sh).
+Requires the Firebase Emulator Suite to be running (dev.sh).
 
 Environment variables used:
   STORAGE_EMULATOR_HOST   — set automatically; defaults to http://localhost:9199
@@ -50,34 +47,10 @@ _STORAGE_EMULATOR_HOST = "http://localhost:9199"
 _FIRESTORE_EMULATOR_HOST = "localhost:8081"
 
 # Local bucket names (emulator auto-creates these)
-LOCAL_INGESTION_BUCKET = "demo-daskalo-ingestion"
 LOCAL_ASSETS_BUCKET = "demo-daskalo-assets"
 
 # Firestore demo project ID (matches firebase.json / frontend environment.ts)
 LOCAL_PROJECT_ID = "demo-daskalo"
-
-
-def upload_to_storage_emulator(zip_path: str) -> str:
-    """
-    Upload the generated ZIP to the local Storage emulator ingestion bucket.
-
-    The watcher + backend will pick it up and run the full ingestion pipeline.
-    Returns the GCS URI of the uploaded ZIP.
-    """
-    _configure_emulator_env()
-
-    zip_path_obj = Path(zip_path)
-    # Always use the demo project ID for emulator clients (see ingest_direct comment).
-    client = storage.Client(project=LOCAL_PROJECT_ID)
-    bucket = _ensure_bucket(client, LOCAL_INGESTION_BUCKET)
-
-    blob_name = zip_path_obj.name
-    blob = bucket.blob(blob_name)
-    blob.upload_from_filename(str(zip_path_obj), content_type="application/zip")
-
-    uri = f"gs://{LOCAL_INGESTION_BUCKET}/{blob_name}"
-    logger.info("Uploaded ZIP to Storage emulator: %s", uri)
-    return uri
 
 
 def upsert_book(fs_client: firestore.Client, book_id: str) -> str:

@@ -37,11 +37,13 @@ Examples:
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import logging
 import os
 import re
+import shutil
 import sys
 import tempfile
 import zipfile
@@ -53,7 +55,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-load_dotenv(".env")
+# Resolve all filesystem paths relative to this package directory, not the
+# process's current working directory (IMP-CC-05) — `.env`, `output/`, and the
+# `shared` curriculum package must be found the same way no matter where the
+# `daskalo` command is invoked from.
+_PACKAGE_DIR = Path(__file__).parent
+_repo_root = _PACKAGE_DIR.parent
+
+load_dotenv(_PACKAGE_DIR / ".env")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s %(message)s")
 logging.getLogger("google_genai.models").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -61,7 +70,6 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 # Ensure shared package is importable.
-_repo_root = Path(__file__).parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
@@ -76,8 +84,20 @@ def _slugify(text: str) -> str:
 
 
 def _get_curriculum_data() -> dict:
-    root_dir = Path(__file__).parent.parent
-    return load_curriculum(root_dir)
+    return load_curriculum(_repo_root)
+
+
+def _prompt_index(label: str, count: int) -> int:
+    """Prompt for a 1-based index and validate it against `count` items.
+
+    Re-prompts on out-of-range input (CC-06) instead of silently wrapping via
+    negative indexing (entering "0") or crashing with an unhandled IndexError.
+    """
+    while True:
+        raw = click.prompt(label, type=int)
+        if 1 <= raw <= count:
+            return raw - 1
+        console.print(f"[red]Please enter a number between 1 and {count}.[/red]")
 
 
 def _prompt_for_chapter() -> tuple[dict, dict]:
@@ -88,14 +108,14 @@ def _prompt_for_chapter() -> tuple[dict, dict]:
     for i, book in enumerate(data["books"], 1):
         console.print(f"  {i}. {book['title']} ({book['level']})")
 
-    book_idx = click.prompt("Book number", type=int) - 1
+    book_idx = _prompt_index("Book number", len(data["books"]))
     book = data["books"][book_idx]
 
     console.print(f"\n[bold]Select a Chapter in '{book['title']}':[/bold]")
     for i, ch in enumerate(book["chapters"], 1):
         console.print(f"  {i}. Chapter {book['order']}.{ch['order']} ({ch['id']}) - {ch['suggested_length']}")
 
-    ch_idx = click.prompt("Chapter number", type=int) - 1
+    ch_idx = _prompt_index("Chapter number", len(book["chapters"]))
     chapter = book["chapters"][ch_idx]
 
     return book, chapter
@@ -143,12 +163,19 @@ def cli() -> None:
         "Use --no-local to produce the ZIP only (for manual upload to production GCS)."
     ),
 )
+@click.option(
+    "--keep-work-dir",
+    is_flag=True,
+    default=False,
+    help="Keep the temporary output/daskalo_work_* directory after a successful run (for debugging).",
+)
 def generate(
     curriculum_chapter: str | None,
     topic: str,
     interests: str,
     length: str | None,
     local: bool,
+    keep_work_dir: bool,
 ) -> None:
     """Generate a Greek lesson chapter and deliver it to the configured environment."""
 
@@ -192,43 +219,68 @@ def generate(
     console.print()
 
     # --- Run pipeline --------------------------------------------------------
-    output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
-    work_dir = tempfile.mkdtemp(prefix="daskalo_work_", dir=output_dir)
-
-    initial_state = {
-        "book_id": book_id,
-        "curriculum_chapter_id": chapter_id,
-        "variant_id": variant_id,
-        "chapter_order": chapter_order,
-        "chapter_topic": topic,
-        "student_interests": interests,
-        "lesson_length": final_length,
-        "chapter_title": "",
-        "chapter_summary": "",
-        "chapter_image_prompt": "",
-        "passage": [],
-        "vocabulary": [],
-        "grammar_concept_outlines": [],
-        "grammar_notes": [],
-        "exercises": [],
-        "image_prompts": [],
-        "review_feedback": "",
-        "generation_attempts": 0,
-        "work_dir": work_dir,
-        "audio_files": [],
-        "sentence_audio_files": [],
-        "image_files": [],
-        "chapter_image_path": "",
-        "output_zip_path": "",
-    }
-
-    console.print("[bold yellow]Running content generation pipeline…[/bold yellow]\n")
+    # IMP-CC-01: thread_id is a stable hash of the inputs that fully determine this
+    # generation run. Re-running the exact same command recomputes the same
+    # thread_id, so a failed run's checkpoint can be found and resumed.
+    thread_id = _compute_thread_id(chapter_id, topic, final_length)
 
     from graph import build_graph
 
-    graph = build_graph()
-    final_state = graph.invoke(initial_state)
+    graph = build_graph(thread_id=thread_id)
+    graph_config = {"configurable": {"thread_id": thread_id}}
+    resuming = bool(graph.get_state(graph_config).next)
+
+    if resuming:
+        console.print(
+            f"[bold yellow]Resuming previous incomplete run[/bold yellow] "
+            f"(thread_id=[cyan]{thread_id}[/cyan]) from the last completed step…\n"
+        )
+        initial_state = None
+    else:
+        output_dir = _PACKAGE_DIR / "output"
+        output_dir.mkdir(exist_ok=True)
+        work_dir = tempfile.mkdtemp(prefix="daskalo_work_", dir=output_dir)
+
+        initial_state = {
+            "book_id": book_id,
+            "curriculum_chapter_id": chapter_id,
+            "variant_id": variant_id,
+            "chapter_order": chapter_order,
+            "chapter_topic": topic,
+            "student_interests": interests,
+            "lesson_length": final_length,
+            "chapter_title": "",
+            "chapter_summary": "",
+            "chapter_image_prompt": "",
+            "passage": [],
+            "vocabulary": [],
+            "grammar_concept_outlines": [],
+            "grammar_notes": [],
+            "exercises": [],
+            "image_prompts": [],
+            "review_feedback": "",
+            "generation_attempts": 0,
+            "work_dir": work_dir,
+            "audio_files": [],
+            "audio_assets": [],
+            "passage_audio_path": "",
+            "sentence_audio_files": [],
+            "image_files": [],
+            "chapter_image_path": "",
+            "output_zip_path": "",
+        }
+
+    console.print("[bold yellow]Running content generation pipeline…[/bold yellow]\n")
+
+    try:
+        final_state = graph.invoke(initial_state, config=graph_config)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"\n[bold red]Pipeline failed:[/bold red] {exc}")
+        console.print(
+            "\n[bold yellow]Re-running the exact same command will resume from the last "
+            f"completed step[/bold yellow] (progress is checkpointed under thread_id=[cyan]{thread_id}[/cyan])."
+        )
+        raise SystemExit(1) from exc
 
     zip_path = final_state.get("output_zip_path", "")
     if not zip_path or not Path(zip_path).exists():
@@ -250,6 +302,9 @@ def generate(
 
     # --- Deliver to environment ----------------------------------------------
     if not local:
+        # IMP-CC-06: ZIP is left in place for manual upload — this is the "success"
+        # state for --no-local, so the work dir can be cleaned up now.
+        _cleanup_work_dir(final_state.get("work_dir", ""), keep_work_dir)
         console.print(
             "\n[bold yellow]Production mode:[/bold yellow] ZIP not uploaded automatically."
             "\nNext step: upload the ZIP to your GCS ingestion bucket to trigger backend ingestion."
@@ -267,6 +322,9 @@ def generate(
             "written directly to Firestore emulator."
         )
         console.print("Open the Firebase Emulator UI at [cyan]http://localhost:4001[/cyan] to inspect it.")
+        # IMP-CC-06: only clean up once ingest has actually succeeded — if it
+        # failed, the work dir is left in place in case it's useful for debugging.
+        _cleanup_work_dir(final_state.get("work_dir", ""), keep_work_dir)
     except Exception as exc:  # noqa: BLE001
         console.print(f"\n[bold red]Direct ingest failed:[/bold red] {exc}")
         console.print("Make sure the Firebase Emulator Suite is running (dev.sh).")
@@ -291,7 +349,13 @@ def generate(
     show_default=True,
     help=("Target the local Firebase Emulator Suite (default). Use --no-local to produce the ZIP only."),
 )
-def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) -> None:
+@click.option(
+    "--keep-work-dir",
+    is_flag=True,
+    default=False,
+    help="Keep the temporary output/daskalo_practice_* directory after a successful run (for debugging).",
+)
+def generate_practice(chapter_zip: str, practice_id: str | None, local: bool, keep_work_dir: bool) -> None:
     """Generate a Practice Set for an existing chapter ZIP.
 
     Reads the chapter ZIP to extract context (topic, vocabulary, existing audio),
@@ -335,7 +399,7 @@ def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) ->
         vocabulary = [VocabularyItem(greek=v["greek"], english=v["english"]) for v in raw_vocab if v.get("greek")]
 
         # Extract existing audio into work_dir so we can reuse it
-        output_dir = Path("output")
+        output_dir = _PACKAGE_DIR / "output"
         output_dir.mkdir(exist_ok=True)
         work_dir = tempfile.mkdtemp(prefix="daskalo_practice_", dir=output_dir)
 
@@ -360,8 +424,9 @@ def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) ->
                     tts_text = re.split(r"\s*/\s*|\s+-\s*", v["greek"])[0].strip()
                     existing_audio[tts_text] = local_path
 
-    # Determine practice set ID
-    final_practice_id = practice_id or f"{chapter_id}_ps_01"
+    # Determine practice set ID (CC-07: real auto-increment based on existing ZIPs in output/,
+    # instead of a hardcoded "_ps_01" that silently overwrote any prior practice set on re-run).
+    final_practice_id = practice_id or _next_practice_id(output_dir, chapter_id)
 
     env_label = "[cyan]local emulators[/cyan]" if local else "[yellow]production[/yellow]"
     console.print(f"  Target env  : {env_label}")
@@ -372,33 +437,54 @@ def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) ->
     console.print()
 
     # --- Run practice pipeline ---
-    initial_state: dict = {
-        "book_id": book_id,
-        "curriculum_chapter_id": curriculum_chapter_id,
-        "chapter_id": chapter_id,
-        "practice_set_id": final_practice_id,
-        "chapter_order": chapter_order,
-        "chapter_topic": chapter_topic,
-        "chapter_title": chapter_title,
-        "chapter_summary": chapter_summary,
-        "vocabulary": vocabulary,
-        "existing_audio": existing_audio,
-        "exercises": [],
-        "image_prompts": [],
-        "chapter_image_prompt": "",
-        "work_dir": work_dir,
-        "audio_files": [],
-        "image_files": [],
-        "chapter_image_path": "",
-        "output_zip_path": "",
-    }
-
-    console.print("[bold yellow]Running practice set generation pipeline…[/bold yellow]\n")
+    # IMP-CC-01: same checkpoint/resume mechanism as `generate` (see graph.py / build_graph).
+    thread_id = _compute_thread_id(chapter_id, final_practice_id)
 
     from practice_graph import build_practice_graph
 
-    graph = build_practice_graph()
-    final_state = graph.invoke(initial_state)
+    graph = build_practice_graph(thread_id=thread_id)
+    graph_config = {"configurable": {"thread_id": thread_id}}
+    resuming = bool(graph.get_state(graph_config).next)
+
+    if resuming:
+        console.print(
+            f"[bold yellow]Resuming previous incomplete run[/bold yellow] "
+            f"(thread_id=[cyan]{thread_id}[/cyan]) from the last completed step…\n"
+        )
+        initial_state: dict | None = None
+    else:
+        initial_state = {
+            "book_id": book_id,
+            "curriculum_chapter_id": curriculum_chapter_id,
+            "chapter_id": chapter_id,
+            "practice_set_id": final_practice_id,
+            "chapter_order": chapter_order,
+            "chapter_topic": chapter_topic,
+            "chapter_title": chapter_title,
+            "chapter_summary": chapter_summary,
+            "vocabulary": vocabulary,
+            "existing_audio": existing_audio,
+            "exercises": [],
+            "image_prompts": [],
+            "chapter_image_prompt": "",
+            "work_dir": work_dir,
+            "audio_files": [],
+            "image_files": [],
+            "chapter_image_path": "",
+            "output_zip_path": "",
+        }
+
+    console.print("[bold yellow]Running practice set generation pipeline…[/bold yellow]\n")
+
+    try:
+        final_state = graph.invoke(initial_state, config=graph_config)
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"\n[bold red]Pipeline failed:[/bold red] {exc}")
+        console.print(
+            "\n[bold yellow]Re-running the exact same command will resume from the last "
+            f"completed step[/bold yellow] (progress is checkpointed under thread_id=[cyan]{thread_id}[/cyan])."
+        )
+        raise SystemExit(1) from exc
 
     practice_zip_path = final_state.get("output_zip_path", "")
     if not practice_zip_path or not Path(practice_zip_path).exists():
@@ -408,6 +494,7 @@ def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) ->
     console.print(f"\n[bold green]Practice ZIP created:[/bold green] [cyan]{practice_zip_path}[/cyan]")
 
     if not local:
+        _cleanup_work_dir(final_state.get("work_dir", ""), keep_work_dir)
         console.print(
             "\n[bold yellow]Production mode:[/bold yellow] ZIP not uploaded automatically."
             f"\n  Next step: upload manually — [cyan]uv run daskalo upload --remote {practice_zip_path}[/cyan]"
@@ -423,6 +510,7 @@ def generate_practice(chapter_zip: str, practice_id: str | None, local: bool) ->
             f"\n[bold green]Done![/bold green] Practice set [cyan]{practice_id_written}[/cyan] "
             "written to Firestore emulator."
         )
+        _cleanup_work_dir(final_state.get("work_dir", ""), keep_work_dir)
     except Exception as exc:  # noqa: BLE001
         console.print(f"\n[bold red]Direct ingest failed:[/bold red] {exc}")
         raise SystemExit(1) from exc
@@ -453,7 +541,9 @@ def upload(zip_path: str, remote: bool) -> None:
 
     ZIP_PATH is the path to a previously generated chapter ZIP file.
     """
-    _check_env()
+    # CC-10: local (default) ingest hardcodes the demo-daskalo project and never
+    # touches GOOGLE_CLOUD_PROJECT, so only --remote actually requires it.
+    _check_env(require_gcp_project=remote)
 
     if not zip_path.endswith(".zip"):
         raise click.BadParameter("File must be a .zip archive.", param_hint="ZIP_PATH")
@@ -540,13 +630,80 @@ def _upload_remote(zip_path: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _check_env() -> None:
-    required = ["GOOGLE_CLOUD_PROJECT"]
+def _check_env(require_gcp_project: bool = True) -> None:
+    """Validate required environment variables are present.
+
+    `require_gcp_project` gates the GOOGLE_CLOUD_PROJECT check (CC-10): local
+    `upload` (the default) hardcodes the `demo-daskalo` project for the
+    Firebase emulators and never reads GOOGLE_CLOUD_PROJECT, so only
+    `--remote` ingestion and the generation commands (which call Vertex AI /
+    Cloud TTS against the real project regardless of --local/--no-local)
+    actually need it.
+    """
+    required = ["GOOGLE_CLOUD_PROJECT"] if require_gcp_project else []
     missing = [v for v in required if not os.getenv(v)]
     if missing:
         console.print(f"[bold red]Error:[/bold red] Missing required env vars: {', '.join(missing)}")
         console.print("Copy [bold].env.example[/bold] to [bold].env[/bold] and fill in the values.")
         raise SystemExit(1)
+
+
+def _compute_thread_id(*parts: str) -> str:
+    """Compute a stable LangGraph checkpoint thread_id from the inputs that fully
+    determine a generation run (IMP-CC-01). Re-running the exact same CLI
+    invocation recomputes the same parts, hence the same thread_id, hence the
+    same checkpoint file — which is what makes "just re-run the command" an
+    accurate resume instruction.
+    """
+    joined = ":".join(str(p) for p in parts)
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:16]
+
+
+def _cleanup_work_dir(work_dir: str, keep_work_dir: bool) -> None:
+    """Remove the temporary work directory after a successful run (IMP-CC-06).
+
+    The final .zip always lives in `output/`, one level above `work_dir` — it
+    is never inside the directory being removed here. No-ops if
+    `--keep-work-dir` was passed. A cleanup failure is logged as a warning
+    rather than failing the command; it never affects whether generation or
+    ingest succeeded.
+    """
+    if not work_dir:
+        return
+    if keep_work_dir:
+        console.print(f"[dim]Keeping work directory (--keep-work-dir): {work_dir}[/dim]")
+        return
+    try:
+        shutil.rmtree(work_dir)
+        logger.debug("Removed work directory: %s", work_dir)
+    except OSError as exc:
+        logger.warning("Could not remove work directory %s: %s", work_dir, exc)
+
+
+def _next_practice_id(output_dir: Path, chapter_id: str) -> str:
+    """Return the next free `{chapter_id}_ps_NN` practice-set ID (CC-07).
+
+    Real auto-increment, replacing the previously hardcoded `_ps_01` (which
+    silently overwrote any existing practice set for the chapter on re-run
+    despite the docstring's claim of auto-increment). Scans `output/` for
+    previously produced `{chapter_id}_ps_NN.zip` files — the ZIP filename is
+    the authoritative local record of a previously generated practice set,
+    available whether or not the emulator is currently running.
+
+    Known limitation: this is a local-filesystem counter. If `output/` is
+    cleared (e.g. a fresh checkout/CI run) while the corresponding practice
+    sets still exist in Firestore, the counter can restart at 01 and collide
+    with a document ID that already exists remotely (a merge-write, so it
+    would silently overwrite rather than error).
+    """
+    pattern = re.compile(rf"^{re.escape(chapter_id)}_ps_(\d+)\.zip$")
+    max_suffix = 0
+    if output_dir.exists():
+        for path in output_dir.iterdir():
+            match = pattern.match(path.name)
+            if match:
+                max_suffix = max(max_suffix, int(match.group(1)))
+    return f"{chapter_id}_ps_{max_suffix + 1:02d}"
 
 
 if __name__ == "__main__":

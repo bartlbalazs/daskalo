@@ -1,7 +1,8 @@
-import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, HostListener, DestroyRef } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../core/services/auth.service';
 import { LessonService } from '../core/services/lesson.service';
 import { Book, Chapter } from '../core/models/firestore.models';
@@ -146,19 +147,22 @@ interface SidebarBook extends Book {
       </div>
 
       <!-- ====== BODY (sidebar + content) — pushed down by fixed header ====== -->
-      <div class="flex flex-1 pt-14 md:pt-24 overflow-hidden relative">
+      <div class="flex flex-1 pt-14 md:pt-24 relative">
 
-        <!-- Sidebar backdrop (mobile) -->
+        <!-- Sidebar backdrop (mobile) — decorative click-outside-to-close
+             target; keyboard/AT users close the sidebar via Escape (see
+             onEscape() below), so this doesn't need its own tab stop. -->
         @if (sidebarOpen()) {
+          <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
           <div
-            class="fixed inset-0 top-14 bg-black/40 z-30 lg:hidden"
+            class="fixed inset-0 top-14 md:top-24 bg-black/40 z-30 lg:hidden"
             (click)="closeSidebar()"
           ></div>
         }
 
         <!-- ====== SIDEBAR ====== -->
         <aside
-          class="fixed top-14 md:top-24 bottom-0 left-0 z-30 bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg"
+          class="fixed lg:sticky top-14 md:top-24 bottom-0 lg:bottom-auto left-0 z-30 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg lg:shadow-none lg:self-start"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           [style.min-width]="sidebarOpen() ? '16rem' : '0'"
         >
@@ -268,19 +272,17 @@ interface SidebarBook extends Book {
         </aside>
 
         <!-- ====== MAIN CONTENT ====== -->
-        <main
-          class="flex-1 overflow-y-auto transition-all duration-250 ease-in-out"
-          [style.margin-left]="sidebarOpen() && isDesktop() ? '16rem' : '0'"
-        >
+        <main class="flex-1 min-w-0 transition-all duration-250 ease-in-out">
           <router-outlet />
         </main>
       </div>
     </div>
   `,
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   private readonly lessonService = inject(LessonService);
+  private readonly destroyRef = inject(DestroyRef);
 
   sidebarOpen = signal(this.getInitialSidebarState());
   isDesktop = signal(window.innerWidth >= 1024);
@@ -289,22 +291,27 @@ export class LayoutComponent implements OnInit {
   sidebarBooks: SidebarBook[] = [];
   booksLoaded = false;
 
-  ngOnInit(): void {
-    this.lessonService.getBooks().subscribe((books) => {
-      this.sidebarBooks = books.map((book) => ({
-        ...book,
-        chapters$: this.lessonService.getChaptersByBook(book.id),
-      }));
-      this.booksLoaded = true;
-    });
+  /** Bound reference (not an inline closure) so it can be removed in ngOnDestroy. */
+  private readonly onWindowResize = (): void => {
+    this.isDesktop.set(window.innerWidth >= 1024);
+  };
 
-    window.addEventListener('resize', () => {
-      const desktop = window.innerWidth >= 1024;
-      this.isDesktop.set(desktop);
-      if (desktop && !this.sidebarOpen()) {
-        // Re-open on desktop if it was closed due to resize
-      }
-    });
+  ngOnInit(): void {
+    this.lessonService.getBooks()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((books) => {
+        this.sidebarBooks = books.map((book) => ({
+          ...book,
+          chapters$: this.lessonService.getChaptersByBook(book.id),
+        }));
+        this.booksLoaded = true;
+      });
+
+    window.addEventListener('resize', this.onWindowResize);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', this.onWindowResize);
   }
 
   @HostListener('document:click', ['$event'])
@@ -312,6 +319,15 @@ export class LayoutComponent implements OnInit {
     const target = event.target as HTMLElement;
     if (!target.closest('[aria-haspopup]')) {
       this.userMenuOpen.set(false);
+    }
+  }
+
+  /** Keyboard equivalent for closing the mobile sidebar (the backdrop is
+   *  click-only, since it's a decorative overlay rather than a real control). */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (!this.isDesktop()) {
+      this.sidebarOpen.set(false);
     }
   }
 

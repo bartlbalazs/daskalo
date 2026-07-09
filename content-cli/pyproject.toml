@@ -1,7 +1,7 @@
 [project]
 name = "daskalo-content-cli"
 version = "0.1.0"
-description = "Daskalo operator CLI — generates multimodal Greek lesson content using LangGraph + Vertex AI + Piper TTS"
+description = "Daskalo operator CLI — generates multimodal Greek lesson content using LangGraph + Vertex AI + Google Cloud Text-to-Speech"
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.1.0",
@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.3",
     "rich>=14.3.3",
+    "langgraph-checkpoint-sqlite>=3.1.0",
 ]
 
 [project.scripts]
@@ -48,3 +49,4 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]

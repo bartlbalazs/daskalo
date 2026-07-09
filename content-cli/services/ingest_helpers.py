@@ -13,6 +13,8 @@ Provides:
       Iterates over all asset path fields in the chapter descriptor dict,
       uploads each file from the ZIP to GCS, and replaces *Path fields with
       *Url fields containing the resulting gs:// URIs. Mutates chapter in-place.
+      Handles matching pair audioPath defensively, even though matching
+      exercises aren't normally emitted for chapters (see CC-03).
 
   process_practice_set_assets(zf, practice_set, practice_set_id, assets_bucket) -> None
       Same as process_chapter_assets but for practice-set descriptors.
@@ -117,7 +119,7 @@ def process_chapter_assets(
         chapter["passageAudioUrl"] = _upload_asset(zf, chapter["passageAudioPath"], chapter_id, assets_bucket)
         del chapter["passageAudioPath"]
 
-    # Exercise images, audio, and conversation line audio
+    # Exercise images, audio, and conversation line / matching pair audio
     for exercise in chapter.get("exercises", []):
         if exercise.get("imagePath"):
             exercise["imageUrl"] = _upload_asset(zf, exercise["imagePath"], chapter_id, assets_bucket)
@@ -136,7 +138,19 @@ def process_chapter_assets(
                     if isinstance(line, dict) and line.get("audioPath"):
                         ap: str = line["audioPath"]
                         if not ap.startswith("gs://") and not ap.startswith("http"):
-                            line["audioPath"] = _upload_asset(zf, ap, chapter_id, assets_bucket)
+                            line["audioUrl"] = _upload_asset(zf, ap, chapter_id, assets_bucket)
+                            del line["audioPath"]
+
+        # Matching pair audio (CC-03: matching exercises aren't normally emitted for
+        # chapters, but are handled defensively — mirrors process_practice_set_assets below).
+        if exercise.get("type") == "matching":
+            data = exercise.get("data", {})
+            for pair in data.get("pairs", []):
+                if isinstance(pair, dict) and pair.get("audioPath"):
+                    ap = pair["audioPath"]
+                    if not ap.startswith("gs://") and not ap.startswith("http"):
+                        pair["audioUrl"] = _upload_asset(zf, ap, chapter_id, assets_bucket)
+                        del pair["audioPath"]
 
 
 def process_practice_set_assets(
@@ -188,4 +202,5 @@ def process_practice_set_assets(
                     if isinstance(line, dict) and line.get("audioPath"):
                         ap = line["audioPath"]
                         if not ap.startswith("gs://") and not ap.startswith("http"):
-                            line["audioPath"] = _upload_asset(zf, ap, practice_set_id, assets_bucket, gcs_prefix)
+                            line["audioUrl"] = _upload_asset(zf, ap, practice_set_id, assets_bucket, gcs_prefix)
+                            del line["audioPath"]

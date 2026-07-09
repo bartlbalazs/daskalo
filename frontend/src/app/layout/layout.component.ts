@@ -162,18 +162,18 @@ interface SidebarBook extends Book {
 
         <!-- ====== SIDEBAR ====== -->
         <aside
-          class="fixed lg:sticky top-14 md:top-24 bottom-0 lg:bottom-auto left-0 z-30 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg lg:shadow-none lg:self-start"
+          class="fixed lg:sticky top-14 md:top-24 bottom-0 lg:bottom-auto left-0 z-30 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] bg-white border-r border-greek-100 overflow-hidden flex flex-col min-h-0 transition-all duration-250 ease-in-out shadow-lg lg:shadow-none lg:self-start"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           [style.min-width]="sidebarOpen() ? '16rem' : '0'"
         >
-          <div class="w-64 flex flex-col flex-1">
+          <div class="w-64 flex flex-col flex-1 min-h-0">
             <!-- Sidebar header -->
             <div class="px-4 pt-5 pb-3 border-b border-greek-100 bg-greek-50">
               <p class="text-xs font-semibold uppercase tracking-widest text-greek-600">Course Map</p>
             </div>
 
             <!-- Nav -->
-            <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+            <nav class="flex-1 min-h-0 px-3 py-4 space-y-6 overflow-y-auto overscroll-contain">
               @for (book of sidebarBooks; track book.id) {
                 <div>
                   <!-- Book header -->

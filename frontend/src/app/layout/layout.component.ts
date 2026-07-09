@@ -147,7 +147,7 @@ interface SidebarBook extends Book {
       </div>
 
       <!-- ====== BODY (sidebar + content) — pushed down by fixed header ====== -->
-      <div class="flex flex-1 pt-14 md:pt-24 overflow-hidden relative">
+      <div class="flex flex-1 pt-14 md:pt-24 relative">
 
         <!-- Sidebar backdrop (mobile) — decorative click-outside-to-close
              target; keyboard/AT users close the sidebar via Escape (see
@@ -155,14 +155,14 @@ interface SidebarBook extends Book {
         @if (sidebarOpen()) {
           <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
           <div
-            class="fixed inset-0 top-14 bg-black/40 z-30 lg:hidden"
+            class="fixed inset-0 top-14 md:top-24 bg-black/40 z-30 lg:hidden"
             (click)="closeSidebar()"
           ></div>
         }
 
         <!-- ====== SIDEBAR ====== -->
         <aside
-          class="fixed top-14 md:top-24 bottom-0 left-0 z-30 bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg"
+          class="fixed lg:sticky top-14 md:top-24 bottom-0 lg:bottom-auto left-0 z-30 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] bg-white border-r border-greek-100 overflow-hidden flex flex-col transition-all duration-250 ease-in-out shadow-lg lg:shadow-none lg:self-start"
           [style.width]="sidebarOpen() ? '16rem' : '0'"
           [style.min-width]="sidebarOpen() ? '16rem' : '0'"
         >
@@ -272,10 +272,7 @@ interface SidebarBook extends Book {
         </aside>
 
         <!-- ====== MAIN CONTENT ====== -->
-        <main
-          class="flex-1 overflow-y-auto transition-all duration-250 ease-in-out"
-          [style.margin-left]="sidebarOpen() && isDesktop() ? '16rem' : '0'"
-        >
+        <main class="flex-1 min-w-0 transition-all duration-250 ease-in-out">
           <router-outlet />
         </main>
       </div>

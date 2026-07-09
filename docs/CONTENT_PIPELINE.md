@@ -420,3 +420,24 @@ topic string.
 Output: a `.zip` file in `content-cli/output/` (resolved relative to the `content-cli/` package
 directory regardless of the shell's current working directory), ready to upload to the GCS
 ingestion bucket if not ingested directly.
+
+---
+
+## 10. opencode Lesson Authoring Integration
+
+The repository includes a project-local opencode workflow for conversational lesson authoring:
+
+```text
+.opencode/commands/lesson.md
+.opencode/skills/lesson-author/SKILL.md
+.opencode/skills/lesson-author/scripts/generate_brief.py
+```
+
+Use `/lesson <curriculum_chapter_id>` in opencode to run it. The command loads the
+`lesson-author` skill, generates a curriculum-aware brief from the same shared curriculum/build
+context code used by `content-cli`, guides the operator through scenario brainstorming, then runs
+the existing `uv run daskalo generate --local` command non-interactively.
+
+This integration is intentionally outside `content-cli`: it does not add CLI flags, Firestore
+fields, or a direct production publish path. The approved conversation draft is condensed into the
+`--topic` seed, so it steers `draft_lesson_core` but is not guaranteed to survive verbatim.

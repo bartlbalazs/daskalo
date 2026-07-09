@@ -1,6 +1,6 @@
 # Lesson Authoring Redesign
 
-**Status:** Design only. Implementation happens on its own branch (e.g. `feature/lesson-authoring-redesign`), **after** `fix/bugs-and-improvements` is merged. Nothing in this document is implemented yet.
+**Status:** Implemented as a project-local opencode command and skill. See `.opencode/commands/lesson.md`, `.opencode/skills/lesson-author/SKILL.md`, and `docs/CONTENT_PIPELINE.md` §10.
 
 ## 1. Problem statement
 
@@ -29,11 +29,12 @@ Goal: make that authoring conversation happen **inside opencode**, with the same
 
 ## 4. Architecture
 
-Two new files, created on the future implementation branch:
+The opencode integration consists of:
 
 ```
 .opencode/commands/lesson.md          # thin slash-command trigger, /lesson [chapter-id]
 .opencode/skills/lesson-author/SKILL.md   # the actual multi-step workflow
+.opencode/skills/lesson-author/scripts/generate_brief.py  # read-only curriculum brief helper
 ```
 
 Per opencode's documented command format (`.opencode/commands/<name>.md`, frontmatter `description`/`agent`/`model`, body = prompt template, `$ARGUMENTS`/`$1` for positional args), `lesson.md` does nothing but pass the optional chapter-id argument through and tell the agent to load the skill:

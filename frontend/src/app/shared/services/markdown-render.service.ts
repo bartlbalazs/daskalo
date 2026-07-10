@@ -35,12 +35,13 @@ export class MarkdownRenderService {
   /** Render full (block-level) Markdown — headings, tables, lists, etc. */
   renderBlock(markdown: string | null | undefined): SafeHtml {
     if (!markdown) return '';
-    const cached = this.blockCache.get(markdown);
+    const normalized = this.normalizeMarkdown(markdown);
+    const cached = this.blockCache.get(normalized);
     if (cached !== undefined) return cached;
 
-    const rawHtml = marked.parse(markdown, { async: false }) as string;
+    const rawHtml = marked.parse(normalized, { async: false }) as string;
     const safeHtml = this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(rawHtml));
-    this.blockCache.set(markdown, safeHtml);
+    this.blockCache.set(normalized, safeHtml);
     return safeHtml;
   }
 
@@ -54,5 +55,9 @@ export class MarkdownRenderService {
     const safeHtml = this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(rawHtml));
     this.inlineCache.set(markdown, safeHtml);
     return safeHtml;
+  }
+
+  private normalizeMarkdown(markdown: string): string {
+    return markdown.replace(/\\n/g, '\n');
   }
 }

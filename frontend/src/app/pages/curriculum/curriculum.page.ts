@@ -67,7 +67,6 @@ interface CurriculumRow {
                           }
                         </div>
 
-                        <p class="text-xs font-semibold uppercase tracking-wider text-greek-600 mb-1">{{ variant.topic }}</p>
                         <h3 class="font-serif text-xl font-semibold text-surface-900 mb-2">{{ variant.title }}</h3>
                         <p class="text-sm text-surface-500 line-clamp-3 mb-4">{{ variant.summary }}</p>
 

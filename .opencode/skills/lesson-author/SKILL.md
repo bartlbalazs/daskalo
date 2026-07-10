@@ -5,7 +5,7 @@ description: Use when the user runs /lesson or asks to author, brainstorm, or ge
 
 # Lesson Author
 
-Guide an operator through curriculum-aware lesson ideation inside opencode, then run the existing `content-cli` pipeline non-interactively. This skill intentionally does not change `content-cli/`, Firestore schema, or production data.
+Guide an operator through curriculum-aware lesson ideation inside opencode, then run the existing `content-cli` pipeline non-interactively. Use `docs/TARGET_AUDIENCE.md` as the default learner profile for every session, deriving from it with explicit per-lesson audience overrides. This skill intentionally does not change `content-cli/`, Firestore schema, or production data.
 
 ## Scope
 
@@ -52,6 +52,8 @@ Also state the hard passage constraints from the pipeline:
 - Historical or mythological topics should omit modern slang and use a slightly formal storytelling tone.
 - Simplify for language learning, but do not fictionalize real historical events.
 
+Read `docs/TARGET_AUDIENCE.md` and summarize the default audience in one or two concise sentences. Ask one freeform question for per-lesson audience overrides, such as learner background, personal interests, tone, grammar depth, cultural emphasis, register, or use case. If the user gives overrides, apply them for this lesson; otherwise keep the default audience profile.
+
 ### 3. Co-Author Draft
 
 Interview the user to shape the scenario. Get enough detail for:
@@ -59,6 +61,7 @@ Interview the user to shape the scenario. Get enough detail for:
 - Core setting and story beats.
 - Tone or cultural angle.
 - Student interests, if any.
+- Audience overrides, if any; otherwise the default from `docs/TARGET_AUDIENCE.md`.
 - Preferred length, defaulting to the chapter's `suggested_length`.
 - How each mandatory vocabulary item will appear naturally.
 - How the target grammar will be featured heavily.
@@ -72,6 +75,7 @@ After approval, condense the conversation into a rich `--topic` seed. Include:
 - Scenario summary.
 - Key story beats in order.
 - Required cultural/tone guidance.
+- Default audience guidance from `docs/TARGET_AUDIENCE.md` plus any per-lesson audience overrides.
 - Mandatory vocabulary checklist.
 - Target grammar emphasis.
 - Approved passage draft if one exists, labeled: `Follow this draft closely; reuse these sentences where possible, but keep the final passage compliant with the pipeline rules.`

@@ -22,7 +22,7 @@ There are no manual JSON parsing steps or markdown-fence stripping.
   (`extract_vocabulary`, `extract_grammar_outlines`, `review_content`).
 
 **Media**: Google Cloud Text-to-Speech (Chirp3-HD voices) for all audio, and Gemini image
-generation (`gemini-3-pro-image-preview`) for all images. Piper and WaveNet are **not** used
+generation (`gemini-3-pro-image`) for all images. Piper and WaveNet are **not** used
 anywhere in this pipeline.
 
 **Resumability**: the compiled graph is backed by a SQLite checkpointer
@@ -255,7 +255,7 @@ conversation-line audio always use the normal `1.0` rate.
 Every generated file is recorded in `audio_assets` as `{"role": ..., "path": ...}` — `package_output`
 (node 10) routes and serialises purely off `role`, never by sniffing filenames.
 
-**Image generation**: `gemini-3-pro-image-preview`, `global` region, up to 8 attempts with
+**Image generation**: `gemini-3-pro-image`, `global` region, up to 8 attempts with
 exponential backoff on HTTP 429/503. Generates the cover image, one image per grammar note that
 provided an `image_prompt`, and one image per `image_description` exercise.
 

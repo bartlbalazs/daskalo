@@ -34,7 +34,7 @@ VOICE_FEMALE = "el-GR-Chirp3-HD-Achernar"
 VOICE_MALE = "el-GR-Chirp3-HD-Charon"
 LANGUAGE_CODE = "el-GR"
 
-IMAGE_MODEL = "gemini-3-pro-image-preview"
+IMAGE_MODEL = "gemini-3-pro-image"
 IMAGE_REGION = "global"
 
 # One client per worker thread (IMP-CC-04) — see module docstring.
@@ -112,7 +112,7 @@ def synthesize_speech(
 
 
 def generate_image(scene_description: str, output_path: str) -> bool:
-    """Call Gemini image generation (gemini-3-pro-image-preview).
+    """Call Gemini image generation (gemini-3-pro-image).
 
     The model is loaded from the ``global`` region as required.
     Image bytes are written directly to *output_path* as JPEG.

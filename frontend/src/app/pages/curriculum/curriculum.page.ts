@@ -37,12 +37,11 @@ interface CurriculumRow {
             @for (row of rows; track row.curriculumChapterId) {
               <section class="bg-white border border-greek-100 rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-greek-100 bg-greek-50">
-                  <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-greek-600 mb-2">
+                  <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-greek-600">
                     <span>Book {{ row.book.order }}: {{ row.book.title }}</span>
                     <span>Lesson {{ row.order }}</span>
                     <span>{{ row.curriculumChapterId }}</span>
                   </div>
-                  <h2 class="font-serif text-2xl font-semibold text-greek-900">{{ row.selected.topic }}</h2>
                 </div>
 
                 <div class="flex gap-4 overflow-x-auto p-5 snap-x">
@@ -73,7 +72,7 @@ interface CurriculumRow {
                         <p class="text-sm text-surface-500 line-clamp-3 mb-4">{{ variant.summary }}</p>
 
                         <dl class="grid grid-cols-2 gap-2 text-xs text-surface-500 mb-4">
-                          <div><dt class="font-semibold text-surface-700">Generated</dt><dd>{{ variant.generatedAt?.toDate() | date:'mediumDate' }}</dd></div>
+                          <div><dt class="font-semibold text-surface-700">Created</dt><dd>{{ variant.generatedAt?.toDate() | date:'mediumDate' }}</dd></div>
                           <div><dt class="font-semibold text-surface-700">Length</dt><dd class="capitalize">{{ variant.length || 'n/a' }}</dd></div>
                           <div><dt class="font-semibold text-surface-700">Skill</dt><dd>{{ variant.languageSkill || 'n/a' }}</dd></div>
                           <div><dt class="font-semibold text-surface-700">Exercises</dt><dd>{{ variant.exercises.length }}</dd></div>

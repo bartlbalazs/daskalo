@@ -474,7 +474,6 @@ import { SafeHtml } from '@angular/platform-browser';
                           <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-100 text-surface-500">No longer offered</span>
                         }
                       </div>
-                      <p class="text-xs font-semibold uppercase tracking-wider text-greek-600 mb-1">{{ variant.topic }}</p>
                       <h3 class="font-serif text-lg font-semibold text-surface-900 mb-2">{{ variant.title }}</h3>
                       <p class="text-sm text-surface-500 line-clamp-2 mb-4">{{ variant.summary }}</p>
                       <div class="flex gap-2">

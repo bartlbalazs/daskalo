@@ -601,8 +601,7 @@ export class ChapterDetailPage implements OnInit {
       switchMap(params => {
         const id = params.get('id')!;
 
-        // Reset scroll position on the main scrolling container
-        this.document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        this.scrollToTopOnChapterChange();
 
         this.answeredMap.set(new Map());
         this.chapterCompleted.set(false);
@@ -629,6 +628,18 @@ export class ChapterDetailPage implements OnInit {
 
   ngOnInit(): void {
     this.favoriteWordsService.ensureLoaded();
+  }
+
+  private scrollToTopOnChapterChange(): void {
+    this.scrollToTop();
+    this.document.defaultView?.requestAnimationFrame(() => this.scrollToTop());
+  }
+
+  private scrollToTop(): void {
+    this.document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    this.document.defaultView?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    this.document.documentElement.scrollTop = 0;
+    this.document.body.scrollTop = 0;
   }
 
   /** Vocabulary for the current chapter, sorted alphabetically by Greek word. */

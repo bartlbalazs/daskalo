@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import {
   Exercise,
   FillInTheBlankData,
@@ -74,16 +74,20 @@ export interface McOption { text: string; isCorrect: boolean }
     </div>
   `,
 })
-export class MultipleChoiceComponent implements OnInit {
+export class MultipleChoiceComponent implements OnChanges {
   @Input({ required: true }) exercise!: Exercise;
   @Output() answered = new EventEmitter<boolean>();
 
   selectedIndex = signal<number | null>(null);
   submitted = signal(false);
   private _options = signal<McOption[]>([]);
+  private exerciseKey = '';
 
-  ngOnInit(): void {
-    this._options.set(this._shuffle(this._rawOptions()));
+  ngOnChanges(): void {
+    const nextKey = this.currentExerciseKey();
+    if (nextKey === this.exerciseKey) return;
+    this.exerciseKey = nextKey;
+    this.resetForExercise();
   }
 
   /** Text of the currently-selected option, or null if none selected — used
@@ -122,6 +126,16 @@ export class MultipleChoiceComponent implements OnInit {
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+  }
+
+  private resetForExercise(): void {
+    this.selectedIndex.set(null);
+    this.submitted.set(false);
+    this._options.set(this._shuffle(this._rawOptions()));
+  }
+
+  private currentExerciseKey(): string {
+    return JSON.stringify({ type: this.exercise.type, prompt: this.exercise.prompt, data: this.exercise.data });
   }
 
   select(index: number): void {

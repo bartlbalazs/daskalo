@@ -1,5 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter, signal, computed, ViewChild, inject, ChangeDetectionStrategy
+  Component, Input, Output, EventEmitter, signal, computed, ViewChild, inject, ChangeDetectionStrategy, OnChanges, SimpleChanges
 } from '@angular/core';
 import { Exercise, ExerciseType, EvaluationResult, PassageSentence, VocabularyItem } from '../../../core/models/firestore.models';
 import { LessonService } from '../../../core/services/lesson.service';
@@ -275,7 +275,7 @@ const TYPE_LABELS: Record<ExerciseType, string> = {
     </div>
   `,
 })
-export class ExerciseCardComponent {
+export class ExerciseCardComponent implements OnChanges {
   @Input({ required: true }) exercise!: Exercise;
   @Input({ required: true }) index!: number;
   @Input() chapterId = '';
@@ -293,6 +293,23 @@ export class ExerciseCardComponent {
   private lessonService = inject(LessonService);
 
   state = signal<ExerciseState>('unanswered');
+  private exerciseKey = '';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const nextExerciseKey = this.currentExerciseKey();
+    const exerciseChanged = this.exerciseKey !== '' && nextExerciseKey !== this.exerciseKey;
+    const chapterChanged = changes['chapterId'] && !changes['chapterId'].firstChange;
+
+    this.exerciseKey = nextExerciseKey;
+
+    if (chapterChanged || exerciseChanged) {
+      this.state.set('unanswered');
+    }
+  }
+
+  private currentExerciseKey(): string {
+    return JSON.stringify({ type: this.exercise.type, prompt: this.exercise.prompt, data: this.exercise.data });
+  }
 
   @ViewChild('mcq') mcqRef?: MultipleChoiceComponent;
   @ViewChild('slangMatcher') slangMatcherRef?: SlangMatcherComponent;

@@ -207,3 +207,17 @@ def test_conversation_line_audio_path_rewritten_to_relative_zip_path(tmp_path):
     line = conversation_exercises[0]["data"]["lines"][0]
 
     assert line["audioPath"] == f"assets/audio/conversation/{_PREFIX}conv_00_line_00_male_test.mp3"
+
+
+def test_chapter_descriptor_includes_curriculum_selection_fields(tmp_path):
+    state = _build_state(tmp_path)
+
+    result = package_output(state)
+
+    with zipfile.ZipFile(result["output_zip_path"]) as zf:
+        descriptor = json.loads(zf.read("descriptor.json"))
+
+    chapter = descriptor["chapter"]
+    assert chapter["isSelectableAlternative"] is True
+    assert isinstance(chapter["generatedAt"], str)
+    assert chapter["generatedAt"].endswith("+00:00")

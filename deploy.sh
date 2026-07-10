@@ -151,6 +151,7 @@ export const environment = {
   completeChapterUrl: '${API_GATEWAY_URL}/complete-chapter',
   completePracticeUrl: '${API_GATEWAY_URL}/complete-practice',
   addOwnWordUrl: '${API_GATEWAY_URL}/add-own-word',
+  setCurriculumSelectionUrl: '${API_GATEWAY_URL}/set-curriculum-selection',
   firestoreDb: '${DB_NAME}',
   firebase: {
     apiKey: '${FIREBASE_API_KEY}',

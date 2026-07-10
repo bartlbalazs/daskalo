@@ -443,6 +443,58 @@ import { SafeHtml } from '@angular/platform-browser';
         </div>
       </div>
 
+      <!-- ===== ALTERNATIVE VERSIONS ===== -->
+      @if (alternatives(); as alternatives) {
+        @if (alternatives.length > 1) {
+          <div class="w-full bg-greek-50 border-t border-greek-100">
+            <div class="px-6 py-12 max-w-5xl mx-auto">
+              <div class="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 class="font-serif text-3xl font-semibold text-greek-900">Alternative versions</h2>
+                  <p class="text-sm text-surface-500 mt-1">Choose another generated version for this curriculum slot.</p>
+                </div>
+                <a routerLink="/curriculum" class="hidden sm:inline-flex text-sm font-semibold text-greek-700 hover:text-greek-900">Manage curriculum</a>
+              </div>
+
+              <div class="flex gap-4 overflow-x-auto snap-x pb-2">
+                @for (variant of alternatives; track variant.id) {
+                  <article class="min-w-[17rem] sm:min-w-[19rem] max-w-[19rem] snap-start rounded-2xl bg-white border border-greek-100 overflow-hidden shadow-sm">
+                    @if (variant.coverImageUrl) {
+                      <img [src]="(variant.coverImageUrl | gcsUrl | async) ?? ''" alt="" class="h-32 w-full object-cover" />
+                    }
+                    <div class="p-4">
+                      <div class="flex items-center gap-2 mb-2">
+                        @if (isSelectedVariant(variant)) {
+                          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-greek-600 text-white">Selected</span>
+                        }
+                        @if (isCompleted(variant.id)) {
+                          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gold-100 text-gold-700">Completed</span>
+                        }
+                        @if (variant.isSelectableAlternative === false) {
+                          <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-100 text-surface-500">No longer offered</span>
+                        }
+                      </div>
+                      <p class="text-xs font-semibold uppercase tracking-wider text-greek-600 mb-1">{{ variant.topic }}</p>
+                      <h3 class="font-serif text-lg font-semibold text-surface-900 mb-2">{{ variant.title }}</h3>
+                      <p class="text-sm text-surface-500 line-clamp-2 mb-4">{{ variant.summary }}</p>
+                      <div class="flex gap-2">
+                        <a [routerLink]="['/chapters', variant.id]" class="flex-1 text-center px-3 py-2 rounded-lg border border-greek-200 text-sm font-semibold text-greek-700 hover:bg-greek-50">Open</a>
+                        <button
+                          type="button"
+                          class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold disabled:bg-surface-100 disabled:text-surface-400 bg-greek-600 text-white"
+                          [disabled]="isSelectedVariant(variant) || variant.isSelectableAlternative === false"
+                          (click)="selectVariant(variant)"
+                        >Select</button>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+
       <!-- ===== OWN WORD BUBBLE ===== -->
       <app-own-word-bubble [chapterId]="chapter.id" [bookId]="chapter.bookId" />
 
@@ -565,6 +617,14 @@ export class ChapterDetailPage implements OnInit {
     )
   );
 
+  alternatives = toSignal(
+    this.route.paramMap.pipe(
+      switchMap(params => this.lessonService.getChapter(params.get('id')!)),
+      switchMap(chapter => this.lessonService.getAlternativesForCurriculumChapter(chapter.curriculumChapterId))
+    ),
+    { initialValue: [] as Chapter[] }
+  );
+
   /** The first passage sentence, or undefined if the passage is empty. */
   firstSentence = computed<PassageSentence | undefined>(() => this.chapter()?.passage?.[0]);
 
@@ -593,6 +653,32 @@ export class ChapterDetailPage implements OnInit {
       next.set(event.index, event.correct);
       return next;
     });
+  }
+
+  async selectVariant(chapter: Chapter): Promise<void> {
+    await this.lessonService.setCurriculumSelection(chapter.curriculumChapterId, chapter.id);
+  }
+
+  isSelectedVariant(chapter: Chapter): boolean {
+    const selectedBySlot = this.authService.currentUser()?.curriculum?.selectedChapterIdsByCurriculumChapterId ?? {};
+    const storedSelectedId = selectedBySlot[chapter.curriculumChapterId];
+    const alternatives = this.alternatives().filter((variant) => variant.curriculumChapterId === chapter.curriculumChapterId);
+    if (storedSelectedId && alternatives.some((variant) => variant.id === storedSelectedId)) {
+      return storedSelectedId === chapter.id;
+    }
+
+    const fallback = alternatives
+      .filter((variant) => variant.isSelectableAlternative !== false)
+      .sort((a, b) => this.generatedAtMs(b) - this.generatedAtMs(a) || b.id.localeCompare(a.id))[0];
+    return fallback?.id === chapter.id;
+  }
+
+  isCompleted(chapterId: string): boolean {
+    return this.authService.currentUser()?.progress?.completedChapterIds?.includes(chapterId) ?? false;
+  }
+
+  private generatedAtMs(chapter: Chapter): number {
+    return chapter.generatedAt?.toMillis() ?? Number.NEGATIVE_INFINITY;
   }
 
   /** Exercise types that are never graded (no answered event emitted). */

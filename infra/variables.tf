@@ -97,3 +97,21 @@ variable "complete_practice_function_timeout" {
   type        = number
   default     = 30
 }
+
+variable "set_curriculum_selection_function_memory" {
+  description = "Memory for the set-curriculum-selection Cloud Function."
+  type        = string
+  default     = "256M"
+}
+
+variable "set_curriculum_selection_function_cpu" {
+  description = "vCPU allocation for the set-curriculum-selection Cloud Function."
+  type        = string
+  default     = "0.333"
+}
+
+variable "set_curriculum_selection_function_timeout" {
+  description = "Timeout (seconds) for the set-curriculum-selection Cloud Function."
+  type        = number
+  default     = 30
+}

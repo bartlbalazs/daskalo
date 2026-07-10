@@ -222,7 +222,15 @@ export interface User {
   createdAt: Timestamp;
   lastActive: Timestamp;
   progress: UserProgress;
+  curriculum?: UserCurriculum;
   vocabularyList: VocabularyListItem[];
+}
+
+export interface UserCurriculum {
+  selectedChapterIdsByCurriculumChapterId: Record<string, string>;
+  manualSelectionsByCurriculumChapterId: Record<string, Timestamp>;
+  initializedAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +311,8 @@ export interface Chapter {
   title: string;
   order: number;
   summary: string;
+  generatedAt?: Timestamp;
+  isSelectableAlternative?: boolean;
   length?: 'short' | 'medium' | 'long';
   practiceSetIds?: string[];
   introduction?: string;

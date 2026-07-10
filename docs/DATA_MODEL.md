@@ -23,6 +23,16 @@ Documents representing the students.
     "lastProgressSummary": "You've mastered the accusative case and can now confidently order food at a taverna.", // Plain-text Gemini-generated summary of the last completed chapter. Added by complete-chapter.
     "xp": 450 // Basic gamification. Written via Firestore Increment by complete-chapter/complete-practice, never read-modify-write.
   },
+  "curriculum": {
+    "selectedChapterIdsByCurriculumChapterId": {
+      "p1_c1": "p1_c1_airport"
+    },
+    "manualSelectionsByCurriculumChapterId": {
+      "p1_c1": "Timestamp"
+    },
+    "initializedAt": "Timestamp",
+    "updatedAt": "Timestamp"
+  }, // Added by operator activation/backfill. Pending users created by the client do not include this object.
   "vocabularyList": [] // Reserved for future use — always created empty and never populated today (superseded in practice by chapters[].vocabulary + the ownWords/favoriteWords subcollections).
 }
 ```
@@ -56,6 +66,8 @@ The individual units within a book (e.g., Chapter 1: At the Airport).
   "topic": "At the Airport",
   "title": "Lost in Monastiraki",
   "order": 1,
+  "generatedAt": "Timestamp", // Content generation/package time. Missing on legacy chapters; missing sorts older than timestamped variants.
+  "isSelectableAlternative": true, // Optional opt-out flag. Missing means selectable; false hides from new choices/defaulting.
   "languageSkill": "Speaking", // Optional label e.g. "Speaking", "Reading", "Listening", "Writing", "Grammar".
   "length": "medium", // Optional: "short", "medium", or "long"
   "practiceSetIds": ["ps_p1_c1_airport_01"], // Array of IDs for associated practice sets
@@ -260,6 +272,8 @@ When the LangGraph CLI generates content, it packages it into a `.zip` file. The
      "topic": "Hotel Check-in",
      "title": "Check-in Chaos",
      "order": 3,
+     "generatedAt": "2026-07-10T12:00:00+00:00",
+     "isSelectableAlternative": true,
      "summary": "Your hotel room isn't ready and you need to negotiate with the front desk.",
      "passage_text": "Καλησπέρα, έχω κάνει μία κράτηση...",
      "passageAudioPath": "assets/audio/passage_p1_c1_hotel.mp3",

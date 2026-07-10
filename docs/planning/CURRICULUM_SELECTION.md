@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft specification for a future implementation pass.
+Implemented in the application codebase. This document remains the feature specification and acceptance reference.
 
 ## Problem
 

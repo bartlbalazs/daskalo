@@ -186,7 +186,7 @@ export class ChaptersPage implements OnInit {
     this.booksWithChapters$ = this.lessonService.getBooks().pipe(
       map(books => books.map(book => ({
         ...book,
-        chapters$: this.lessonService.getChaptersByBook(book.id)
+        chapters$: this.lessonService.getSelectedChaptersByBook(book.id)
       })))
     );
   }

@@ -16,6 +16,7 @@ Audio ZIP-folder routing is driven purely by the `role` tag that
 import json
 import logging
 import zipfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 from models.content_models import (
@@ -78,6 +79,8 @@ def package_output(state: ContentState) -> dict:
             "title": state["chapter_title"],
             "order": state["chapter_order"],
             "summary": state.get("chapter_summary", ""),
+            "generatedAt": datetime.now(UTC).isoformat(),
+            "isSelectableAlternative": True,
             "length": state.get("lesson_length", "medium"),
             "introduction": state.get("chapter_introduction", ""),
             "languageSkill": state.get("language_skill", ""),

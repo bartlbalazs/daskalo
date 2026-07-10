@@ -10,6 +10,7 @@ export const environment = {
   completeChapterUrl: 'http://localhost:8000/complete-chapter',
   completePracticeUrl: 'http://localhost:8000/complete-practice',
   addOwnWordUrl: 'http://localhost:8000/add-own-word',
+  setCurriculumSelectionUrl: 'http://localhost:8000/set-curriculum-selection',
   firestoreDb: undefined as string | undefined,
   firebase: {
     apiKey: 'demo-api-key',

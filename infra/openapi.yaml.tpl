@@ -30,6 +30,10 @@ x-google-management:
       displayName: "Complete Practice Requests"
       valueType: INT64
       metricKind: DELTA
+    - name: "set-curriculum-selection-requests"
+      displayName: "Set Curriculum Selection Requests"
+      valueType: INT64
+      metricKind: DELTA
   quota:
     limits:
       - name: "evaluate-attempt-limit"
@@ -52,6 +56,11 @@ x-google-management:
         unit: "1/min/{project}"
         values:
           STANDARD: 3
+      - name: "set-curriculum-selection-limit"
+        metric: "set-curriculum-selection-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 10
 
 # ---------------------------------------------------------------------------
 # Firebase JWT security definition
@@ -113,6 +122,72 @@ paths:
       summary: "CORS preflight for /evaluate"
       x-google-backend:
         address: "${evaluate_attempt_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: header
+          name: Origin
+          type: string
+        - in: header
+          name: Access-Control-Request-Method
+          type: string
+        - in: header
+          name: Access-Control-Request-Headers
+          type: string
+      responses:
+        "200":
+          description: "CORS preflight response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+            Access-Control-Max-Age:
+              type: string
+
+  # -------------------------------------------------------------------------
+  # /set-curriculum-selection — POST (set-curriculum-selection function)
+  # -------------------------------------------------------------------------
+  /set-curriculum-selection:
+    post:
+      operationId: "setCurriculumSelection"
+      summary: "Select a chapter variant for a curriculum slot"
+      security:
+        - firebase: []
+      x-google-quota:
+        metricCosts:
+          "set-curriculum-selection-requests": 1
+      x-google-backend:
+        address: "${set_curriculum_selection_url}"
+        jwt_audience: "${set_curriculum_selection_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Curriculum selection updated"
+        "400":
+          description: "Invalid argument"
+        "401":
+          description: "Unauthenticated"
+        "403":
+          description: "Permission denied"
+        "429":
+          description: "Rate limit exceeded"
+        "500":
+          description: "Internal error"
+    options:
+      operationId: "setCurriculumSelectionCors"
+      summary: "CORS preflight for /set-curriculum-selection"
+      x-google-backend:
+        address: "${set_curriculum_selection_url}"
         deadline: 30.0
         protocol: h2
       parameters:

@@ -58,13 +58,14 @@ def test_endpoint_reachable_and_returns_well_formed_callable_error(client, path,
     assert body["error"]["status"] == "UNAUTHENTICATED"
 
 
-def test_all_four_endpoints_registered_in_openapi_schema(client):
+def test_all_endpoints_registered_in_openapi_schema(client):
     schema = client.get("/openapi.json").json()
     assert set(schema["paths"].keys()) == {
         "/evaluate",
         "/complete-chapter",
         "/add-own-word",
         "/complete-practice",
+        "/set-curriculum-selection",
     }
 
 

@@ -47,12 +47,14 @@ import shutil
 import sys
 import tempfile
 import zipfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 # Resolve all filesystem paths relative to this package directory, not the
@@ -556,6 +558,215 @@ def upload(zip_path: str, remote: bool) -> None:
         _upload_remote(zip_path)
     else:
         _upload_local(zip_path)
+
+
+# ---------------------------------------------------------------------------
+# users command group
+# ---------------------------------------------------------------------------
+
+
+@cli.group("users")
+def users() -> None:
+    """Manage student activation and curriculum initialization."""
+
+
+@users.command("list")
+@click.option(
+    "--status",
+    "status_filter",
+    type=click.Choice(["pending", "active", "all"]),
+    default="pending",
+    show_default=True,
+    help="Which users to list.",
+)
+@click.option(
+    "--remote",
+    is_flag=True,
+    default=False,
+    help="List production users instead of local emulator users.",
+)
+def users_list(status_filter: str, remote: bool) -> None:
+    """List users with activation-relevant metadata."""
+    fs_client = _get_users_firestore_client(remote)
+
+    query_ref = fs_client.collection("users")
+    if status_filter != "all":
+        query_ref = query_ref.where("status", "==", status_filter)
+
+    rows = []
+    for snap in query_ref.stream():
+        data = snap.to_dict() or {}
+        curriculum = data.get("curriculum", {})
+        rows.append((snap.id, data, bool(curriculum.get("initializedAt"))))
+
+    rows.sort(key=lambda row: _timestamp_sort_key(row[1].get("createdAt")))
+
+    table = Table(title=f"Daskalo users ({'production' if remote else 'local'}, status={status_filter})")
+    table.add_column("UID")
+    table.add_column("Email")
+    table.add_column("Display name")
+    table.add_column("Status")
+    table.add_column("Created")
+    table.add_column("Last active")
+    table.add_column("Curriculum")
+
+    for uid, data, initialized in rows:
+        table.add_row(
+            uid,
+            str(data.get("email", "")),
+            str(data.get("displayName", "")),
+            str(data.get("status", "")),
+            _format_timestamp(data.get("createdAt")),
+            _format_timestamp(data.get("lastActive")),
+            "yes" if initialized else "no",
+        )
+
+    console.print(table)
+
+
+@users.command("activate")
+@click.argument("uid")
+@click.option(
+    "--remote",
+    is_flag=True,
+    default=False,
+    help="Activate the user in production Firestore instead of the local emulator.",
+)
+def users_activate(uid: str, remote: bool) -> None:
+    """Activate a user and initialize/refresh automatic curriculum selections."""
+    fs_client = _get_users_firestore_client(remote)
+    result = _activate_user(fs_client, uid)
+
+    console.print(Panel(Text("Daskalo User Activation", justify="center"), style="bold blue"))
+    console.print(f"  Target      : [{'bold red' if remote else 'cyan'}]{'production' if remote else 'local emulators'}[/]")
+    console.print(f"  UID         : [cyan]{uid}[/cyan]")
+    console.print(f"  Status      : {result['old_status']} -> {result['new_status']}")
+    console.print(f"  Initialized : {'yes' if result['initialized'] else 'already initialized'}")
+    console.print(f"  Rows written: {result['selected_count']}")
+    if result["manual_count"]:
+        console.print(f"  Manual kept : {result['manual_count']}")
+    if result["repair_needed"]:
+        console.print("\n[bold yellow]Repair needed for manual selections:[/bold yellow]")
+        for slot, chapter_id in result["repair_needed"].items():
+            console.print(f"  {slot}: selected chapter not readable ([cyan]{chapter_id}[/cyan])")
+
+
+def _get_users_firestore_client(remote: bool):
+    from google.cloud import firestore
+
+    if remote:
+        from services.remote_ingest import get_remote_config
+
+        config = get_remote_config()
+        return firestore.Client(project=config["project_id"], database=config["db_name"])
+
+    from services.local_ingest import LOCAL_PROJECT_ID, _configure_emulator_env
+
+    _configure_emulator_env()
+    return firestore.Client(project=LOCAL_PROJECT_ID)
+
+
+def _activate_user(fs_client, uid: str) -> dict:
+    user_ref = fs_client.collection("users").document(uid)
+    user_snap = user_ref.get()
+    if not user_snap.exists:
+        raise click.UsageError(f"User '{uid}' not found.")
+
+    user = user_snap.to_dict() or {}
+    old_status = str(user.get("status", ""))
+    if old_status not in {"pending", "active"}:
+        raise click.UsageError(f"User '{uid}' has unsupported status {old_status!r}.")
+
+    selected, repair_needed = _build_curriculum_selection(fs_client, user)
+    curriculum = user.get("curriculum", {})
+    initialized = not bool(curriculum.get("initializedAt"))
+    now = datetime.now(UTC)
+
+    update = {
+        "status": "active",
+        "curriculum.selectedChapterIdsByCurriculumChapterId": selected,
+        "curriculum.updatedAt": now,
+    }
+    if initialized:
+        update["curriculum.initializedAt"] = now
+
+    user_ref.update(update)
+
+    return {
+        "old_status": old_status,
+        "new_status": "active",
+        "initialized": initialized,
+        "selected_count": len(selected),
+        "manual_count": len(curriculum.get("manualSelectionsByCurriculumChapterId", {}) or {}),
+        "repair_needed": repair_needed,
+    }
+
+
+def _build_curriculum_selection(fs_client, user: dict) -> tuple[dict[str, str], dict[str, str]]:
+    curriculum = user.get("curriculum", {}) or {}
+    existing = dict(curriculum.get("selectedChapterIdsByCurriculumChapterId", {}) or {})
+    manual = dict(curriculum.get("manualSelectionsByCurriculumChapterId", {}) or {})
+
+    selectable_by_slot: dict[str, list[tuple[datetime, str]]] = {}
+    readable_by_slot: dict[str, set[str]] = {}
+    readable_ids: set[str] = set()
+    for snap in fs_client.collection("chapters").stream():
+        chapter = snap.to_dict() or {}
+        slot = chapter.get("curriculumChapterId")
+        if not slot:
+            continue
+        readable_ids.add(snap.id)
+        readable_by_slot.setdefault(slot, set()).add(snap.id)
+        if chapter.get("isSelectableAlternative") is False:
+            continue
+        selectable_by_slot.setdefault(slot, []).append((_generated_at_key(chapter.get("generatedAt")), snap.id))
+
+    selected: dict[str, str] = {}
+    repair_needed: dict[str, str] = {}
+    for slot, variants in selectable_by_slot.items():
+        variants.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        newest_id = variants[0][1]
+        existing_id = existing.get(slot)
+        if slot in manual and existing_id:
+            selected[slot] = existing_id
+            if existing_id not in readable_ids:
+                repair_needed[slot] = existing_id
+        else:
+            selected[slot] = newest_id
+
+    # Preserve selected hidden variants for slots whose selectable variants were all hidden/deleted.
+    for slot, selected_id in existing.items():
+        if slot not in selected and selected_id in readable_by_slot.get(slot, set()):
+            selected[slot] = selected_id
+        if slot in manual and slot not in selected:
+            selected[slot] = selected_id
+            if selected_id not in readable_ids:
+                repair_needed[slot] = selected_id
+
+    return selected, repair_needed
+
+
+def _generated_at_key(value) -> datetime:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
+        except ValueError:
+            return datetime.min.replace(tzinfo=UTC)
+    return datetime.min.replace(tzinfo=UTC)
+
+
+def _timestamp_sort_key(value) -> datetime:
+    return _generated_at_key(value)
+
+
+def _format_timestamp(value) -> str:
+    if isinstance(value, datetime):
+        return value.astimezone(UTC).strftime("%Y-%m-%d %H:%M")
+    return ""
 
 
 def _upload_local(zip_path: str) -> None:

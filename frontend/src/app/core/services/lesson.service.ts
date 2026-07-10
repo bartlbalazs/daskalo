@@ -14,8 +14,9 @@ import {
   getDocs,
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { Observable, from, of } from 'rxjs';
+import { Observable, combineLatest, from, of } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Chapter, Book, ExerciseAttempt, AttemptPayload, ExerciseType, EvaluationResult, PracticeSet } from '../models/firestore.models';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
@@ -38,6 +39,8 @@ export class LessonService {
 
   /** Cached chapters$ streams keyed by bookId, same rationale as _books$ above. */
   private readonly _chaptersByBook$ = new Map<string, Observable<Chapter[]>>();
+  private _allChapters$: Observable<Chapter[]> | null = null;
+  private readonly user$ = toObservable(this.authService.currentUser);
 
   /** Stream all active books ordered by their display order. */
   getBooks(): Observable<Book[]> {
@@ -64,6 +67,68 @@ export class LessonService {
       this._chaptersByBook$.set(bookId, chapters$);
     }
     return chapters$;
+  }
+
+  /** Stream all chapters ordered locally. Used for curriculum alternative grouping. */
+  getAllChapters(): Observable<Chapter[]> {
+    if (!this._allChapters$) {
+      const ref = collection(this.firestore, 'chapters');
+      this._allChapters$ = (collectionData(ref, { idField: 'id' }) as Observable<Chapter[]>).pipe(
+        map((chapters) => this.sortChapters(chapters)),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+    return this._allChapters$;
+  }
+
+  /** Stream selected chapter variants for one book, with newest-selectable fallback. */
+  getSelectedChaptersByBook(bookId: string): Observable<Chapter[]> {
+    return combineLatest([this.getChaptersByBook(bookId), this.user$]).pipe(
+      map(([chapters, user]) => this.selectedChapters(chapters, user?.curriculum?.selectedChapterIdsByCurriculumChapterId ?? {}))
+    );
+  }
+
+  /** Stream alternatives for one curriculum slot. Hidden variants are excluded unless already selected. */
+  getAlternativesForCurriculumChapter(curriculumChapterId: string): Observable<Chapter[]> {
+    return combineLatest([this.getAllChapters(), this.user$]).pipe(
+      map(([chapters, user]) => {
+        const selectedId = user?.curriculum?.selectedChapterIdsByCurriculumChapterId?.[curriculumChapterId];
+        return chapters
+          .filter((chapter) =>
+            chapter.curriculumChapterId === curriculumChapterId &&
+            (chapter.isSelectableAlternative !== false || chapter.id === selectedId)
+          )
+          .sort((a, b) => this.alternativeSort(a, b, selectedId));
+      })
+    );
+  }
+
+  async setCurriculumSelection(curriculumChapterId: string, chapterId: string): Promise<void> {
+    const userId = this.authService.firebaseUser()?.uid;
+    if (!userId) throw new Error('User not authenticated.');
+
+    const idToken = await this.auth.currentUser?.getIdToken();
+    const response = await fetchWithTimeout(environment.setCurriculumSelectionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
+      body: JSON.stringify({
+        data: {
+          curriculumChapterId,
+          chapterId,
+          ...(idToken ? { idToken } : {}),
+        },
+      }),
+    });
+
+    const body = await response.json();
+    if (body.error) {
+      throw new Error(body.error.message ?? 'Failed to update curriculum selection.');
+    }
+
+    await this.authService.loadCurrentUser();
   }
 
   /** Stream a single chapter document in real-time. */
@@ -237,5 +302,52 @@ export class LessonService {
     await this.authService.loadCurrentUser();
 
     return { xpGained: body.result.xpGained };
+  }
+
+  private selectedChapters(chapters: Chapter[], selectedBySlot: Record<string, string>): Chapter[] {
+    const groups = new Map<string, Chapter[]>();
+    for (const chapter of chapters) {
+      groups.set(chapter.curriculumChapterId, [...(groups.get(chapter.curriculumChapterId) ?? []), chapter]);
+    }
+
+    const selected: Chapter[] = [];
+    for (const [slot, variants] of groups) {
+      const selectedId = selectedBySlot[slot];
+      const selectedVariant = variants.find((chapter) => chapter.id === selectedId);
+      if (selectedVariant) {
+        selected.push(selectedVariant);
+        continue;
+      }
+
+      const newestSelectable = variants
+        .filter((chapter) => chapter.isSelectableAlternative !== false)
+        .sort((a, b) => this.newestFirst(a, b))[0];
+      if (newestSelectable) selected.push(newestSelectable);
+    }
+
+    return this.sortChapters(selected);
+  }
+
+  private sortChapters(chapters: Chapter[]): Chapter[] {
+    return [...chapters].sort((a, b) =>
+      a.order - b.order || a.curriculumChapterId.localeCompare(b.curriculumChapterId) || a.id.localeCompare(b.id)
+    );
+  }
+
+  private alternativeSort(a: Chapter, b: Chapter, selectedId?: string): number {
+    if (a.id === selectedId) return -1;
+    if (b.id === selectedId) return 1;
+    return this.newestFirst(a, b);
+  }
+
+  private newestFirst(a: Chapter, b: Chapter): number {
+    return this.generatedAtMs(b) - this.generatedAtMs(a) || b.id.localeCompare(a.id);
+  }
+
+  private generatedAtMs(chapter: Chapter): number {
+    const generatedAt = chapter.generatedAt;
+    if (!generatedAt) return Number.NEGATIVE_INFINITY;
+    if (typeof generatedAt === 'object' && 'toMillis' in generatedAt) return generatedAt.toMillis();
+    return Number.NEGATIVE_INFINITY;
   }
 }

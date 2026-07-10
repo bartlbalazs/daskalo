@@ -3,7 +3,7 @@
 ## 1. Overview
 The application consists of three main components:
 1. **Frontend (User Application)**: An Angular SPA deployed to Firebase Hosting.
-2. **Backend (Evaluation & Progress)**: Four Python Cloud Functions (2nd gen) deployed to Google Cloud Functions, fronted by an API Gateway.
+2. **Backend (Evaluation & Progress)**: Python Cloud Functions (2nd gen) deployed to Google Cloud Functions, fronted by an API Gateway.
 3. **Content Generator (Operator Tool)**: A local Python CLI utilizing LangGraph for AI-assisted content creation.
 
 ## 2. Component Details
@@ -13,7 +13,7 @@ The application consists of three main components:
 - **Hosting**: Firebase Hosting.
 - **State/Data**: Interacts directly with Firestore for reading lessons, vocabulary, and writing exercise attempts.
 - **Authentication**: Firebase Authentication (Google Sign-In).
-- **Backend Communication**: Uses raw `fetch()` with the Firebase Callable wire protocol (`{"data": {...}}` request body). No `@angular/fire/functions` SDK. Both function URLs are routed through the API Gateway and configured via `environment.evaluateAttemptUrl` and `environment.completeChapterUrl`. These point to `{api_gateway_url}/evaluate` and `{api_gateway_url}/complete-chapter`.
+- **Backend Communication**: Uses raw `fetch()` with the Firebase Callable wire protocol (`{"data": {...}}` request body). No `@angular/fire/functions` SDK. Function URLs are routed through the API Gateway and configured in `frontend/src/environments/*`.
 - **Key Features**:
   - Book-like chapter navigation.
   - Lesson display and interactive exercises (e.g., Slang Matcher, Image Description).
@@ -33,11 +33,12 @@ The application consists of three main components:
   - `complete_chapter_fn` (`fn_complete_chapter.py`): Generates a progress summary via Gemini and updates the user document in Firestore (`completedChapterIds` via `ArrayUnion`, `xp` via `Increment`, `lastActive`, `lastProgressSummary`), inside a transaction. Grammar book entries are NOT generated here — see the content-cli pipeline.
   - `complete_practice_fn` (`fn_complete_practice.py`): Idempotently awards a flat XP amount for completing a practice set (`completedPracticeSetIds` via `ArrayUnion`, `xp` via `Increment`), inside a transaction.
   - `add_own_word_fn` (`fn_own_word.py`): Normalizes a student-submitted Greek word/phrase via Gemini, synthesizes pronunciation audio (Cloud TTS), uploads it to the public assets bucket, and writes it to `users/{uid}/ownWords` via a deterministic document ID (idempotent overwrite).
-- **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, response formatting, the active-user gate, and the per-user rate limiter — used by all four functions.
+  - `set_curriculum_selection_fn` (`fn_set_curriculum_selection.py`): Validates and writes a user's selected concrete chapter variant for one `curriculumChapterId`.
+- **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, response formatting, the active-user gate, and the per-user rate limiter — used by all callable functions.
 - **AI Integration**: Uses Gemini for exercise evaluation, pronunciation grading, progress summary generation, and own-word normalization; Cloud Speech-to-Text for pronunciation transcription; Cloud Text-to-Speech for own-word audio.
 - **Service accounts**:
-  - `api-gateway-sa` — held by API Gateway; has `roles/run.invoker` on all four functions.
-  - `cf-runtime-sa` — attached to all four Cloud Functions; has `roles/aiplatform.user`, `roles/datastore.user`, `roles/speech.client`, `roles/firebase.sdkAdminServiceAgent`.
+  - `api-gateway-sa` — held by API Gateway; has `roles/run.invoker` on Cloud Functions.
+  - `cf-runtime-sa` — attached to Cloud Functions; has `roles/aiplatform.user`, `roles/datastore.user`, `roles/speech.client`, `roles/firebase.sdkAdminServiceAgent`.
 
 ### 2.3 Content Generator (Local CLI)
 - **Role**: Offline tool for operators to generate multimodal course content.
@@ -85,7 +86,7 @@ The grammar book is assembled at runtime on the frontend — no backend call nee
 Local development uses Firebase Emulator Suite for Firestore/Auth and a FastAPI dev server for the backend.
 
 - **Firebase Emulator Suite**: Runs Firestore and Auth locally. The Angular app connects to these instead of production.
-- **Backend (local)**: `main.py` is a FastAPI dev server that bundles both Cloud Function handlers as standard POST endpoints (`/evaluate`, `/complete-chapter`). It uses a `_FlaskRequestShim` to adapt FastAPI `Request` objects to the Flask-compatible interface expected by `callable_helpers`. This file is **not deployed to production**.
+- **Backend (local)**: `main.py` is a FastAPI dev server that bundles Cloud Function handlers as standard POST endpoints (`/evaluate`, `/complete-chapter`, `/complete-practice`, `/add-own-word`, `/set-curriculum-selection`). It uses a `_FlaskRequestShim` to adapt FastAPI `Request` objects to the Flask-compatible interface expected by `callable_helpers`. This file is **not deployed to production**.
 - **Direct HTTP Callables**: The direct HTTP Callable pattern means no background trigger simulation is needed locally.
 
 ### Starting the local environment
@@ -136,7 +137,7 @@ cp infra/terraform.tfvars.example infra/terraform.tfvars
 | `infra/storage.tf` | Public assets GCS bucket (CORS, `allUsers:objectViewer`) |
 | `infra/firestore.tf` | Firestore database (NATIVE mode) |
 | `infra/iam.tf` | `api-gateway-sa`, `cf-runtime-sa`, IAM bindings |
-| `infra/functions.tf` | CF source GCS bucket, source zip object, 4x `google_cloudfunctions2_function` |
+| `infra/functions.tf` | CF source GCS bucket, source zip object, Cloud Function resources |
 | `infra/api_gateway.tf` | `google_api_gateway_api/config/gateway` (OpenAPI 2.0 spec, Firebase JWT, CORS) |
 | `infra/firebase_hosting.tf` | `google_firebase_web_app`, `google_firebase_hosting_site` |
 | `infra/outputs.tf` | `api_gateway_url`, function URLs, Firebase web app config |

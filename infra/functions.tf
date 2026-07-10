@@ -264,3 +264,60 @@ resource "google_cloud_run_service_iam_member" "complete_practice_invoker" {
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
 }
+
+# ---------------------------------------------------------------------------
+# set-curriculum-selection Cloud Function
+# ---------------------------------------------------------------------------
+
+resource "google_cloudfunctions2_function" "set_curriculum_selection" {
+  project     = var.project_id
+  location    = var.region
+  name        = "set-curriculum-selection"
+  description = "Updates a user's selected chapter variant for a curriculum slot."
+
+  build_config {
+    runtime     = "python311"
+    entry_point = "set_curriculum_selection_fn"
+
+    environment_variables = {
+      GOOGLE_FUNCTION_SOURCE = "fn_set_curriculum_selection.py"
+    }
+
+    source {
+      storage_source {
+        bucket = google_storage_bucket.cf_source.name
+        object = google_storage_bucket_object.backend_zip.name
+      }
+    }
+  }
+
+  service_config {
+    available_memory               = var.set_curriculum_selection_function_memory
+    available_cpu                  = var.set_curriculum_selection_function_cpu
+    timeout_seconds                = var.set_curriculum_selection_function_timeout
+    max_instance_count             = 2
+    min_instance_count             = 0
+    all_traffic_on_latest_revision = true
+
+    service_account_email = google_service_account.cf_runtime_sa.email
+
+    environment_variables = {
+      GOOGLE_CLOUD_PROJECT = var.project_id
+      FIRESTORE_DB         = var.db_name
+    }
+  }
+
+  depends_on = [
+    google_project_service.apis,
+    google_storage_bucket_object.backend_zip,
+  ]
+}
+
+# Allow API Gateway SA to invoke set-curriculum-selection.
+resource "google_cloud_run_service_iam_member" "set_curriculum_selection_invoker" {
+  project  = var.project_id
+  location = var.region
+  service  = google_cloudfunctions2_function.set_curriculum_selection.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
+}

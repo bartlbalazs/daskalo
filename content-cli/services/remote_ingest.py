@@ -30,6 +30,7 @@ import logging
 import re
 import sys
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 from google.cloud import firestore, storage
@@ -175,6 +176,7 @@ def ingest_remote(zip_path: str) -> str:
             upsert_book(fs_client, book_id)
             process_chapter_assets(zf, chapter, chapter_id, assets_bucket)
 
+            _normalise_generated_at(chapter)
             chapter["bookId"] = book_id
             doc_ref = fs_client.collection("chapters").document(chapter_id)
             doc_ref.set(chapter, merge=True)
@@ -231,3 +233,9 @@ def _ingest_practice_set_remote(
 def get_remote_config() -> dict[str, str]:
     """Return parsed production config. Raises if tfvars is missing or incomplete."""
     return parse_tfvars()
+
+
+def _normalise_generated_at(chapter: dict) -> None:
+    generated_at = chapter.get("generatedAt")
+    if isinstance(generated_at, str):
+        chapter["generatedAt"] = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))

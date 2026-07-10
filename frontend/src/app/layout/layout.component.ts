@@ -133,6 +133,17 @@ interface SidebarBook extends Book {
           Grammar Book
         </a>
         <a
+          routerLink="/curriculum"
+          routerLinkActive="bg-greek-500 text-white font-semibold"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm text-greek-100 hover:bg-greek-500 hover:text-white transition-colors"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+          Curriculum
+        </a>
+        <a
           routerLink="/vocabulary"
           routerLinkActive="bg-greek-500 text-white font-semibold"
           [routerLinkActiveOptions]="{ exact: true }"
@@ -267,6 +278,18 @@ interface SidebarBook extends Book {
                 </svg>
                 <span>Vocabulary</span>
               </a>
+              <a
+                routerLink="/curriculum"
+                routerLinkActive="bg-greek-100 text-greek-800 font-semibold"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-surface-600 hover:bg-greek-100 hover:text-greek-800 transition-colors"
+                (click)="closeSidebarOnMobile()"
+              >
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <span>Curriculum</span>
+              </a>
             </div>
           </div>
         </aside>
@@ -302,7 +325,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       .subscribe((books) => {
         this.sidebarBooks = books.map((book) => ({
           ...book,
-          chapters$: this.lessonService.getChaptersByBook(book.id),
+          chapters$: this.lessonService.getSelectedChaptersByBook(book.id),
         }));
         this.booksLoaded = true;
       });

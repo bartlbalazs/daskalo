@@ -36,6 +36,11 @@ export const routes: Routes = [
           import('./pages/grammar-book/grammar-book.page').then((m) => m.GrammarBookPage),
       },
       {
+        path: 'curriculum',
+        loadComponent: () =>
+          import('./pages/curriculum/curriculum.page').then((m) => m.CurriculumPage),
+      },
+      {
         path: 'vocabulary',
         loadComponent: () =>
           import('./pages/vocabulary/vocabulary.page').then((m) => m.VocabularyPage),

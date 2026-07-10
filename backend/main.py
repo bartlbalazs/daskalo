@@ -27,6 +27,7 @@ from fn_complete_chapter import complete_chapter_fn
 from fn_complete_practice import complete_practice_fn
 from fn_evaluate import evaluate_attempt_fn
 from fn_own_word import add_own_word_fn
+from fn_set_curriculum_selection import set_curriculum_selection_fn
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -158,5 +159,13 @@ async def add_own_word_endpoint(request: Request) -> JSONResponse:
 async def complete_practice_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
     result = complete_practice_fn(shim)
+    body, status = result[0], result[1]
+    return JSONResponse(content=body, status_code=status)
+
+
+@app.post("/set-curriculum-selection", summary="Select a chapter variant for a curriculum slot")
+async def set_curriculum_selection_endpoint(request: Request) -> JSONResponse:
+    shim = await _shim(request)
+    result = set_curriculum_selection_fn(shim)
     body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)

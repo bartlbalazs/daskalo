@@ -223,7 +223,12 @@ export interface User {
   lastActive: Timestamp;
   progress: UserProgress;
   curriculum?: UserCurriculum;
+  onboarding?: UserOnboarding;
   vocabularyList: VocabularyListItem[];
+}
+
+export interface UserOnboarding {
+  howItWorksSeenAt?: Timestamp;
 }
 
 export interface UserCurriculum {

@@ -18,6 +18,8 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { User } from '../models/firestore.models';
+import { environment } from '../../../environments/environment';
+import { fetchWithTimeout } from '../utils/fetch-with-timeout';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -45,7 +47,7 @@ export class AuthService {
     await this._loadUserDocument(credential.user.uid);
 
     if (this.isActive()) {
-      this.router.navigate(['/chapters']);
+      this.router.navigate([this.getActiveEntryPath()]);
     } else {
       this.router.navigate(['/pending']);
     }
@@ -62,6 +64,32 @@ export class AuthService {
     if (userId) {
       await this._loadUserDocument(userId);
     }
+  }
+
+  async markOnboardingSeen(key: 'howItWorks'): Promise<void> {
+    const userId = this.firebaseUser()?.uid;
+    if (!userId) throw new Error('User not authenticated.');
+
+    const idToken = await this.auth.currentUser?.getIdToken();
+    const response = await fetchWithTimeout(environment.markOnboardingSeenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      },
+      body: JSON.stringify({ data: { key, ...(idToken ? { idToken } : {}) } }),
+    });
+
+    const body = await response.json();
+    if (body.error) {
+      throw new Error(body.error.message ?? 'Failed to mark onboarding as seen.');
+    }
+
+    await this.loadCurrentUser(userId);
+  }
+
+  getActiveEntryPath(): '/chapters' | '/how-it-works' {
+    return this.currentUser()?.onboarding?.howItWorksSeenAt ? '/chapters' : '/how-it-works';
   }
 
   private async _loadUserDocument(uid: string): Promise<void> {

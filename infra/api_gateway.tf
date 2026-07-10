@@ -49,6 +49,7 @@ resource "google_api_gateway_api_config" "daskalo" {
     google_cloudfunctions2_function.add_own_word,
     google_cloudfunctions2_function.complete_practice,
     google_cloudfunctions2_function.set_curriculum_selection,
+    google_cloudfunctions2_function.mark_onboarding_seen,
   ]
 }
 
@@ -75,5 +76,6 @@ locals {
     add_own_word_url             = google_cloudfunctions2_function.add_own_word.service_config[0].uri
     complete_practice_url        = google_cloudfunctions2_function.complete_practice.service_config[0].uri
     set_curriculum_selection_url = google_cloudfunctions2_function.set_curriculum_selection.service_config[0].uri
+    mark_onboarding_seen_url     = google_cloudfunctions2_function.mark_onboarding_seen.service_config[0].uri
   })
 }

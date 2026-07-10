@@ -9,6 +9,8 @@ export const environment = {
   completeChapterUrl: 'https://YOUR_COMPLETE_CHAPTER_FUNCTION_URL',
   completePracticeUrl: 'https://YOUR_COMPLETE_PRACTICE_FUNCTION_URL',
   addOwnWordUrl: 'https://YOUR_ADD_OWN_WORD_FUNCTION_URL',
+  setCurriculumSelectionUrl: 'https://YOUR_SET_CURRICULUM_SELECTION_URL',
+  markOnboardingSeenUrl: 'https://YOUR_MARK_ONBOARDING_SEEN_URL',
   firestoreDb: 'YOUR_FIRESTORE_DB_NAME', // e.g. 'daskalo-db' (leave empty for default db)
   firebase: {
     apiKey: 'YOUR_API_KEY',

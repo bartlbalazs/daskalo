@@ -34,6 +34,7 @@ The application consists of three main components:
   - `complete_practice_fn` (`fn_complete_practice.py`): Idempotently awards a flat XP amount for completing a practice set (`completedPracticeSetIds` via `ArrayUnion`, `xp` via `Increment`), inside a transaction.
   - `add_own_word_fn` (`fn_own_word.py`): Normalizes a student-submitted Greek word/phrase via Gemini, synthesizes pronunciation audio (Cloud TTS), uploads it to the public assets bucket, and writes it to `users/{uid}/ownWords` via a deterministic document ID (idempotent overwrite).
   - `set_curriculum_selection_fn` (`fn_set_curriculum_selection.py`): Validates and writes a user's selected concrete chapter variant for one `curriculumChapterId`.
+  - `mark_onboarding_seen_fn` (`fn_mark_onboarding_seen.py`): Idempotently writes `users/{uid}.onboarding.howItWorksSeenAt` for active users.
 - **Shared helpers** (`callable_helpers.py`): Token verification, request parsing, response formatting, the active-user gate, and the per-user rate limiter — used by all callable functions.
 - **AI Integration**: Uses Gemini for exercise evaluation, pronunciation grading, progress summary generation, and own-word normalization; Cloud Speech-to-Text for pronunciation transcription; Cloud Text-to-Speech for own-word audio.
 - **Service accounts**:
@@ -86,7 +87,7 @@ The grammar book is assembled at runtime on the frontend — no backend call nee
 Local development uses Firebase Emulator Suite for Firestore/Auth and a FastAPI dev server for the backend.
 
 - **Firebase Emulator Suite**: Runs Firestore and Auth locally. The Angular app connects to these instead of production.
-- **Backend (local)**: `main.py` is a FastAPI dev server that bundles Cloud Function handlers as standard POST endpoints (`/evaluate`, `/complete-chapter`, `/complete-practice`, `/add-own-word`, `/set-curriculum-selection`). It uses a `_FlaskRequestShim` to adapt FastAPI `Request` objects to the Flask-compatible interface expected by `callable_helpers`. This file is **not deployed to production**.
+- **Backend (local)**: `main.py` is a FastAPI dev server that bundles Cloud Function handlers as standard POST endpoints (`/evaluate`, `/complete-chapter`, `/complete-practice`, `/add-own-word`, `/set-curriculum-selection`, `/mark-onboarding-seen`). It uses a `_FlaskRequestShim` to adapt FastAPI `Request` objects to the Flask-compatible interface expected by `callable_helpers`. This file is **not deployed to production**.
 - **Direct HTTP Callables**: The direct HTTP Callable pattern means no background trigger simulation is needed locally.
 
 ### Starting the local environment

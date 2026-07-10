@@ -4,8 +4,9 @@ import { activeUserGuard } from './core/guards/active-user.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'chapters',
     pathMatch: 'full',
+    canActivate: [activeUserGuard],
+    loadComponent: () => import('./pages/app-entry/app-entry.page').then((m) => m.AppEntryPage),
   },
   {
     path: 'login',
@@ -16,11 +17,15 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/pending.page').then((m) => m.PendingPage),
   },
   {
-    // Authenticated shell — all protected routes render inside the shared layout
     path: '',
     canActivate: [activeUserGuard],
     loadComponent: () => import('./layout/layout.component').then((m) => m.LayoutComponent),
     children: [
+      {
+        path: 'how-it-works',
+        loadComponent: () =>
+          import('./pages/how-it-works/how-it-works.page').then((m) => m.HowItWorksPage),
+      },
       {
         path: 'chapters',
         loadComponent: () => import('./pages/chapters/chapters.page').then((m) => m.ChaptersPage),

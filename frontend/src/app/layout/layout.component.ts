@@ -155,6 +155,17 @@ interface SidebarBook extends Book {
           </svg>
           Vocabulary
         </a>
+        <a
+          routerLink="/how-it-works"
+          routerLinkActive="bg-greek-500 text-white font-semibold"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm text-greek-100 hover:bg-greek-500 hover:text-white transition-colors"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"/>
+          </svg>
+          How It Works
+        </a>
       </div>
 
       <!-- ====== BODY (sidebar + content) — pushed down by fixed header ====== -->
@@ -289,6 +300,18 @@ interface SidebarBook extends Book {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
                 <span>Curriculum</span>
+              </a>
+              <a
+                routerLink="/how-it-works"
+                routerLinkActive="bg-greek-100 text-greek-800 font-semibold"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-surface-600 hover:bg-greek-100 hover:text-greek-800 transition-colors"
+                (click)="closeSidebarOnMobile()"
+              >
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"/>
+                </svg>
+                <span>How It Works</span>
               </a>
             </div>
           </div>

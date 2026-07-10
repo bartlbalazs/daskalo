@@ -33,11 +33,16 @@ Documents representing the students.
     "initializedAt": "Timestamp",
     "updatedAt": "Timestamp"
   }, // Added by operator activation/backfill. Pending users created by the client do not include this object.
+  "onboarding": {
+    "howItWorksSeenAt": "Timestamp"
+  }, // Optional. Added by the mark-onboarding-seen function when the user first loads the How It Works page.
   "vocabularyList": [] // Reserved for future use — always created empty and never populated today (superseded in practice by chapters[].vocabulary + the ownWords/favoriteWords subcollections).
 }
 ```
 
-Client-side document creation (`AuthService._ensureUserDocument()`) writes exactly the shape above with `status: "pending"` and every `progress` field at its zero/empty value. `firestore.rules`' `users` create rule enforces this shape (status must be `"pending"`, `progress.xp == 0`, `progress.completedChapterIds` and `vocabularyList` empty, `currentBookId == ''`) so a client cannot pre-seed progress before an admin activates the account.
+Client-side document creation (`AuthService._ensureUserDocument()`) writes the pending-user subset of the shape above with `status: "pending"`, no `curriculum` or `onboarding` object, and every `progress` field at its zero/empty value. `firestore.rules`' `users` create rule enforces this shape (status must be `"pending"`, `progress.xp == 0`, `progress.completedChapterIds` and `vocabularyList` empty, `currentBookId == ''`, and no client-provided `curriculum` or `onboarding`) so a client cannot pre-seed progress, curriculum choices, or mark onboarding as seen before an admin activates the account.
+
+`onboarding` is optional. Missing `onboarding` or missing `onboarding.howItWorksSeenAt` means the user has not yet seen the authenticated How It Works orientation page. `howItWorksSeenAt` is written exclusively by the `mark-onboarding-seen` Cloud Function via Admin SDK and persists across devices.
 
 ### `books`
 The high-level groupings of content (e.g., Book 1: The Absolute Basics). Loaded from `shared/data/books/book_N.yaml` by the content-cli and upserted into this collection on ingest.

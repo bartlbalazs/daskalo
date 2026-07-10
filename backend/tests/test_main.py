@@ -37,6 +37,7 @@ def client():
         ("/complete-chapter", {"chapterId": "x"}),
         ("/add-own-word", {"text": "x", "chapterId": "x", "bookId": "x"}),
         ("/complete-practice", {"practiceSetId": "x"}),
+        ("/mark-onboarding-seen", {"key": "howItWorks"}),
     ],
 )
 def test_endpoint_reachable_and_returns_well_formed_callable_error(client, path, payload):
@@ -66,6 +67,7 @@ def test_all_endpoints_registered_in_openapi_schema(client):
         "/add-own-word",
         "/complete-practice",
         "/set-curriculum-selection",
+        "/mark-onboarding-seen",
     }
 
 

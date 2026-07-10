@@ -34,6 +34,10 @@ x-google-management:
       displayName: "Set Curriculum Selection Requests"
       valueType: INT64
       metricKind: DELTA
+    - name: "mark-onboarding-seen-requests"
+      displayName: "Mark Onboarding Seen Requests"
+      valueType: INT64
+      metricKind: DELTA
   quota:
     limits:
       - name: "evaluate-attempt-limit"
@@ -61,6 +65,11 @@ x-google-management:
         unit: "1/min/{project}"
         values:
           STANDARD: 10
+      - name: "mark-onboarding-seen-limit"
+        metric: "mark-onboarding-seen-requests"
+        unit: "1/min/{project}"
+        values:
+          STANDARD: 3
 
 # ---------------------------------------------------------------------------
 # Firebase JWT security definition
@@ -78,6 +87,72 @@ securityDefinitions:
 # Paths
 # ---------------------------------------------------------------------------
 paths:
+
+  # -------------------------------------------------------------------------
+  # /mark-onboarding-seen — POST (mark-onboarding-seen function)
+  # -------------------------------------------------------------------------
+  /mark-onboarding-seen:
+    post:
+      operationId: "markOnboardingSeen"
+      summary: "Mark an onboarding item as seen"
+      security:
+        - firebase: []
+      x-google-quota:
+        metricCosts:
+          "mark-onboarding-seen-requests": 1
+      x-google-backend:
+        address: "${mark_onboarding_seen_url}"
+        jwt_audience: "${mark_onboarding_seen_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Onboarding marker updated"
+        "400":
+          description: "Invalid argument"
+        "401":
+          description: "Unauthenticated"
+        "403":
+          description: "Permission denied"
+        "429":
+          description: "Rate limit exceeded"
+        "500":
+          description: "Internal error"
+    options:
+      operationId: "markOnboardingSeenCors"
+      summary: "CORS preflight for /mark-onboarding-seen"
+      x-google-backend:
+        address: "${mark_onboarding_seen_url}"
+        deadline: 30.0
+        protocol: h2
+      parameters:
+        - in: header
+          name: Origin
+          type: string
+        - in: header
+          name: Access-Control-Request-Method
+          type: string
+        - in: header
+          name: Access-Control-Request-Headers
+          type: string
+      responses:
+        "200":
+          description: "CORS preflight response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+            Access-Control-Max-Age:
+              type: string
 
   # -------------------------------------------------------------------------
   # /evaluate — POST (evaluate-attempt function)

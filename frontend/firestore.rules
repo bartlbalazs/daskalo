@@ -27,6 +27,8 @@ service cloud.firestore {
         && request.resource.data.progress.completedChapterIds.size() == 0
         && (!('completedPracticeSetIds' in request.resource.data.progress)
             || request.resource.data.progress.completedPracticeSetIds.size() == 0)
+        && !('curriculum' in request.resource.data)
+        && !('onboarding' in request.resource.data)
         && request.resource.data.vocabularyList.size() == 0;
       allow update, delete: if false;
 

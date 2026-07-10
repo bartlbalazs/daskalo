@@ -26,6 +26,7 @@ from firebase_admin import credentials
 from fn_complete_chapter import complete_chapter_fn
 from fn_complete_practice import complete_practice_fn
 from fn_evaluate import evaluate_attempt_fn
+from fn_mark_onboarding_seen import mark_onboarding_seen_fn
 from fn_own_word import add_own_word_fn
 from fn_set_curriculum_selection import set_curriculum_selection_fn
 
@@ -167,5 +168,13 @@ async def complete_practice_endpoint(request: Request) -> JSONResponse:
 async def set_curriculum_selection_endpoint(request: Request) -> JSONResponse:
     shim = await _shim(request)
     result = set_curriculum_selection_fn(shim)
+    body, status = result[0], result[1]
+    return JSONResponse(content=body, status_code=status)
+
+
+@app.post("/mark-onboarding-seen", summary="Mark an onboarding item as seen")
+async def mark_onboarding_seen_endpoint(request: Request) -> JSONResponse:
+    shim = await _shim(request)
+    result = mark_onboarding_seen_fn(shim)
     body, status = result[0], result[1]
     return JSONResponse(content=body, status_code=status)

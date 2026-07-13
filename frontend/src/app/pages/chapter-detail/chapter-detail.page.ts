@@ -480,7 +480,7 @@ import { SafeHtml } from '@angular/platform-browser';
                         <a [routerLink]="['/chapters', variant.id]" class="flex-1 text-center px-3 py-2 rounded-lg border border-greek-200 text-sm font-semibold text-greek-700 hover:bg-greek-50">Open</a>
                         <button
                           type="button"
-                          class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold disabled:bg-surface-100 disabled:text-surface-400 bg-greek-600 text-white"
+                          class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold disabled:bg-surface-100 disabled:text-surface-400 disabled:cursor-not-allowed bg-greek-600 text-white cursor-pointer"
                           [disabled]="isSelectedVariant(variant) || variant.isSelectableAlternative === false"
                           (click)="selectVariant(variant)"
                         >Select</button>

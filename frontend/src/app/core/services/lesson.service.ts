@@ -98,7 +98,7 @@ export class LessonService {
             chapter.curriculumChapterId === curriculumChapterId &&
             (chapter.isSelectableAlternative !== false || chapter.id === selectedId)
           )
-          .sort((a, b) => this.alternativeSort(a, b, selectedId));
+          .sort((a, b) => this.alternativeSort(a, b));
       })
     );
   }
@@ -334,9 +334,7 @@ export class LessonService {
     );
   }
 
-  private alternativeSort(a: Chapter, b: Chapter, selectedId?: string): number {
-    if (a.id === selectedId) return -1;
-    if (b.id === selectedId) return 1;
+  private alternativeSort(a: Chapter, b: Chapter): number {
     return this.newestFirst(a, b);
   }
 

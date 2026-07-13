@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, map } from 'rxjs';
@@ -26,6 +26,12 @@ interface CurriculumRow {
         <h1 class="font-serif text-3xl font-semibold text-greek-900 mb-1">Curriculum</h1>
         <p class="text-greek-700 text-sm">Choose which lesson variant appears in your course map.</p>
       </div>
+
+      @if (selectionError()) {
+        <p class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {{ selectionError() }}
+        </p>
+      }
 
       @if (rows$ | async; as rows) {
         @if (rows.length === 0) {
@@ -82,15 +88,23 @@ interface CurriculumRow {
                           <a [routerLink]="['/chapters', variant.id]" class="flex-1 text-center px-3 py-2 rounded-lg border border-greek-200 text-sm font-semibold text-greek-700 hover:bg-greek-50">Open</a>
                           <button
                             type="button"
-                            class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold"
-                            [class.bg-greek-600]="variant.id !== row.selected.id"
-                            [class.text-white]="variant.id !== row.selected.id"
-                            [class.bg-surface-100]="variant.id === row.selected.id"
-                            [class.text-surface-400]="variant.id === row.selected.id"
-                            [disabled]="variant.id === row.selected.id || variant.isSelectableAlternative === false"
+                            class="flex-1 px-3 py-2 rounded-lg text-sm font-semibold disabled:cursor-not-allowed"
+                            [class.bg-greek-600]="isSelectButtonActive(variant, row.selected.id)"
+                            [class.text-white]="isSelectButtonActive(variant, row.selected.id)"
+                            [class.cursor-pointer]="canSelectVariant(variant, row.selected.id)"
+                            [class.bg-surface-100]="!isSelectButtonActive(variant, row.selected.id)"
+                            [class.text-surface-400]="!isSelectButtonActive(variant, row.selected.id)"
+                            [disabled]="!canSelectVariant(variant, row.selected.id)"
                             (click)="select(row.curriculumChapterId, variant.id)"
                           >
-                            {{ variant.id === row.selected.id ? 'Selected' : 'Select' }}
+                            @if (selectionPendingId() === variant.id) {
+                              <span class="inline-flex items-center justify-center gap-2">
+                                <span class="h-3.5 w-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true"></span>
+                                Selecting...
+                              </span>
+                            } @else {
+                              {{ variant.id === row.selected.id ? 'Selected' : 'Select' }}
+                            }
                           </button>
                         </div>
                       </div>
@@ -109,6 +123,8 @@ export class CurriculumPage {
   private readonly lessonService = inject(LessonService);
   private readonly authService = inject(AuthService);
   private readonly user$ = toObservable(this.authService.currentUser);
+  readonly selectionPendingId = signal<string | null>(null);
+  readonly selectionError = signal<string | null>(null);
 
   readonly rows$ = combineLatest([
     this.lessonService.getBooks(),
@@ -119,11 +135,30 @@ export class CurriculumPage {
   );
 
   async select(curriculumChapterId: string, chapterId: string): Promise<void> {
-    await this.lessonService.setCurriculumSelection(curriculumChapterId, chapterId);
+    if (this.selectionPendingId()) return;
+
+    this.selectionPendingId.set(chapterId);
+    this.selectionError.set(null);
+    try {
+      await this.lessonService.setCurriculumSelection(curriculumChapterId, chapterId);
+    } catch {
+      this.selectionError.set('We could not update your curriculum selection. Please try again.');
+    } finally {
+      this.selectionPendingId.set(null);
+    }
   }
 
   isCompleted(chapterId: string): boolean {
     return this.authService.currentUser()?.progress?.completedChapterIds?.includes(chapterId) ?? false;
+  }
+
+  canSelectVariant(variant: Chapter, selectedId: string): boolean {
+    return !this.selectionPendingId() && variant.id !== selectedId && variant.isSelectableAlternative !== false;
+  }
+
+  isSelectButtonActive(variant: Chapter, selectedId: string): boolean {
+    const pendingId = this.selectionPendingId();
+    return variant.isSelectableAlternative !== false && variant.id !== selectedId && (!pendingId || pendingId === variant.id);
   }
 
   private buildRows(books: Book[], chapters: Chapter[], selectedBySlot: Record<string, string>): CurriculumRow[] {
@@ -149,7 +184,7 @@ export class CurriculumPage {
         curriculumChapterId: slot,
         order: selected.order,
         selected,
-        variants: visible.sort((a, b) => this.alternativeSort(a, b, selected.id)),
+        variants: visible.sort((a, b) => this.alternativeSort(a, b)),
       });
     }
 
@@ -162,9 +197,7 @@ export class CurriculumPage {
     return chapters.filter((chapter) => chapter.isSelectableAlternative !== false).sort((a, b) => this.generatedAtMs(b) - this.generatedAtMs(a) || b.id.localeCompare(a.id))[0];
   }
 
-  private alternativeSort(a: Chapter, b: Chapter, selectedId: string): number {
-    if (a.id === selectedId) return -1;
-    if (b.id === selectedId) return 1;
+  private alternativeSort(a: Chapter, b: Chapter): number {
     return this.generatedAtMs(b) - this.generatedAtMs(a) || b.id.localeCompare(a.id);
   }
 

@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { Firestore } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { signal } from '@angular/core';
+import { Chapter } from '../models/firestore.models';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -248,5 +249,16 @@ describe('LessonService', () => {
     await expect(pending).rejects.toThrow(/timed out/i);
 
     vi.useRealTimers();
+  });
+
+  it('sorts alternatives with missing generatedAt after dated variants', () => {
+    const oldUndated = { id: 'old-undated' } as Chapter;
+    const newDated = { id: 'new-dated', generatedAt: { toMillis: () => 2000 } } as Chapter;
+
+    const sorted = [oldUndated, newDated].sort((a, b) =>
+      (service as unknown as { alternativeSort: (a: Chapter, b: Chapter) => number }).alternativeSort(a, b)
+    );
+
+    expect(sorted.map(chapter => chapter.id)).toEqual(['new-dated', 'old-undated']);
   });
 });

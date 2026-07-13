@@ -323,7 +323,7 @@ export interface Chapter {
   introduction?: string;
   /** Reading passage as an array of {greek, english} sentence objects. */
   passage?: PassageSentence[];
-  /** Legacy plain-text passage field (may be present on older chapters). */
+  /** Greek-only plain-text passage fallback, derived from structured passage for new chapters. */
   passage_text?: string;
   passageAudioUrl?: string;
   sentenceAudioUrls?: string[];

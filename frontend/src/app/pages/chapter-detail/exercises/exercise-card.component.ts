@@ -284,7 +284,7 @@ export class ExerciseCardComponent implements OnChanges {
   @Input() passageAudioUrl = '';
   /** Structured passage sentences for click-to-translate (preferred). */
   @Input() passage: PassageSentence[] = [];
-  /** Legacy plain-text passage string (fallback for older chapters). */
+  /** Greek-only plain-text passage fallback. */
   @Input() passageText = '';
   @Input() vocabulary: VocabularyItem[] = [];
   /** Emits when the exercise result is known (correct or not). */

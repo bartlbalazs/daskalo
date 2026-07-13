@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PassageComprehensionComponent } from './passage-comprehension.component';
-import { Exercise, PassageComprehensionData } from '../../../core/models/firestore.models';
+import { Exercise, PassageComprehensionData, PassageSentence } from '../../../core/models/firestore.models';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -28,6 +28,7 @@ function createComponent(exercise: Exercise) {
   const fixture = TestBed.createComponent(PassageComprehensionComponent);
   fixture.componentInstance.exercise = exercise;
   fixture.componentInstance.ngOnChanges();
+  fixture.detectChanges();
   return fixture;
 }
 
@@ -111,6 +112,8 @@ describe('PassageComprehensionComponent — FE-08 stable identity on redundant r
     const fixture = createComponent(exercise);
     const comp = fixture.componentInstance;
 
+    fixture.componentRef.setInput('passage', [{ greek: 'Ο σκύλος τρέχει.', english: 'The dog runs.' }]);
+    fixture.detectChanges();
     comp.toggleSentence(0);
     expect(comp.revealed().has(0)).toBe(true);
 
@@ -119,5 +122,40 @@ describe('PassageComprehensionComponent — FE-08 stable identity on redundant r
     comp.ngOnChanges();
 
     expect(comp.revealed().has(0)).toBe(true);
+  });
+});
+
+describe('PassageComprehensionComponent — passage rendering', () => {
+  it('renders structured passage sentences sentence-by-sentence', () => {
+    const fixture = createComponent(makeExercise());
+    const passage: PassageSentence[] = [
+      { greek: 'Ο σκύλος τρέχει.', english: 'The dog runs.' },
+      { greek: 'Η γάτα κοιμάται.', english: 'The cat sleeps.' },
+    ];
+
+    fixture.componentRef.setInput('passage', passage);
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Ο σκύλος τρέχει.');
+    expect(text).toContain('Η γάτα κοιμάται.');
+    expect(text).toContain('Click any sentence to reveal its translation.');
+  });
+
+  it('splits legacy passage_text into sentence entries when structured passage is missing', () => {
+    const fixture = createComponent(makeExercise());
+
+    fixture.componentRef.setInput('passage', []);
+    fixture.componentRef.setInput('passageText', 'Ο σκύλος τρέχει. Η γάτα κοιμάται.');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayPassage()).toEqual([
+      { greek: 'Ο σκύλος τρέχει.', english: '' },
+      { greek: 'Η γάτα κοιμάται.', english: '' },
+    ]);
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Ο σκύλος τρέχει.');
+    expect(text).toContain('Η γάτα κοιμάται.');
   });
 });

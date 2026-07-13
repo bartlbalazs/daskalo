@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Exercise, PassageComprehensionData, PassageSentence, VocabularyItem } from '../../../core/models/firestore.models';
 import { AudioPlayerComponent } from './audio-player.component';
 import { HighlightVocabPipe } from '../../../shared/pipes/highlight-vocab.pipe';
@@ -15,32 +15,29 @@ interface QState {
   template: `
     <div class="space-y-6">
       <!-- Passage text block — sentence-by-sentence click-to-translate -->
-      @if (passage.length > 0) {
+      @if (displayPassage().length > 0) {
         <div class="bg-greek-50 border border-greek-100 rounded-xl p-4 mb-2 font-serif text-greek-900 leading-relaxed text-[15px]">
-          <p class="text-xs text-surface-400 mb-2 italic font-sans">Click any sentence to reveal its translation.</p>
-          @for (sentence of passage; track $index; let si = $index) {
+          @if (hasSentenceTranslations()) {
+            <p class="text-xs text-surface-400 mb-2 italic font-sans">Click any sentence to reveal its translation.</p>
+          }
+          @for (sentence of displayPassage(); track $index; let si = $index) {
             <span
-              class="cursor-pointer rounded px-0.5 transition-colors duration-150 inline"
-              [class]="revealed().has(si) ? 'bg-amber-100 text-amber-900' : 'hover:bg-greek-100'"
-              tabindex="0"
-              role="button"
+              class="rounded px-0.5 transition-colors duration-150 inline"
+              [class]="sentence.english ? (revealed().has(si) ? 'cursor-pointer bg-amber-100 text-amber-900' : 'cursor-pointer hover:bg-greek-100') : ''"
+              [attr.tabindex]="sentence.english ? 0 : null"
+              [attr.role]="sentence.english ? 'button' : null"
               (click)="toggleSentence(si)"
               (keydown.enter)="toggleSentence(si)"
               (keydown.space)="$event.preventDefault(); toggleSentence(si)"
-              [title]="revealed().has(si) ? sentence.english : 'Click to translate'"
+              [attr.title]="sentence.english ? (revealed().has(si) ? sentence.english : 'Click to translate') : null"
               [innerHTML]="(sentence.greek + ' ') | highlightVocab:vocabulary"
             ></span>
-            @if (revealed().has(si)) {
+            @if (sentence.english && revealed().has(si)) {
               <span class="inline-block text-xs text-amber-700 italic ml-1 mr-2 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
                 {{ sentence.english }}
               </span>
             }
           }
-        </div>
-      } @else if (passageText) {
-        <!-- Legacy fallback for old string-based passage -->
-        <div class="bg-greek-50 border border-greek-100 rounded-xl p-4 mb-2 font-serif text-greek-900 leading-relaxed text-[15px]"
-             [innerHTML]="passageText | highlightVocab:vocabulary">
         </div>
       }
 
@@ -95,7 +92,7 @@ export class PassageComprehensionComponent implements OnChanges {
   @Input() passageAudioUrl = '';
   /** Structured passage sentences for click-to-translate (preferred). */
   @Input() passage: PassageSentence[] = [];
-  /** Legacy plain-text passage string (fallback for older chapters). */
+  /** Greek-only plain-text passage fallback. */
   @Input() passageText = '';
   @Input() vocabulary: VocabularyItem[] = [];
   @Output() answered = new EventEmitter<boolean>();
@@ -103,6 +100,8 @@ export class PassageComprehensionComponent implements OnChanges {
   submitted = signal(false);
   /** Set of sentence indices whose English translation is currently revealed. */
   revealed = signal<Set<number>>(new Set());
+  displayPassage = signal<PassageSentence[]>([]);
+  hasSentenceTranslations = computed(() => this.displayPassage().some(sentence => sentence.english.trim().length > 0));
   private _states = signal<QState[]>([]);
   /** Local, independently-shuffled copy of the exercise's questions/options —
    *  never mutates `exercise.data`, which is owned by the Firestore stream
@@ -116,6 +115,8 @@ export class PassageComprehensionComponent implements OnChanges {
   private _lastIdentity: string | null = null;
 
   ngOnChanges(): void {
+    this.displayPassage.set(this.normalizedPassage());
+
     const d = this.exercise.data as unknown as PassageComprehensionData;
     const questions = d?.questions ?? [];
 
@@ -143,6 +144,8 @@ export class PassageComprehensionComponent implements OnChanges {
   }
 
   toggleSentence(index: number): void {
+    if (!this.displayPassage()[index]?.english) return;
+
     this.revealed.update(s => {
       const next = new Set(s);
       if (next.has(index)) {
@@ -225,5 +228,20 @@ export class PassageComprehensionComponent implements OnChanges {
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+  }
+
+  private splitPassageText(text: string): string[] {
+    return text
+      .split(/(?<=[.!?;;。！？])\s+/u)
+      .map(sentence => sentence.trim())
+      .filter(Boolean);
+  }
+
+  private normalizedPassage(): PassageSentence[] {
+    if (Array.isArray(this.passage) && this.passage.length > 0) {
+      return this.passage;
+    }
+
+    return this.splitPassageText(this.passageText).map(greek => ({ greek, english: '' }));
   }
 }

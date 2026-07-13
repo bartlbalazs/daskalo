@@ -10,6 +10,8 @@ prompts never contradict the allowed exercise-type set.
 
 from models.content_models import LESSON_CONFIG, LessonLength
 from prompts.content_prompts import (
+    DRAFT_LESSON_CORE_PROMPT,
+    GENERATE_EXERCISES_PROMPT,
     pronunciation_requirement_text,
     pronunciation_review_note_text,
 )
@@ -74,3 +76,21 @@ class TestAgreementWithLessonConfig:
 
             assert requirement_present == expected
             assert review_note_present == expected
+
+
+class TestDraftLessonCorePrompt:
+    def test_curriculum_constraints_override_audience_notes(self):
+        assert "IMPORTANT CONSTRAINT PRECEDENCE" in DRAFT_LESSON_CORE_PROMPT
+        assert "CEFR level, target grammar, mandatory vocabulary, and lesson length are binding" in DRAFT_LESSON_CORE_PROMPT
+        assert "influence only the scenario flavor" in DRAFT_LESSON_CORE_PROMPT
+        assert "ignore that implication for the Greek passage difficulty" in DRAFT_LESSON_CORE_PROMPT
+
+    def test_prompt_does_not_request_complex_sentence_structures(self):
+        assert "complex sentence structures" not in DRAFT_LESSON_CORE_PROMPT
+        assert "controlled variety of vocabulary" in DRAFT_LESSON_CORE_PROMPT
+
+
+class TestGenerateExercisesPrompt:
+    def test_passage_comprehension_is_required_for_every_lesson(self):
+        assert "MUST include exactly one passage_comprehension exercise" in GENERATE_EXERCISES_PROMPT
+        assert "required reading comprehension check for every lesson" in GENERATE_EXERCISES_PROMPT

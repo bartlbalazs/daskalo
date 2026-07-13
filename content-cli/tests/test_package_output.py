@@ -19,6 +19,8 @@ import json
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from models.content_models import (
     ConversationData,
     ConversationExercise,
@@ -128,6 +130,26 @@ def test_passage_audio_path_uses_dedicated_field_not_filename_sniffing(tmp_path)
     # vocab clip that also happens to contain "passage" in its (prefixed) name
     # and is listed *before* the passage clip in audio_files.
     assert descriptor["chapter"]["passageAudioPath"] == f"assets/audio/{_PREFIX}passage.mp3"
+
+
+def test_descriptor_includes_legacy_passage_text_from_structured_passage(tmp_path):
+    state = _build_state(tmp_path)
+
+    result = package_output(state)
+
+    with zipfile.ZipFile(result["output_zip_path"]) as zf:
+        descriptor = json.loads(zf.read("descriptor.json"))
+
+    assert descriptor["chapter"]["passage"] == [{"greek": "Γεια", "english": "Hello"}]
+    assert descriptor["chapter"]["passage_text"] == "Γεια"
+
+
+def test_package_output_rejects_empty_passage(tmp_path):
+    state = _build_state(tmp_path)
+    state["passage"] = []
+
+    with pytest.raises(ValueError, match="Cannot package chapter without a passage"):
+        package_output(state)
 
 
 def test_grammar_role_audio_routes_to_grammar_folder_others_do_not(tmp_path):

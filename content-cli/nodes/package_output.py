@@ -54,7 +54,11 @@ def package_output(state: ContentState) -> dict:
     book_id: str = state["book_id"]
 
     passage: list = state.get("passage", [])
+    if not passage:
+        raise ValueError("Cannot package chapter without a passage.")
+
     passage_for_descriptor = [s.model_dump() for s in passage]
+    passage_text = " ".join(s.greek for s in passage).strip()
 
     # CC-01: passage audio identity comes from the dedicated state field set by
     # generate_media.py, not from scanning audio_files for a "passage" substring.
@@ -85,6 +89,7 @@ def package_output(state: ContentState) -> dict:
             "introduction": state.get("chapter_introduction", ""),
             "languageSkill": state.get("language_skill", ""),
             "passage": passage_for_descriptor,
+            "passage_text": passage_text,
             "passageAudioPath": passage_audio_path,
             "sentenceAudioPaths": sentence_audio_paths,
             "coverImagePath": (

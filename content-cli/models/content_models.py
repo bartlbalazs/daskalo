@@ -20,7 +20,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Lesson length
@@ -624,6 +624,7 @@ class DraftLesson(BaseModel):
         description="Choose the most appropriate voice gender for narrating this passage based on its perspective or main character."
     )
     passage: list[PassageSentence] = Field(
+        min_length=1,
         description=(
             "The reading passage as a list of sentence objects. Each object has 'greek' (the Greek sentence) "
             "and 'english' (its full English translation). Do NOT return the passage as a plain string."
@@ -654,6 +655,12 @@ class ExercisesResult(BaseModel):
 
     exercises: list[Exercise]
     image_prompts: list[ImagePrompt]  # One entry per image_description exercise
+
+    @model_validator(mode="after")
+    def require_passage_comprehension(self) -> ExercisesResult:
+        if not any(getattr(exercise, "type", None) == "passage_comprehension" for exercise in self.exercises):
+            raise ValueError("Every generated lesson must include a passage_comprehension exercise.")
+        return self
 
 
 class PracticeSetResult(BaseModel):

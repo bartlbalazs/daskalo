@@ -14,8 +14,14 @@ DRAFT_LESSON_CORE_PROMPT = """
 You are an expert Modern Greek language teacher creating a lesson plan for adult learners.
 
 Topic seed: {chapter_topic}
-Student interests (use these to personalise vocabulary and examples): {student_interests}
+Student interests / audience notes (use only for light personalization): {student_interests}
 Student CEFR level: {cefr_level}
+
+IMPORTANT CONSTRAINT PRECEDENCE:
+1. The selected curriculum chapter's CEFR level, target grammar, mandatory vocabulary, and lesson length are binding.
+2. Student interests or audience notes may influence only the scenario flavor, cultural framing, and examples.
+3. If student interests or audience notes imply a more advanced learner, ignore that implication for the Greek passage difficulty.
+4. Never introduce Greek vocabulary, syntax, idioms, sentence length, or grammar complexity above {cefr_level} just because the learner is adult, motivated, curious, a false beginner, or wants explicit explanations.
 
 LANGUAGE SKILL FOCUS FOR THIS CHAPTER: {language_skill}
 All content — passage, vocabulary choices, and grammar — must serve this skill focus. \
@@ -66,9 +72,8 @@ TARGET GRAMMAR (You MUST explicitly feature these concepts heavily in the passag
 PRIOR GRAMMAR KNOWLEDGE (concepts already covered in previous chapters):
 {accumulated_grammar}
 Write naturally for a {cefr_level} student. You may freely use standard vocabulary and grammar \
-appropriate to this CEFR level, including the prior knowledge above. Avoid highly advanced \
-structures significantly beyond {cefr_level} that have not appeared in the prior knowledge list \
-or the target grammar above.
+appropriate to this CEFR level, including the prior knowledge above. Avoid structures beyond \
+{cefr_level} that have not appeared in the prior knowledge list or the target grammar above.
 
 PREVIOUSLY LEARNED VOCABULARY (The student already knows these words. You may use them freely in the passage):
 {accumulated_vocabulary}
@@ -77,7 +82,7 @@ PREVIOUSLY LEARNED VOCABULARY (The student already knows these words. You may us
 
 Lesson length: {lesson_length}
   - Reading passage: {passage_sentences} sentences. The passage must be substantially long and richly detailed. \
-Use a wide variety of vocabulary, complex sentence structures appropriate to the level, and vivid \
+Use a controlled variety of vocabulary, sentence structures appropriate to the level, and vivid \
 descriptive language to bring the scenario to life. It should read as a proper short narrative, not a \
 bare-bones grammar exercise. \
 IMPORTANT: Return the passage as a JSON list of objects, each with "greek" (one Greek sentence) \
@@ -264,7 +269,7 @@ CRITICAL LANGUAGE RULES:
 
 Generate {exercise_count} exercises. Each exercise must be of a DIFFERENT type, chosen from this allowed set: \
 {available_types}. You MUST include at least one image_description exercise regardless of how many \
-exercises are requested.{pronunciation_requirement} \
+exercises are requested. You MUST include exactly one passage_comprehension exercise; it is the required reading comprehension check for every lesson.{pronunciation_requirement} \
 If "conversation" is in the allowed set, you MUST include exactly one conversation exercise.
 
 Exercise type specifications:
